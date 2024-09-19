@@ -159,7 +159,7 @@ def main() -> None:
     log(t1w_files)
 
     t1w_nii_files = [x for x in t1w_files if ".nii.gz" in x]
-    print(f"- number of nii files: {len(t1w_nii_files)}")
+    print(f"- number of nii files: {len(t1w_nii_files)} ")
 
     # downloading all T1w files.
     log(f"- calling: cd {dataset_name}")
