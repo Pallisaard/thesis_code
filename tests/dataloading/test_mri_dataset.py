@@ -7,8 +7,7 @@ import torch
 import numpy as np
 from numpy.typing import NDArray
 
-from dataloading.mri_dataset import MRIDataset, MRISample
-import dataloading.mri_dataset
+from dataloading.mri_dataset import MRIDataset
 
 
 @pytest.fixture
