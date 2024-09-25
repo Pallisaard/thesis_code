@@ -15,10 +15,12 @@ download_and_process() {
     echo "Processing dataset: ${dataset_name}"
 
     # Download the dataset
-    python download_dataset.py --dataset-name ${dataset_name} --out-data-name ${intermediate_name}.tar.gz
+    poetry run python download_dataset.py --data-path ../../data --dataset-id ${dataset_name} --out-data-name ${intermediate_name}.tar.gz
 
     # Process the downloaded dataset
-    python process_dataset.py --data-path . --input-tar ${intermediate_name}.tar.gz --output-tar ${output_name}
+    poetry run python process_dataset.py --data-path ../../data --input-tar ${intermediate_name}.tar.gz --output-tar ${output_name}
+
+    datalad drop --what all -d ${dataset_name}
 
     # Clean up intermediate file
     rm ${intermediate_name}.tar.gz
@@ -33,7 +35,5 @@ echo "Starting dataset download and processing"
 
 # Process each dataset
 download_and_process "ds003653"
-download_and_process "ds003114"
-download_and_process "ds000140"
 
 echo "All datasets have been downloaded and processed"

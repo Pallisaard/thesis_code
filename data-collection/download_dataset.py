@@ -17,7 +17,9 @@ def parse_args() -> Namespace:
 
     # Add arguments
     parser.add_argument(
-        "--dataset-name", required=True, help="Name of the dataset (required)"
+        "--dataset-id",
+        required=True,
+        help="id for the datalad dataset in format dsXXXXXX (required)",
     )
     parser.add_argument(
         "--data-path",
@@ -136,36 +138,22 @@ LOG_TO_STDOUT = True
 
 def main() -> None:
     args = parse_args()
-    data_path: str = args.data_path
-    dataset_name: str = args.dataset_name
-    out_data_name: str = args.out_data_name
-    file_count_limit: int | None = args.file_count_limit
-    # print(f"data_path: {args.data_path}")
-    # print(f"dataset_name: {args.dataset_name}")
-    # print(f"out_data_name: {args.out_data_name}")
+    log = create_logger(to_stdout=True)
 
-    log = create_logger(to_stdout=LOG_TO_STDOUT)
+    os.chdir(args.data_path)
+    log(f"Changed working directory to: {os.getcwd()}")
 
-    # Change to
-    data_path_cwd = execute_persistant_chdir(data_path)
-    print("cwd after dir change:", data_path_cwd)
+    result = execute_zsh_command(
+        f"datalad install https://github.com/OpenNeuroDatasets/{args.dataset_id}.git"
+    )
 
-    # Finding all T1w files.
-    log("- gathering t1w files.")
-    t1w_files = find_files_with_substring(dataset_name, MRI_TYPE)
-    if file_count_limit is not None:
-        t1w_files = t1w_files[:file_count_limit]
-    log("- T1w files:")
-    log(t1w_files)
+    t1w_files = find_files_with_substring(args.dataset_id, "T1w")
+    t1w_nii_files = [f for f in t1w_files if f.endswith(".nii.gz")]
 
-    t1w_nii_files = [x for x in t1w_files if ".nii.gz" in x]
-    print(f"- number of nii files: {len(t1w_nii_files)} ")
+    log(f"Number of .nii.gz files: {len(t1w_nii_files)}")
 
-    # downloading all T1w files.
-    log(f"- calling: cd {dataset_name}")
-    dataset_path_cwd = execute_persistant_chdir(dataset_name)
-    print("cwd after dir change:", dataset_path_cwd)
-    log("- change dir successful")
+    os.chdir(args.dataset_id)
+    log(f"Changed working directory to: {os.getcwd()}")
 
     for file in t1w_files:
         log(f"- calling datalad get command for '{file}'")
@@ -174,27 +162,18 @@ def main() -> None:
         # log(f"- get result return code: '{get_result.returncode}'")
         log(f"  - {(get_result.stdout, get_result.returncode)}")
 
-    log("- calling: cd ..")
-    back_path_cwd = execute_persistant_chdir("..")
-    print("cwd after dir change:", back_path_cwd)
-    log("- change dir successful")
+    os.chdir("..")
+    log(f"Changed working directory to: {os.getcwd()}")
 
-    # Export downloads to tar.gz
-    datalad_export_command = (
-        f"datalad export-archive -d {dataset_name}"
-        + f" --missing-content ignore {out_data_name}"
-    )
-    log(f"exporting data to '{out_data_name}'")
-    export_results = execute_zsh_command(datalad_export_command)
-    log("- export results")
-    log((export_results.stdout, export_results.returncode))
+    export_command = f"datalad export-archive -d {args.dataset_id} --missing-content ignore {args.out_data_name}"
+    log(f"Exporting data to: {args.out_data_name}")
+    export_result = execute_zsh_command(export_command)
+    log(f"Export result: {(export_result.stdout, export_result.returncode)}")
 
-    # Drop datalad dataset
-    datalad_drop_command = f"datalad drop --what filecontent -d {dataset_name}"
-    log("- dropping old dataset")
-    drop_results = execute_zsh_command(datalad_drop_command)
-    log("- drop results:")
-    log((drop_results.stdout, drop_results.returncode))
+    drop_command = f"datalad drop --what filecontent -d {args.dataset_id}"
+    log("Dropping old dataset")
+    drop_result = execute_zsh_command(drop_command)
+    log(f"Drop result: {(drop_result.stdout, drop_result.returncode)}")
 
 
 if __name__ == "__main__":
