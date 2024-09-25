@@ -20,10 +20,10 @@ download_and_process() {
     # Process the downloaded dataset
     python3 process_dataset.py --data-path ../../data --input-tar ${intermediate_name}.tar.gz --output-tar ${output_name}.tar.gz
 
-    #  datalad drop --what all -d ${dataset_name}
+    datalad drop --what all -d ${dataset_name}
 
-    # Clean up intermediate file
-    # rm ${intermediate_name}.tar.gz
+    Clean up intermediate file
+    rm ${intermediate_name}.tar.gz
 
     echo "Completed processing ${dataset_name}"
     echo "Output file: ${output_name}"
