@@ -155,7 +155,7 @@ def main() -> None:
     os.chdir(args.dataset_id)
     log(f"Changed working directory to: {os.getcwd()}")
 
-    for file in t1w_files:
+    for file in t1w_nii_files:
         log(f"- calling datalad get command for '{file}'")
         datalad_get_command = f"datalad get {file}"
         get_result = execute_zsh_command(datalad_get_command)
@@ -170,10 +170,10 @@ def main() -> None:
     export_result = execute_zsh_command(export_command)
     log(f"Export result: {(export_result.stdout, export_result.returncode)}")
 
-    drop_command = f"datalad drop --what filecontent -d {args.dataset_id}"
-    log("Dropping old dataset")
-    drop_result = execute_zsh_command(drop_command)
-    log(f"Drop result: {(drop_result.stdout, drop_result.returncode)}")
+    # drop_command = f"datalad drop --what filecontent -d {args.dataset_id}"
+    # log("Dropping old dataset")
+    # drop_result = execute_zsh_command(drop_command)
+    # log(f"Drop result: {(drop_result.stdout, drop_result.returncode)}")
 
 
 if __name__ == "__main__":

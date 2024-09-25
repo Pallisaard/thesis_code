@@ -10,20 +10,20 @@
 download_and_process() {
     local dataset_name=$1
     local intermediate_name="${dataset_name}_intermediate"
-    local output_name="${dataset_name}-extracted-data.tar.gz"
+    local output_name="${dataset_name}-extracted-data"
 
     echo "Processing dataset: ${dataset_name}"
 
     # Download the dataset
-    python3 download_dataset.py --data-path ../../data --dataset-id ${dataset_name} --out-data-name ${intermediate_name}.tar.gz
+    python3 download_dataset.py --data-path ../../data --dataset-id ${dataset_name} --out-data-name ${intermediate_name}
 
     # Process the downloaded dataset
-    python3 process_dataset.py --data-path ../../data --input-tar ${intermediate_name}.tar.gz --output-tar ${output_name}
+    python3 process_dataset.py --data-path ../../data --input-tar ${intermediate_name}.tar.gz --output-tar ${output_name}.tar.gz
 
-    datalad drop --what all -d ${dataset_name}
+    #  datalad drop --what all -d ${dataset_name}
 
     # Clean up intermediate file
-    rm ${intermediate_name}.tar.gz
+    # rm ${intermediate_name}.tar.gz
 
     echo "Completed processing ${dataset_name}"
     echo "Output file: ${output_name}"
