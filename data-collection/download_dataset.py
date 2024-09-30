@@ -5,7 +5,7 @@ import tarfile
 import tempfile
 import argparse
 from pathlib import Path
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Optional
 
 
 def parse_args() -> argparse.Namespace:
@@ -28,7 +28,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def process_exported_data(
-    tar_path: str, files_to_delete: List[str], output_path: Optional[str] = None
+    tar_path: str, files_to_delete: list[str], output_path: Optional[str] = None
 ) -> None:
     output_path = output_path or tar_path.replace(".tar.gz", "_processed.tar.gz")
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -41,7 +41,7 @@ def process_exported_data(
             tar.add(extracted_dir, arcname=os.path.basename(extracted_dir))
 
 
-def delete_files_from_list(directory: str, file_list: List[str]) -> None:
+def delete_files_from_list(directory: str, file_list: list[str]) -> None:
     directory_path = Path(directory).resolve()
     for relative_path in file_list:
         (directory_path / relative_path).unlink(missing_ok=True)
@@ -55,11 +55,11 @@ def create_logger(to_stdout: bool) -> Callable[[Any], None]:
     return log
 
 
-def split_except_single_quoted(string: str) -> List[str]:
+def split_except_single_quoted(string: str) -> list[str]:
     return re.split(r"\s+(?=(?:[^\']*\'[^\']*\')*[^\']*$)", string)
 
 
-def execute_zsh_command(
+def execute_terminal_command(
     command: str, capture_output: bool = True, text: bool = True, **kwargs
 ) -> subprocess.CompletedProcess:
     command_and_args = split_except_single_quoted(command)
@@ -68,7 +68,7 @@ def execute_zsh_command(
     )
 
 
-def find_files_with_substring(directory: str, substring: str) -> List[str]:
+def find_files_with_substring(directory: str, substring: str) -> list[str]:
     return [
         str(file.relative_to(directory))
         for file in Path(directory).rglob("*")
@@ -90,7 +90,7 @@ def main() -> None:
 
     for file in t1w_nii_files:
         log(f"Downloading: {file}")
-        result = execute_zsh_command(f"datalad get {file}")
+        result = execute_terminal_command(f"datalad get {file}")
         log(f"Download result: {(result.stdout, result.returncode)}")
 
     os.chdir("..")
@@ -98,12 +98,12 @@ def main() -> None:
 
     export_command = f"datalad export-archive -d {args.dataset_name} --missing-content ignore {args.out_data_name}"
     log(f"Exporting data to: {args.out_data_name}")
-    export_result = execute_zsh_command(export_command)
+    export_result = execute_terminal_command(export_command)
     log(f"Export result: {(export_result.stdout, export_result.returncode)}")
 
     drop_command = f"datalad drop --what filecontent -d {args.dataset_name}"
     log("Dropping old dataset")
-    drop_result = execute_zsh_command(drop_command)
+    drop_result = execute_terminal_command(drop_command)
     log(f"Drop result: {(drop_result.stdout, drop_result.returncode)}")
 
 

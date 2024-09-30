@@ -47,7 +47,7 @@ def main():
 
 
 def download_and_process(dataset_name, out_name, flat_join):
-    intermediate_name = f"{dataset_name}_intermediate"
+    intermediate_name = f"{dataset_name}-intermediate"
     output_name_long = f"{dataset_name}-extracted.tar.gz"
     output_name_short = f"{dataset_name}.tar.gz"
     extracted_folder = out_name
