@@ -28,7 +28,7 @@ run_fastsurfer() {
                     /FastSurfer/run_fastsurfer.sh \
                     --fs_license /fs_license/license.txt \
                     --t1 $input_file --sid $subject_id --sd /output \
-                    --seg_only --no_cereb --no_hypothal
+                    --seg_only --no_cereb --no_hypothal --no_biasfield
 }
 
 # Call the function with the provided arguments
