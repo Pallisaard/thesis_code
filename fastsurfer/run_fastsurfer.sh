@@ -23,9 +23,10 @@ run_fastsurfer() {
                     -B /home/projects/thesis/data:/data \
                     -B /home/projects/thesis/fastsurfer_output:/output \
                     -B /.fastsurfer:/fs_license \
-                    ./fastsurfer/fastsurfer-gpu.sif \
+                    ./singularity/fastsurfer-gpu.sif \
                     ../../FastSurfer/run_fastsurfer.sh \
-                    "$input_file" "$subject_id"
+                    --fs_license /fs_license/license.txt \
+                    --t1 $input_file --sid $subject_id --sd /output
 }
 
 # Call the function with the provided arguments
