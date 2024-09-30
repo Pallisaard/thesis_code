@@ -24,7 +24,7 @@ run_fastsurfer() {
                     -B ~/home/projects/thesis/fastsurfer-output:/output \
                     -B ~/fastsurfer:/fs_license \
                     ~/singularity/fastsurfer-gpu.sif \
-                    ../../FastSurfer/run_fastsurfer.sh \
+                    ~/home/projects/thesis/FastSurfer/run_fastsurfer.sh \
                     --fs_license /fs_license/license.txt \
                     --t1 $input_file --sid $subject_id --sd /output
 }
