@@ -42,16 +42,7 @@ def main():
     for dataset_name in args.dataset_names:
         download_and_process(dataset_name, args.out_name, args.flat_join)
 
-        drop_original_dataset(dataset_name)
-
     print("All datasets have been downloaded and processed")
-
-
-def drop_original_dataset(dataset_name):
-    drop_command = f"datalad drop --what filecontent -d {dataset_name}"
-    print("Dropping old dataset")
-    drop_result = execute_terminal_command(drop_command)
-    print(f"Drop result: {(drop_result.stdout, drop_result.returncode)}")
 
 
 def download_and_process(dataset_name, out_name, flat_join):

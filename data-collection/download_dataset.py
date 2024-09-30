@@ -89,10 +89,15 @@ def main() -> None:
     os.chdir("..")
     print(f"Changed working directory to: {os.getcwd()}")
 
-    export_command = f"datalad export-archive -d {args.dataset_name} --missing-content ignore {args.out_data_name}"
+    export_command = f"datalad export-archive --missing-content ignore -d {args.dataset_name} {args.out_data_name}"
     print(f"Exporting data to: {args.out_data_name}")
     export_result = execute_terminal_command(export_command)
     print(f"Export result: {(export_result.stdout, export_result.returncode)}")
+
+    drop_command = f"datalad drop --what filecontent -d {args.dataset_name}"
+    print("Dropping old dataset")
+    drop_result = execute_terminal_command(drop_command)
+    print(f"Drop result: {(drop_result.stdout, drop_result.returncode)}")
 
 
 if __name__ == "__main__":
