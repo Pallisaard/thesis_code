@@ -14,11 +14,6 @@ def parse_args() -> argparse.Namespace:
         "--dataset-name", required=True, help="Name of the dataset (required)"
     )
     parser.add_argument(
-        "--data-path",
-        default=".",
-        help="Path to the data directory (default: current directory)",
-    )
-    parser.add_argument(
         "--out-data-name",
         default="out_data",
         help="Name of the output data (default: out_data)",
@@ -84,9 +79,6 @@ def find_files_with_substring(directory: str, substring: str) -> List[str]:
 def main() -> None:
     args = parse_args()
     log = create_logger(to_stdout=True)
-
-    os.chdir(args.data_path)
-    log(f"Changed working directory to: {os.getcwd()}")
 
     t1w_files = find_files_with_substring(args.dataset_name, "T1w")
     t1w_nii_files = [f for f in t1w_files if f.endswith(".nii.gz")]
