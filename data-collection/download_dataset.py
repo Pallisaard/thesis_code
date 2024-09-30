@@ -1,11 +1,11 @@
-import subprocess
 import os
-import re
 import tarfile
 import tempfile
 import argparse
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Optional
+
+from utils import execute_terminal_command
 
 
 def parse_args() -> argparse.Namespace:
@@ -53,19 +53,6 @@ def delete_files_from_list(directory: str, file_list: list[str]) -> None:
         (directory_path / relative_path).unlink(missing_ok=True)
 
 
-def split_except_single_quoted(string: str) -> list[str]:
-    return re.split(r"\s+(?=(?:[^\']*\'[^\']*\')*[^\']*$)", string)
-
-
-def execute_terminal_command(
-    command: str, capture_output: bool = True, text: bool = True, **kwargs
-) -> subprocess.CompletedProcess:
-    command_and_args = split_except_single_quoted(command)
-    return subprocess.run(
-        command_and_args, capture_output=capture_output, text=text, **kwargs
-    )
-
-
 def find_files_with_substring(directory: str, substring: str) -> list[str]:
     return [
         str(file.relative_to(directory))
@@ -106,11 +93,6 @@ def main() -> None:
     print(f"Exporting data to: {args.out_data_name}")
     export_result = execute_terminal_command(export_command)
     print(f"Export result: {(export_result.stdout, export_result.returncode)}")
-
-    drop_command = f"datalad drop --what filecontent -d {args.dataset_name}"
-    print("Dropping old dataset")
-    drop_result = execute_terminal_command(drop_command)
-    print(f"Drop result: {(drop_result.stdout, drop_result.returncode)}")
 
 
 if __name__ == "__main__":
