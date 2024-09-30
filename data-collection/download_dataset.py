@@ -94,7 +94,7 @@ def main() -> None:
     export_result = execute_terminal_command(export_command)
     print(f"Export result: {(export_result.stdout, export_result.returncode)}")
 
-    drop_command = f"datalad drop --what filecontent -d {args.dataset_name}"
+    drop_command = f"datalad drop --what all -d {args.dataset_name}"
     print("Dropping old dataset")
     drop_result = execute_terminal_command(drop_command)
     print(f"Drop result: {(drop_result.stdout, drop_result.returncode)}")
