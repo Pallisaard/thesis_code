@@ -28,3 +28,5 @@ run_fastsurfer() {
                     --sid ${subjectId} --sd /output \
                     --py python3 --seg_only
 }
+
+run_fastsurfer()
