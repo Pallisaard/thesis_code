@@ -21,7 +21,7 @@ run_fastsurfer() {
     singularity exec --nv \
                     --no-home \
                     -B ~/home/projects/thesis/data:/data \
-                    -B ~/home/projects/thesis/fastsurfer_output:/output \
+                    -B ~/home/projects/thesis/fastsurfer-output:/output \
                     -B ~/fastsurfer:/fs_license \
                     ~/singularity/fastsurfer-gpu.sif \
                     ../../FastSurfer/run_fastsurfer.sh \
