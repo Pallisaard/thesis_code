@@ -16,12 +16,12 @@ def main():
     )
     parser.add_argument(
         "--data-path",
-        type="str",
+        type=str,
         default=".",
         help="Path to the data directory (default: current directory)",
     )
     parser.add_argument(
-        "--flat_join",
+        "--flat-join",
         action="store_true",
         help="Boolean flag for flat join (functionality to be implemented).",
     )
