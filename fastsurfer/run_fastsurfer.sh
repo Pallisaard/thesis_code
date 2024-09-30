@@ -29,4 +29,4 @@ run_fastsurfer() {
                     --py python3 --seg_only
 }
 
-run_fastsurfer()
+run_fastsurfer
