@@ -4230,8 +4230,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-<<<<<<< HEAD
 content-hash = "949d95834e59d5c0a68cac6246a28b6ad6a153ba808ebc9daa0879a6fcab2274"
-=======
-content-hash = "5136758d9d1971fbfc1ab3c4866ba5c369b7eae1e7a7ec84e3d14f48e364867e"
->>>>>>> 940b0b3 (Added fastsurfer notes for myself)
