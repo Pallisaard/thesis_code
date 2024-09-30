@@ -87,7 +87,7 @@ def main() -> None:
 
     print(f"installing dataset: {args.dataset_name}")
     install_commmand = (
-        f"datalad install https://github.com/OpenNeuroDatasets/{args.dataset}.git"
+        f"datalad install https://github.com/OpenNeuroDatasets/{args.dataset_name}.git"
     )
     execute_terminal_command(install_commmand)
 
