@@ -77,11 +77,6 @@ def find_files_with_substring(directory: str, substring: str) -> list[str]:
 def main() -> None:
     args = parse_args()
 
-    t1w_files = find_files_with_substring(args.dataset_name, "T1w")
-    t1w_nii_files = [f for f in t1w_files if f.endswith(".nii.gz")]
-
-    print(f"Number of .nii.gz files: {len(t1w_nii_files)}")
-
     os.chdir(args.data_path)
     print(f"Changed working directory to: {os.getcwd()}")
 
@@ -93,6 +88,11 @@ def main() -> None:
 
     os.chdir(args.dataset_name)
     print(f"Changed working directory to: {os.getcwd()}")
+
+    t1w_files = find_files_with_substring(".", "T1w")
+    t1w_nii_files = [f for f in t1w_files if f.endswith(".nii.gz")]
+
+    print(f"Number of .nii.gz files: {len(t1w_nii_files)}")
 
     for file in t1w_nii_files:
         print(f"Downloading: {file}")
