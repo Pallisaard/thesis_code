@@ -53,14 +53,6 @@ def delete_files_from_list(directory: str, file_list: list[str]) -> None:
         (directory_path / relative_path).unlink(missing_ok=True)
 
 
-def create_logger(to_stdout: bool) -> Callable[[Any], None]:
-    def log(log_val: Any) -> None:
-        if to_stdout:
-            print(log_val) if isinstance(log_val, str) else print(repr(log_val))
-
-    return log
-
-
 def split_except_single_quoted(string: str) -> list[str]:
     return re.split(r"\s+(?=(?:[^\']*\'[^\']*\')*[^\']*$)", string)
 
@@ -84,36 +76,41 @@ def find_files_with_substring(directory: str, substring: str) -> list[str]:
 
 def main() -> None:
     args = parse_args()
-    log = create_logger(to_stdout=True)
 
     t1w_files = find_files_with_substring(args.dataset_name, "T1w")
     t1w_nii_files = [f for f in t1w_files if f.endswith(".nii.gz")]
 
-    log(f"Number of .nii.gz files: {len(t1w_nii_files)}")
+    print(f"Number of .nii.gz files: {len(t1w_nii_files)}")
 
     os.chdir(args.data_path)
     print(f"Changed working directory to: {os.getcwd()}")
 
+    print(f"installing dataset: {args.dataset_name}")
+    install_commmand = (
+        f"datalad install https://github.com/OpenNeuroDatasets/{args.dataset}.git"
+    )
+    execute_terminal_command(install_commmand)
+
     os.chdir(args.dataset_name)
-    log(f"Changed working directory to: {os.getcwd()}")
+    print(f"Changed working directory to: {os.getcwd()}")
 
     for file in t1w_nii_files:
-        log(f"Downloading: {file}")
+        print(f"Downloading: {file}")
         result = execute_terminal_command(f"datalad get {file}")
-        log(f"Download result: {(result.stdout, result.returncode)}")
+        print(f"Download result: {(result.stdout, result.returncode)}")
 
     os.chdir("..")
-    log(f"Changed working directory to: {os.getcwd()}")
+    print(f"Changed working directory to: {os.getcwd()}")
 
     export_command = f"datalad export-archive -d {args.dataset_name} --missing-content ignore {args.out_data_name}"
-    log(f"Exporting data to: {args.out_data_name}")
+    print(f"Exporting data to: {args.out_data_name}")
     export_result = execute_terminal_command(export_command)
-    log(f"Export result: {(export_result.stdout, export_result.returncode)}")
+    print(f"Export result: {(export_result.stdout, export_result.returncode)}")
 
     drop_command = f"datalad drop --what filecontent -d {args.dataset_name}"
-    log("Dropping old dataset")
+    print("Dropping old dataset")
     drop_result = execute_terminal_command(drop_command)
-    log(f"Drop result: {(drop_result.stdout, drop_result.returncode)}")
+    print(f"Drop result: {(drop_result.stdout, drop_result.returncode)}")
 
 
 if __name__ == "__main__":
