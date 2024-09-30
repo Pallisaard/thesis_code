@@ -77,7 +77,7 @@ def main() -> None:
     print(f"Changed working directory to: {os.getcwd()}")
 
     t1w_files = find_files_with_substring(".", "T1w")
-    t1w_nii_files = [f for f in t1w_files if f.endswith(".nii.gz")]
+    t1w_nii_files = [f for f in t1w_files if f.endswith(".nii.gz")][0:5]
 
     print(f"Number of .nii.gz files: {len(t1w_nii_files)}")
 
@@ -94,10 +94,10 @@ def main() -> None:
     export_result = execute_terminal_command(export_command)
     print(f"Export result: {(export_result.stdout, export_result.returncode)}")
 
-    drop_command = f"datalad drop --what filecontent -d {args.dataset_name}"
-    print("Dropping old dataset")
-    drop_result = execute_terminal_command(drop_command)
-    print(f"Drop result: {(drop_result.stdout, drop_result.returncode)}")
+    # drop_command = f"datalad drop --what filecontent -d {args.dataset_name}"
+    # print("Dropping old dataset")
+    # drop_result = execute_terminal_command(drop_command)
+    # print(f"Drop result: {(drop_result.stdout, drop_result.returncode)}")
 
 
 if __name__ == "__main__":
