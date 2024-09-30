@@ -8,8 +8,6 @@ import nibabel as nib
 
 class MRISample(TypedDict):
     image: torch.Tensor
-    filename: str
-    label: str | int | None
 
 
 class MRIDataset(Dataset):
@@ -29,13 +27,8 @@ class MRIDataset(Dataset):
             img = nib.load(str(file))  # type: ignore
             img_data = img.get_fdata()  # type: ignore
             tensor_data = torch.from_numpy(img_data)
-
-            sample: MRISample = {
-                "image": tensor_data,
-                "filename": str(file),
-                "label": None,
-            }
-            self.samples.append(sample)
+            sample: MRISample = {"image": tensor_data}
+            samples.append(sample)
 
         print(f"{len(samples)} MRI images loaded.")
         return samples
