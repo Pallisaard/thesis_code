@@ -22,9 +22,10 @@ run_fastsurfer() {
                     --no-home \
                     -B ~/home/projects/thesis/data:/data \
                     -B ~/home/projects/thesis/fastsurfer-output:/output \
+                    -B ~/home/projects/thesis/FastSurfer:/FastSurfer \
                     -B ~/fastsurfer:/fs_license \
                     ~/singularity/fastsurfer-gpu.sif \
-                    ~/home/projects/thesis/FastSurfer/run_fastsurfer.sh \
+                    /FastSurfer/run_fastsurfer.sh \
                     --fs_license /fs_license/license.txt \
                     --t1 $input_file --sid $subject_id --sd /output
 }
