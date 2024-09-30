@@ -14,6 +14,12 @@ def parse_args() -> argparse.Namespace:
         "--dataset-name", required=True, help="Name of the dataset (required)"
     )
     parser.add_argument(
+        "--data-path",
+        type=str,
+        default=".",
+        help="Path to the data directory (default: current directory)",
+    )
+    parser.add_argument(
         "--out-data-name",
         default="out_data",
         help="Name of the output data (default: out_data)",
@@ -84,6 +90,9 @@ def main() -> None:
     t1w_nii_files = [f for f in t1w_files if f.endswith(".nii.gz")]
 
     log(f"Number of .nii.gz files: {len(t1w_nii_files)}")
+
+    os.chdir(args.data_path)
+    print(f"Changed working directory to: {os.getcwd()}")
 
     os.chdir(args.dataset_name)
     log(f"Changed working directory to: {os.getcwd()}")

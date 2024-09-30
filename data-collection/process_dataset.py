@@ -14,6 +14,12 @@ def parse_args():
         "--input-tar", required=True, help="Name of the input tar.gz file"
     )
     parser.add_argument(
+        "--data-path",
+        type=str,
+        default=".",
+        help="Path to the data directory (default: current directory)",
+    )
+    parser.add_argument(
         "--output-tar", required=True, help="Name of the output tar.gz file"
     )
     parser.add_argument(
@@ -63,6 +69,10 @@ def process_dataset(input_tar, output_tar, flat_join):
 
 def main():
     args = parse_args()
+
+    os.chdir(args.data_path)
+    print(f"Changed working directory to: {os.getcwd()}")
+
     process_dataset(args.input_tar, args.output_tar, args.flat_join)
     print(f"Processed dataset saved to {args.output_tar}")
 

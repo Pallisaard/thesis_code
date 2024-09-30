@@ -36,9 +36,6 @@ def main():
 
     print("Starting dataset download and processing")
 
-    os.chdir(args.data_path)
-    print(f"Changed working directory to: {os.getcwd()}")
-
     # Process each dataset
     for dataset in args.dataset_names:
         download_and_process(dataset, args.out_name, args.flat_join)
