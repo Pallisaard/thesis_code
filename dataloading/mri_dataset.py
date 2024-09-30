@@ -8,37 +8,30 @@ import nibabel as nib
 
 class MRISample(TypedDict):
     image: torch.Tensor
-    filename: str
-    label: str | int | None
 
 
 class MRIDataset(Dataset):
-    def __init__(self, data_path):
-        self.data_path = Path(data_path)
-        self.name = self.data_path.name
-        self.samples: list[MRISample] = []
+    def __init__(self, data_path: str | Path):
+        self.data_path: Path = Path(data_path)
+        self.name: str = self.data_path.name
+        self.samples: list[MRISample] = self._load_dataset(self.data_path)
 
-        self._load_dataset()
-
-    def _load_dataset(self):
-        scans_dir = self.data_path / "scans"
+    def _load_dataset(self, data_path: Path) -> list[MRISample]:
+        scans_dir = data_path / "scans"
         if not scans_dir.exists():
-            raise ValueError(f"Scans directory not found in {self.data_path}")
+            raise ValueError(f"Scans directory not found in {data_path}")
 
+        samples: list[MRISample] = []
         for i, file in enumerate(scans_dir.glob("**/*.nii.gz")):
             print(f"loading file {i}:{file}")
             img = nib.load(str(file))  # type: ignore
             img_data = img.get_fdata()  # type: ignore
             tensor_data = torch.from_numpy(img_data)
+            sample: MRISample = {"image": tensor_data}
+            samples.append(sample)
 
-            sample: MRISample = {
-                "image": tensor_data,
-                "filename": str(file),
-                "label": None,
-            }
-            self.samples.append(sample)
-
-        print(f"Loaded {len(self.samples)} MRI images from {self.name} dataset")
+        print(f"{len(samples)} MRI images loaded.")
+        return samples
 
     def __len__(self) -> int:
         return len(self.samples)
@@ -50,10 +43,23 @@ class MRIDataset(Dataset):
         return f"MRIDataset({self.name}, {self.data_path})"
 
 
+def get_val_dataset(path: str) -> MRIDataset:
+    test_path = Path(path) / "val"
+    return MRIDataset(test_path)
+
+
+def get_train_dataset(path: str) -> MRIDataset:
+    train_path = Path(path) / "train"
+    return MRIDataset(train_path)
+
+
+def get_mri_dataset(path: str) -> MRIDataset:
+    return MRIDataset(path)
+
+
 # Example usage:
 if __name__ == "__main__":
     dataset = MRIDataset("../data/ds000140-distinct-brain-systems-extracted")
     print(f"Dataset size: {len(dataset)}")
     sample = dataset[0]
     print(f"Sample image shape: {sample['image'].shape}")
-    print(f"Sample filename: {sample['filename']}")
