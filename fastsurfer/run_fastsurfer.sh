@@ -20,10 +20,10 @@ run_fastsurfer() {
 
     singularity exec --nv \
                     --no-home \
-                    -B /home/projects/thesis/data:/data \
-                    -B /home/projects/thesis/fastsurfer_output:/output \
-                    -B /.fastsurfer:/fs_license \
-                    ./singularity/fastsurfer-gpu.sif \
+                    -B ~/home/projects/thesis/data:/data \
+                    -B ~/home/projects/thesis/fastsurfer_output:/output \
+                    -B ~/fastsurfer:/fs_license \
+                    ~/singularity/fastsurfer-gpu.sif \
                     ../../FastSurfer/run_fastsurfer.sh \
                     --fs_license /fs_license/license.txt \
                     --t1 $input_file --sid $subject_id --sd /output
