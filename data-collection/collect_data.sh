@@ -126,18 +126,11 @@ fi
 # move all *T1w*.nii.gz files into it
 echo "Moving all T1w NIfTI images to ./final-dataset/scans..."
 for dataset in "${datasets[@]}"; do
-  mv exported-datasets/"$dataset"/**/*T1w*.nii.gz final-dataset/scans
+  mv exported-datasets/exported-"$dataset"/**/*T1w*.nii.gz final-dataset/scans
   for file in final-dataset/scans/*T1w*.nii.gz; do
     mv "$file" final-dataset/scans/"$dataset"-"$(basename "$file")"
   done
 done
-# mv exported-datasets/**/*T1w*.nii.gz final-dataset/scans
-# # Append the dataset name to the filename
-# for dataset in "${datasets[@]}"; do
-#   for file in final-dataset/scans/*T1w*.nii.gz; do
-#     mv "$file" final-dataset/scans/"$dataset"-"$(basename "$file")"
-#   done
-# done
 
 # for each dataset, create a folder in final-dataset with the same name and move all non-folders from the base dataset (and not its subdirectories) folder into it
 echo "Moving all non-T1w NIfTI images to ./final-dataset..."
