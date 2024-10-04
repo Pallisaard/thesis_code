@@ -3,12 +3,13 @@
 # Enable globstar for recursive globbing on bash
 shopt -s globstar
 
+    # "ds003097" "ds002790" "ds002785" "ds005375" \
+    # "ds004711" "ds003653" "ds001747" "ds003826" \
+    # "ds002345" "ds005455" "ds005026" "ds004285" \
+    # "ds004217" "ds003849" "ds003717" "ds004499" \
+
 # Initialize array for datasets
 datasets=( \
-    "ds003097" "ds002790" "ds002785" "ds005375" \
-    "ds004711" "ds003653" "ds001747" "ds003826" \
-    "ds002345" "ds005455" "ds005026" "ds004285" \
-    "ds004217" "ds003849" "ds003717" "ds004499" \
     "ds002242" "ds002655" "ds002898" \
 ) # Add your datasets here
 DATA_PATH="$1"
@@ -47,7 +48,7 @@ cd openneuro
 # fetch all the datasets
 echo "fetching datasets..."
 for dataset in "${datasets[@]}"; do
-    datalad get -n "$dataset"
+    datalad get -j 3 -n "$dataset" 
 done
 
 # download all T1w nifty images
