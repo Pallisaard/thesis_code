@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Enable globstar for recursive globbing on bash
+shopt -s globstar
+
 # "ds003097" "ds002790" "ds002785" "ds005375" \
 #     "ds004711" "ds003653" "ds001747" "ds003826" \
 #     "ds002345" "ds005455" "ds005026" "ds004285" \
