@@ -48,66 +48,66 @@ for dataset in "${datasets[@]}"; do
     datalad get -n "$dataset"
 done
 
-# # download all T1w nifty images
-# echo "downloading all T1w nifty images..."
-# datalad get **/*T1w*.nii.gz
+# download all T1w nifty images
+echo "downloading all T1w nifty images..."
+datalad get **/*T1w*.nii.gz
 
-# echo "lsing ../"
-# ls ../
+echo "lsing ../"
+ls ../
 
-# # export all datasets
-# echo "exporting datasets and moving them to ./.."
-# for dataset in "${datasets[@]}"; do
-#     datalad export-archive -d "$dataset" --missing-content continue exported-"$dataset"
-#     mv exported-"$dataset".tar.gz ../exported-datasets/"$dataset".tar.gz
-# done
+# export all datasets
+echo "exporting datasets and moving them to ./.."
+for dataset in "${datasets[@]}"; do
+    datalad export-archive -d "$dataset" --missing-content continue exported-"$dataset"
+    mv exported-"$dataset".tar.gz ../exported-datasets/"$dataset".tar.gz
+done
 
-# # # cd back to the base directory
-# echo "changing back to ./.."
-# cd ..
+# # cd back to the base directory
+echo "changing back to ./.."
+cd ..
 
-# # # clean up the openneuro directory
-# echo "cleaning up..."
-# datalad drop --what all -d openneuro --recursive
+# # clean up the openneuro directory
+echo "cleaning up..."
+datalad drop --what all -d openneuro --recursive
 
-# # unzip and untar all the tar.gz datasets into a folder with the same name
-# echo "unzipping and untarring all datasets..."
-# for dataset in "${datasets[@]}"; do
-#     tar -xzf exported-datasets/"$dataset".tar.gz -C exported-datasets
-# done
+# unzip and untar all the tar.gz datasets into a folder with the same name
+echo "unzipping and untarring all datasets..."
+for dataset in "${datasets[@]}"; do
+    tar -xzf exported-datasets/"$dataset".tar.gz -C exported-datasets
+done
 
-# # remove the tar.gz files
-# echo "removing tar.gz files..."
-# rm exported-datasets/*.tar.gz
+# remove the tar.gz files
+echo "removing tar.gz files..."
+rm exported-datasets/*.tar.gz
 
-# # make a ../final-dataset/scans folder
-# if [ ! -d "final-dataset" ]; then
-#     mkdir final-dataset
-#     mkdir final-dataset/scans
-# else
-#     rm -rf final-dataset/*
-#     mkdir final-dataset/scans
-# fi
+# make a ../final-dataset/scans folder
+if [ ! -d "final-dataset" ]; then
+    mkdir final-dataset
+    mkdir final-dataset/scans
+else
+    rm -rf final-dataset/*
+    mkdir final-dataset/scans
+fi
 
-# # move all *T1w*.nii.gz files into it
-# echo "Moving all T1w NIfTI images to ./final-dataset/scans..."
-# for dataset in "${datasets[@]}"; do
-#     mv exported-datasets/exported-"$dataset"/**/*T1w*.nii.gz final-dataset/scans
-#     for file in final-dataset/scans/*T1w*.nii.gz; do
-#         mv "$file" final-dataset/scans/"$dataset"-"$(basename "$file")"
-#     done
-# done
+# move all *T1w*.nii.gz files into it
+echo "Moving all T1w NIfTI images to ./final-dataset/scans..."
+for dataset in "${datasets[@]}"; do
+    mv exported-datasets/exported-"$dataset"/**/*T1w*.nii.gz final-dataset/scans
+    for file in final-dataset/scans/*T1w*.nii.gz; do
+        mv "$file" final-dataset/scans/"$dataset"-"$(basename "$file")"
+    done
+done
 
-# # for each dataset, create a folder in final-dataset with the same name and move all non-folders from the base dataset (and not its subdirectories) folder into it
-# echo "Moving all non-T1w NIfTI images to ./final-dataset..."
-# for dataset in "${datasets[@]}"; do
-#     mkdir -p final-dataset/"$dataset"
-#     # find all files in the dataset folder and move them to the final-dataset folder
-#     find exported-datasets/exported-"$dataset" -maxdepth 1 -type f -exec mv {} final-dataset/"$dataset" \;
-# done
+# for each dataset, create a folder in final-dataset with the same name and move all non-folders from the base dataset (and not its subdirectories) folder into it
+echo "Moving all non-T1w NIfTI images to ./final-dataset..."
+for dataset in "${datasets[@]}"; do
+    mkdir -p final-dataset/"$dataset"
+    # find all files in the dataset folder and move them to the final-dataset folder
+    find exported-datasets/exported-"$dataset" -maxdepth 1 -type f -exec mv {} final-dataset/"$dataset" \;
+done
 
-# # remove the exported-datasets directory
-# echo "removing exported-datasets directory..."
-# rm -rf exported-datasets
+# remove the exported-datasets directory
+echo "removing exported-datasets directory..."
+rm -rf exported-datasets
 
-# echo "done!"
+echo "done!"
