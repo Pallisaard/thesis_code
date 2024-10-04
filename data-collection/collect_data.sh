@@ -7,7 +7,7 @@
 
 # Initialize array for datasets
 datasets=( \
-    "ds005360" "ds002242" "ds002655" "ds002898" \
+    "ds002242" "ds002655" "ds002898" \
 ) # Add your datasets here
 DATA_PATH="$1"
 

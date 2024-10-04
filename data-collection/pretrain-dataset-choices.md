@@ -27,15 +27,21 @@
 10. [frontoparietal plasticity in humans](https://openneuro.org/datasets/ds003849/versions/1.0.0): 92 healthy
 11. [Visual and audiovisual speech perception](https://openneuro.org/datasets/ds003717/versions/1.1.0): 60 healthy
 12. [Effect of acquisition parameters](https://openneuro.org/datasets/ds004499/versions/1.0.3): 50 healthy
-13. [Hormone Health Study](https://openneuro.org/datasets/ds005360/versions/1.0.0): 22 healthy
-14. [Correcting False Memories](https://openneuro.org/datasets/ds002242/versions/1.0.0): 35 healthy
-15. [mnemonic discrimination for event duration](https://openneuro.org/datasets/ds002655/versions/1.0.1): 35 healthy
-16. [Monash rsPET-MR](https://openneuro.org/datasets/ds002898/versions/1.4.2): 27 healthy
+13. [Correcting False Memories](https://openneuro.org/datasets/ds002242/versions/1.0.0): 35 healthy
+14. [mnemonic discrimination for event duration](https://openneuro.org/datasets/ds002655/versions/1.0.1): 35 healthy
+15. [Monash rsPET-MR](https://openneuro.org/datasets/ds002898/versions/1.4.2): 27 healthy
 
 - total: 1378
 
 ## Suggested mix (What I'm going to use from now on)
 
 - All of Siemens. Total: 1378
-- From Phillips: 2., 3., 4., and 5. I'll add dataset codes soon. Total: 1428
-- Total dataset size: 2806
+- From Phillips: 2., 3., 4., and 5. I'll add dataset codes soon. Total: 1406
+- Total dataset size: 2784
+
+
+## Extra notes
+
+The followind dataset was removed because the datalad superdataset for OpenNeuro is not updated with the newest files:
+
+- [Hormone Health Study](https://openneuro.org/datasets/ds005360/versions/1.0.0): 22 healthy
