@@ -69,8 +69,8 @@ echo "changing back to ./.."
 cd ..
 
 # # clean up the openneuro directory
-echo "cleaning up..."
-datalad drop --what all -d openneuro --recursive
+# echo "cleaning up..."
+# datalad drop --what all -d openneuro --recursive
 
 # unzip and untar all the tar.gz datasets into a folder with the same name
 echo "unzipping and untarring all datasets..."
