@@ -48,7 +48,7 @@ cd openneuro
 # fetch all the datasets
 echo "fetching datasets..."
 for dataset in "${datasets[@]}"; do
-    datalad get -j 3 -n "$dataset" 
+    datalad get -n "$dataset" 
 done
 
 # download all T1w nifty images
