@@ -3,13 +3,12 @@
 # Enable globstar for recursive globbing on bash
 shopt -s globstar
 
-# "ds003097" "ds002790" "ds002785" "ds005375" \
-#     "ds004711" "ds003653" "ds001747" "ds003826" \
-#     "ds002345" "ds005455" "ds005026" "ds004285" \
-#     "ds004217" "ds003849" "ds003717" "ds004499" \
-
 # Initialize array for datasets
 datasets=( \
+    "ds003097" "ds002790" "ds002785" "ds005375" \
+    "ds004711" "ds003653" "ds001747" "ds003826" \
+    "ds002345" "ds005455" "ds005026" "ds004285" \
+    "ds004217" "ds003849" "ds003717" "ds004499" \
     "ds002242" "ds002655" "ds002898" \
 ) # Add your datasets here
 DATA_PATH="$1"
@@ -95,10 +94,17 @@ fi
 # move all *T1w*.nii.gz files into it
 echo "Moving all T1w NIfTI images to ./final-dataset/scans..."
 for dataset in "${datasets[@]}"; do
-    mv exported-datasets/exported-"$dataset"/**/*T1w*.nii.gz final-dataset/scans
-    for file in final-dataset/scans/*T1w*.nii.gz; do
+    # Move files to a temporary directory first
+    mkdir -p temp-scans
+    mv exported-datasets/exported-"$dataset"/**/*T1w*.nii.gz temp-scans
+
+    # Rename files in the temporary directory
+    for file in temp-scans/*T1w*.nii.gz; do
         mv "$file" final-dataset/scans/"$dataset"-"$(basename "$file")"
     done
+
+    # Clean up the temporary directory
+    rm -rf temp-scans
 done
 
 # for each dataset, create a folder in final-dataset with the same name and move all non-folders from the base dataset (and not its subdirectories) folder into it
