@@ -11,6 +11,5 @@
 #SBATCH --mail-type=ALL # When to email
 
 cd ~/home/projects/thesis/thesis-code
-conda init
 conda activate thesis
 bash data-collection/collect_data.sh ../data
