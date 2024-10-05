@@ -52,7 +52,7 @@ done
 
 # download all T1w nifty images
 echo "downloading all T1w nifty images..."
-datalad get **/*T1w*.nii.gz
+datalad get **/*T1w.nii.gz
 
 echo "lsing ../"
 ls ../
