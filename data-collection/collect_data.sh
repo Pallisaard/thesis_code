@@ -47,6 +47,7 @@ cd openneuro
 # fetch all the datasets
 echo "fetching datasets..."
 for dataset in "${datasets[@]}"; do
+    echo "fetching $dataset..."
     datalad get -n "$dataset" 
 done
 
@@ -60,6 +61,7 @@ ls ../
 # export all datasets
 echo "exporting datasets and moving them to ./.."
 for dataset in "${datasets[@]}"; do
+    echo " - exporting $dataset..."
     datalad export-archive -d "$dataset" --missing-content continue exported-"$dataset"
     mv exported-"$dataset".tar.gz ../exported-datasets/"$dataset".tar.gz
 done
@@ -75,6 +77,7 @@ cd ..
 # unzip and untar all the tar.gz datasets into a folder with the same name
 echo "unzipping and untarring all datasets..."
 for dataset in "${datasets[@]}"; do
+    echo " - unzipping and untarring $dataset..."
     tar -xzf exported-datasets/"$dataset".tar.gz -C exported-datasets
 done
 
@@ -94,6 +97,7 @@ fi
 # move all *T1w*.nii.gz files into it
 echo "Moving all T1w NIfTI images to ./final-dataset/scans..."
 for dataset in "${datasets[@]}"; do
+    echo " - Moving all T1w NIfTI images from $dataset to ./final-dataset/scans..."
     # Move files to a temporary directory first
     mkdir -p temp-scans
     mv exported-datasets/exported-"$dataset"/**/*T1w*.nii.gz temp-scans
