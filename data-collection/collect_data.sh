@@ -5,9 +5,9 @@ shopt -s globstar
 
 # Initialize array for datasets
 datasets=( \
-    "ds003097" "ds002790" "ds002785" "ds005375" \
+    "ds003097" "ds002790" "ds002785" \
     "ds004711" "ds003653" "ds001747" "ds003826" \
-    "ds002345" "ds005455" "ds005026" "ds004285" \
+    "ds002345" "ds005026" "ds004285" \
     "ds004217" "ds003849" "ds003717" "ds004499" \
     "ds002242" "ds002655" "ds002898" \
 ) # Add your datasets here
