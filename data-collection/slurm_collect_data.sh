@@ -8,7 +8,7 @@
 #SBATCH --time=1-00:00:00 # Wall time
 #SBATCH --mem-per-cpu=8000 # Memory per CPU core
 #SBATCH --mail-user=rpa@di.ku.dk # Email
-#SBATCH --mail-type=BEGIN,END,FAIL,TIME_LIMIT_90 # When to email
+#SBATCH --mail-type=ALL # When to email
 
 cd ~/home/projects/thesis/thesis-code
 conda activate thesis
