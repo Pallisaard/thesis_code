@@ -5,7 +5,7 @@ shopt -s globstar
 
 # Initialize array for datasets
 datasets=( \
-    "ds003097" "ds002790" "ds002785" \
+    "ds002790" "ds002785" \
     "ds004711" "ds003653" "ds001747" "ds003826" \
     "ds002345" "ds005026" "ds004285" \
     "ds004217" "ds003849" "ds003717" "ds004499" \
@@ -48,12 +48,23 @@ cd openneuro
 echo "fetching datasets..."
 for dataset in "${datasets[@]}"; do
     echo "fetching $dataset..."
-    datalad get -n "$dataset" 
+    datalad get -n "$dataset"
 done
 
-# download all T1w nifty images
+download all T1w nifty images
 echo "downloading all T1w nifty images..."
-datalad get **/*T1w.nii.gz
+# datalad get **/*T1w.nii.gz
+for dataset in "${datasets[@]}"; do
+    echo "downloading T1w's from $dataset..."
+    datalad get "$dataset"/sub*/**/*T1w.nii.gz
+done
+
+# Special case for ds003097
+echo "fetching ds003097..."
+datalad get -n ds003097
+datalad get ds003097/sub-*/**/*1_T1w.nii.gz
+# add ds003097 to the datasets array
+datasets+=("ds003097")
 
 echo "lsing ../"
 ls ../
