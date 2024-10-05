@@ -3,7 +3,7 @@
 ## Phillips
 
 1. [Dallas life study](https://openneuro.org/datasets/ds004856/versions/1.0.4): 496 healthy
-2. [AOMIC-ID1000](https://openneuro.org/datasets/ds003097/versions/2.0.0): 928 healthy
+2. [AOMIC-ID1000](https://openneuro.org/datasets/ds003097/versions/1.2.1): 928 healthy
 3. [AOMIC-PIOP2](https://openneuro.org/datasets/ds002790/versions/2.0.0): 226 healthy
 4. [AOMIC-PIOP1](https://openneuro.org/datasets/ds002785/versions/2.0.0): 216 healthy
 5. [Sympathovagal quotient and functional connectivity](https://openneuro.org/datasets/ds004648/versions/1.0.0): 88 healthy
