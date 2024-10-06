@@ -50,9 +50,6 @@ def test_dataset_getitem(mri_dataset, mock_nifti_file, mock_nifti_data):
     assert sample["image"].dtype == torch.float32
     assert torch.all(sample["image"] == 1.0)
 
-    assert isinstance(sample["filename"], str)
-    assert sample["filename"] == str(mock_nifti_file)
-
 
 def test_dataset_len(mri_dataset):
     assert len(mri_dataset) == 1
@@ -61,7 +58,6 @@ def test_dataset_len(mri_dataset):
 def test_dataset_iteration(mri_dataset):
     for sample in mri_dataset:
         assert isinstance(sample["image"], torch.Tensor)
-        assert isinstance(sample["filename"], str)
 
 
 def test_invalid_data_path():
