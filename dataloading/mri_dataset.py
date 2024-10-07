@@ -6,9 +6,7 @@ import torch
 from torch.utils.data import Dataset
 import nibabel as nib
 
-
-class MRISample(TypedDict):
-    image: torch.Tensor
+from mri_sample import MRISample
 
 
 class MRIDataset(Dataset):
