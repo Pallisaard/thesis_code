@@ -33,9 +33,9 @@
 
 ## Suggested mix (What I'm going to use from now on)
 
-- From Phillips: 2., 3., 4., and 5. I'll add dataset codes soon. Total: 1348
+- From Phillips: 2., 3. and 4. I'll add dataset codes soon. Total: 1410
 - All of Siemens. Total: 1301
-- Total dataset size: 2649
+- Total dataset size: 2711
 
 ## Extra notes
 
