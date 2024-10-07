@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import TypedDict
+from collections.abc import Callable
 
 import torch
 from torch.utils.data import Dataset
@@ -11,10 +12,15 @@ class MRISample(TypedDict):
 
 
 class MRIDataset(Dataset):
-    def __init__(self, data_path: str | Path):
+    def __init__(
+        self,
+        data_path: str | Path,
+        transform: Callable[[MRISample], MRISample] | None = None,
+    ):
         self.data_path: Path = Path(data_path)
         self.name: str = self.data_path.name
         self.samples: list[MRISample] = self._load_dataset(self.data_path)
+        self.transform = transform
 
     def _load_dataset(self, data_path: Path) -> list[MRISample]:
         scans_dir = data_path / "scans"
@@ -28,6 +34,10 @@ class MRIDataset(Dataset):
             img_data = img.get_fdata()  # type: ignore
             tensor_data = torch.from_numpy(img_data)
             sample: MRISample = {"image": tensor_data}
+
+            if self.transform is not None:
+                sample = self.transform(sample)
+
             samples.append(sample)
 
         print(f"{len(samples)} MRI images loaded.")
