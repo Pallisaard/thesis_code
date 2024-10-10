@@ -9,7 +9,7 @@ from opacus import PrivacyEngine
 class DPModelWrapper(LightningModule):
     def __init__(self, model: nn.Module, learning_rate: float = 1e-2, enable_dp: bool = False, 
                  max_grad_norm: float = 1.0,target_epsilon = 10, 
-                 target_delta: float = 1e-5,epochs = 50 ):
+                 target_delta: float = 1e-5,epochs = 50):
         """
         Args:
             model (nn.Module): The model to be wrapped.
@@ -20,15 +20,16 @@ class DPModelWrapper(LightningModule):
             target_delta (float): Target delta for privacy (used in DP training).
         """
         super(DPModelWrapper, self).__init__()
-        self.model = model
+        self.model = model 
         self.learning_rate = learning_rate
         self.enable_dp = enable_dp
         self.max_grad_norm = max_grad_norm
         self.target_delta = target_delta
         self.target_epsilon = target_epsilon
         self.epochs = epochs
-        self.loss_fn = nn.CrossEntropyLoss()  # Assuming classification task, modify if needed
-
+        self.loss  = model.loss
+        
+        self.save_hyperparameters(ignore=['model'])
         self.privacy_engine = None
 
 
@@ -45,23 +46,24 @@ class DPModelWrapper(LightningModule):
         return self.model(x)
 
     def training_step(self, batch, batch_idx):
-        images = batch
-        recon_images, mu, sigma = self(images)
-        loss = self.vae_loss(recon_images, images, mu, sigma)
+        x = batch
+        x_hat = self(x)
+        loss = self.loss(*x_hat, x)
         self.log('train_loss', loss,on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        
         return loss
 
     def validation_step(self, batch, batch_idx):
-        images = batch
-        recon_images, mu, sigma = self(images)
-        loss = self.vae_loss(recon_images, images, mu, sigma)
+        x = batch
+        x_hat = self(x)
+        loss = self.loss(*x_hat, x)
         self.log('validation_loss', loss,on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     def test_step(self, batch, batch_idx):
-        images = batch
-        recon_images, mu, sigma = self(images)
-        loss = self.vae_loss(recon_images, images, mu, sigma)
+        x = batch
+        x_hat = self(x)
+        loss = self.loss(*x_hat, x)
         self.log('test_loss', loss)
         return loss
 
@@ -69,6 +71,7 @@ class DPModelWrapper(LightningModule):
         optimizer = optim.SGD(self.model.parameters(), lr=self.learning_rate)
        
         if self.enable_dp:
+            print("enable dp!")
             self.trainer.fit_loop.setup_data()
             self.privacy_engine = PrivacyEngine()
             self.model, optimizer,dataloader = self.privacy_engine.make_private_with_epsilon(

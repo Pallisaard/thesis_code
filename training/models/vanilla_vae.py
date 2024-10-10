@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 input_shape = (1, 32, 32, 32)
 z_dim = 128
@@ -110,6 +111,15 @@ class VAE(nn.Module):
         mu, sigma, z = self.encoder(x)
         recon_x = self.decoder(z)
         return recon_x, mu, sigma
+    
+    def loss(self, recon_x, mu, sigma, x):
+        # Reconstruction loss (e.g., MSE or BCE)
+        recon_loss = F.mse_loss(recon_x, x, reduction='sum')
+        
+        # KL divergence loss
+        kl_loss = -0.5 * torch.sum(1 + sigma - mu.pow(2) - sigma.exp())
+        
+        return recon_loss + kl_loss
     
 if __name__ == '__main__':
     toy_X = torch.rand([1,1,32,32,32])

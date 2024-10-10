@@ -21,7 +21,7 @@ def duplicate_image_tensor(image_tensor):
     return image_tensor.repeat(32, 1, 1).unsqueeze(0)  # Shape: [1, 32, 32, 32]
 
 # Create a dataset with 1024 examples of the same tensor
-def create_dataset(image_tensor, num_samples=1024):
+def create_dataset(image_tensor, num_samples=124):
     duplicated_image = duplicate_image_tensor(image_tensor)
     dataset = (torch.stack([duplicated_image for _ in range(num_samples)]))  # Stack 1024 copies
     return dataset
@@ -37,14 +37,14 @@ class CatDataModule(LightningDataModule):
            
 
         def train_dataloader(self):
-            return DataLoader(self.train_data,batch_size = 16)
+            return DataLoader(self.train_data,batch_size = 16,num_workers=8)
 
         def val_dataloader(self):
             
-            return DataLoader(self.val_data,num_workers=15)
+            return DataLoader(self.val_data,num_workers=8)
 
         def test_dataloader(self):
-            return DataLoader(self.test_data)
+            return DataLoader(self.test_data,num_workers=8 )
 # Create a random dataset
 
 def show(model,input):
@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     # Use PyTorch Lightning Trainer
     from lightning import Trainer
-    trainer = Trainer(max_epochs=10)
+    trainer = Trainer(max_epochs=1,log_every_n_steps=1)
     trainer.fit(wrapped_model, dm )
     show(wrapped_model,i)
     
