@@ -1,0 +1,6 @@
+enable_dp: true
+epochs: 50
+learning_rate: 0.01
+max_grad_norm: 1.0
+target_delta: 1.0e-05
+target_epsilon: 10
