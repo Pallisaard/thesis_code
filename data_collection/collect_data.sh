@@ -9,7 +9,7 @@ datasets=( \
     "ds004711" "ds003653" "ds001747" "ds003826" \
     "ds002345" "ds004285" \
     "ds005026" \
-    "ds004217" "ds003849" "ds003717" "ds004499" \
+    "ds004217" "ds003849" "ds003717" \
     "ds002242" "ds002655" "ds002898" \
 ) # Add your datasets here
 DATA_PATH="$1"
@@ -34,7 +34,9 @@ cd "$DATA_PATH" || exit 1
 if [ ! -d "exported-datasets" ]; then
     mkdir exported-datasets
 else
-    rm -rf exported-datasets/*
+    # rm -rf exported-datasets/*
+    echo "exported-datasets directory already exists. Please remove it manually if you want to re-export the datasets."
+    exit 1
 fi
 
 # clone the openneuro dataset
@@ -67,6 +69,13 @@ datalad get ds003097/sub-*/**/*1_T1w.nii.gz
 # add ds003097 to the datasets array
 datasets+=("ds003097")
 
+# Special case for ds004499
+echo "fetching ds004499..."
+datalad get -n ds004499
+datalad get ds004499/sub-*/**/*1_T1w.nii
+# add ds003097 to the datasets array
+datasets+=("ds004499")
+
 echo "lsing ../"
 ls ../
 
@@ -74,7 +83,7 @@ ls ../
 echo "exporting datasets and moving them to ./.."
 for dataset in "${datasets[@]}"; do
     echo " - exporting $dataset..."
-    datalad export-archive -d "$dataset" --missing-content continue exported-"$dataset"
+    datalad export-archive -d "$dataset" --missing-content continue exported-"$dataset" 2> /dev/null
     mv exported-"$dataset".tar.gz ../exported-datasets/"$dataset".tar.gz
 done
 
@@ -97,38 +106,46 @@ done
 echo "removing tar.gz files..."
 rm exported-datasets/*.tar.gz
 
-# make a ../final-dataset/scans folder
-if [ ! -d "final-dataset" ]; then
-    mkdir final-dataset
-    mkdir final-dataset/scans
+# make a ../final_dataset/scans folder
+if [ ! -d "final_dataset" ]; then
+    mkdir final_dataset
+    mkdir final_dataset/scans
 else
-    rm -rf final-dataset/*
-    mkdir final-dataset/scans
+    echo "final_dataset directory already exists. Removing its contents..."
+    exit 1
+    # rm -rf final_dataset/*
+    # mkdir final_dataset/scans
+    
 fi
 
 # move all *T1w*.nii.gz files into it
-echo "Moving all T1w NIfTI images to ./final-dataset/scans..."
+echo "Moving all T1w NIfTI images to ./final_dataset/scans..."
 for dataset in "${datasets[@]}"; do
-    echo " - Moving all T1w NIfTI images from $dataset to ./final-dataset/scans..."
+    echo " - Moving all T1w NIfTI images from $dataset to ./final_dataset/scans..."
     # Move files to a temporary directory first
     mkdir -p temp-scans
-    mv exported-datasets/exported-"$dataset"/**/*T1w*.nii.gz temp-scans
+
+    if [ "$dataset" = "ds004499" ]; then
+        mv exported-datasets/exported-"$dataset"/**/*1_T1w.nii temp-scans
+    else
+        mv exported-datasets/exported-"$dataset"/**/*T1w*.nii.gz temp-scans
+    fi
 
     # Rename files in the temporary directory
     for file in temp-scans/*T1w*.nii.gz; do
-        mv "$file" final-dataset/scans/"$dataset"-"$(basename "$file")"
+        mv "$file" final_dataset/scans/"$dataset"-"$(basename "$file")"
     done
 
     # Clean up the temporary directory
     rm -rf temp-scans
 done
 
-# for each dataset, create a folder in final-dataset with the same name and move all non-folders from the base dataset (and not its subdirectories) folder into it
-echo "Moving all non-T1w NIfTI images to ./final-dataset..."
+# for each dataset, create a folder in final_dataset with the same name and move all non-folders from the base dataset (and not its subdirectories) folder into it
+echo "Moving all non-T1w NIfTI images to ./final_dataset..."
 for dataset in "${datasets[@]}"; do
-    mkdir -p final-dataset/"$dataset"
-    # find all files in the dataset folder and move them to the final-dataset folder
-    find exported-datasets/exported-"$dataset" -maxdepth 1 -type f -exec mv {} final-dataset/"$dataset" \;
+    mkdir -p final_dataset/"$dataset"
+    # find all files in the dataset folder and move them to the final_dataset folder
+    find exported-datasets/exported-"$dataset" -maxdepth 1 -type f -exec mv {} final_dataset/"$dataset" \;
 done
 
 # remove the exported-datasets directory
