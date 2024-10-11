@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import TypedDict
 from collections.abc import Callable
 
 import torch
@@ -45,17 +44,3 @@ class MRIDataset(Dataset):
 
     def __repr__(self) -> str:
         return f"MRIDataset({self.name}, {self.data_path})"
-
-
-def get_val_dataset(path: str) -> MRIDataset:
-    test_path = Path(path) / "val"
-    return MRIDataset(test_path)
-
-
-def get_train_dataset(path: str) -> MRIDataset:
-    train_path = Path(path) / "train"
-    return MRIDataset(train_path)
-
-
-def get_mri_dataset(path: str) -> MRIDataset:
-    return MRIDataset(path)

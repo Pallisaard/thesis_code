@@ -1,6 +1,5 @@
-from typing import Callable, Sequence
+from typing import Sequence
 
-import torch
 from torch.nn import functional as F
 import numpy as np
 
