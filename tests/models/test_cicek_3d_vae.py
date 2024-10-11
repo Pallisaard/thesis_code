@@ -1,7 +1,6 @@
 from functools import reduce
 import pytest
 import torch
-from torch import nn
 
 from models.cicek_3d_vae import (
     ConvUnit,
