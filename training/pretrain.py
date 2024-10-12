@@ -6,10 +6,25 @@ import lightning as L
 
 # from models import VAE3DLightningModule
 from models import VAE3DLightningModule
-from dataloading import MRIDataModule
-
+from dataloading.mri_datamodule import MRIDataModule
+from dataloading.transforms import MRITransform, Compose, Resize, ZScoreNormalize
+from dataloading.mri_dataset import MRIDataset
 
 type MODEL_NAME = Literal["cicek_3d_vae"]
+
+
+def get_transforms(size: int, normalize_dir: str | None = None) -> MRITransform:
+    if normalize_dir is not None:
+        zscore_normalize = ZScoreNormalize.load_from_disk(normalize_dir)
+    else:
+        zscore_normalize = ZScoreNormalize.from_parameters(mean=0.0, std=1.0)
+
+    return Compose(
+        [
+            Resize(size=size),
+            zscore_normalize,
+        ]
+    )
 
 
 def get_model(model_name: MODEL_NAME, latent_dim: int) -> L.LightningModule:
@@ -29,7 +44,7 @@ def get_data_module(data_dir: str, batch_size: int, n_workers: int):
     )
 
 
-def parse_args():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
     # Model arguments.
@@ -49,6 +64,18 @@ def parse_args():
     )
     parser.add_argument(
         "--n-workers", type=int, default=0, help="Number of workers for data loader"
+    )
+    parser.add_argument(
+        "--resize-size",
+        type=int,
+        default=256,
+        help="Size to resize images to before passing to model",
+    )
+    parser.add_argument(
+        "--normalize-dir",
+        type=str,
+        default=None,
+        help="Path to directory containing normalization statistics to use",
     )
 
     # Lightning arguments.
@@ -84,7 +111,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def do():
+def main():
     print("Running pre-training script")
     args = parse_args()
 
@@ -109,4 +136,4 @@ def do():
 
 
 if __name__ == "__main__":
-    do()
+    main()
