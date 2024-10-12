@@ -6,6 +6,7 @@ from torch.utils.data import Dataset
 import nibabel as nib
 
 from dataloading.mri_sample import MRISample
+from dataloading.utils import load_nifti
 
 
 class MRIDataset(Dataset):
@@ -32,10 +33,9 @@ class MRIDataset(Dataset):
         return len(self.samples)
 
     def __getitem__(self, idx: int) -> MRISample:
-        file = self.samples[idx]
-        img = nib.load(str(file))  # type: ignore
-        img_data = img.get_fdata()  # type: ignore
-        sample: MRISample = {"image": torch.from_numpy(img_data)}
+        file_path = self.samples[idx]
+        mri = load_nifti(file_path)
+        sample: MRISample = {"image": mri}
 
         if self.transform is not None:
             sample = self.transform(sample)
