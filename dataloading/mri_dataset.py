@@ -21,7 +21,7 @@ class MRIDataset(Dataset):
         self.samples: list[Path] = self._load_dataset(self.data_path)
 
     def _load_dataset(self, data_path: Path) -> list[Path]:
-        scans_dir = data_path / "scans"
+        scans_dir = data_path
         if not scans_dir.exists():
             raise ValueError(f"Scans directory not found in {data_path}")
 
