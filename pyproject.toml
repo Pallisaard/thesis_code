@@ -27,6 +27,7 @@ pytest-timeout = "^2.3.1"
 opacus = "^1.5.2"
 rich = "^13.9.2"
 lightning = "^2.4.0"
+torchmetrics = "^1.4.3"
 
 
 [build-system]
