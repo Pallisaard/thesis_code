@@ -49,7 +49,10 @@ def parse_args() -> argparse.Namespace:
 
     # Model arguments.
     parser.add_argument(
-        "--model-name", required=True, type=str, help="Name of the model to train"
+        "--model-name",
+        required=True,
+        choices=["cicek_3d_vae"],
+        help="Name of the model to train",
     )
     parser.add_argument(
         "--latent-dim", type=int, default=256, help="Dimension of the latent space"
