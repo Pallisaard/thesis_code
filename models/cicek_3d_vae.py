@@ -5,8 +5,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import lightning as L
+from torchmetrics.image import (
+    StructuralSimilarityIndexMeasure,
+)
 
 from dataloading.mri_sample import MRISample
+from metrics import batch_ssi_3d
 
 
 class ConvUnit(nn.Module):
@@ -270,12 +274,18 @@ class VAE3DLightningModule(L.LightningModule):
             kernel_size,
             stride,
         )
+        self.ssim = StructuralSimilarityIndexMeasure(
+            gaussian_kernel=True,
+            kernel_size=11,
+            sigma=1.5,
+            reduction="elementwise_mean",
+        )
 
     def forward(self, x):
         return self.model(x)
 
-    def training_step(self, batch: MRISample, batch_idx):
-        x, _ = batch  # Assuming your dataset returns (image, label)
+    def training_step(self, batch: MRISample, batch_idx: int):
+        x = batch["image"]  # Assuming your dataset returns (image, label)
         recon_x, mu, log_var = self(x)
 
         # Calculate loss
@@ -289,6 +299,19 @@ class VAE3DLightningModule(L.LightningModule):
         self.log("kld_loss", kld_loss)
 
         return loss
+
+    def validation_step(self, batch: MRISample, batch_idx: int):
+        x = batch["image"]
+        recon_x, mu, log_var = self(x)
+
+        loss, recon_loss, kld_loss = self.model.calculate_loss(x, recon_x, mu, log_var)
+
+        self.ssim(recon_x, x)
+
+        self.log("val_loss", loss)
+        self.log("val_recon_loss", recon_loss)
+        self.log("val_kld_loss", kld_loss)
+        self.log("val_ssim", self.ssim)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters())
