@@ -27,15 +27,15 @@
 11. [Effect of acquisition parameters](https://openneuro.org/datasets/ds004499/versions/1.0.3): 50 healthy
 12. [Correcting False Memories](https://openneuro.org/datasets/ds002242/versions/1.0.0): 35 healthy
 13. [mnemonic discrimination for event duration](https://openneuro.org/datasets/ds002655/versions/1.0.1): 35 healthy
-14. [Monash rsPET-MR](https://openneuro.org/datasets/ds002898/versions/1.4.2): 27 healthy
+14. [signals during sleep from humans](https://openneuro.org/datasets/ds003768/versions/1.0.11): 33 healthy
 
-- total: 1301
+- total: 1307
 
 ## Suggested mix (What I'm going to use from now on)
 
 - From Phillips: 2., 3. and 4. I'll add dataset codes soon. Total: 1410
-- All of Siemens. Total: 1301
-- Total dataset size: 2711
+- All of Siemens. Total: 1307
+- Total dataset size: 2717
 
 ## Extra notes
 
@@ -46,3 +46,8 @@ The following datasets was removed because the datalad superdataset for OpenNeur
 Phillips:
   - [POLEX](https://openneuro.org/datasets/ds005375/versions/1.0.0): 58 Healthy
   - [language control and cognitive control in bilinguals](https://openneuro.org/datasets/ds005455/versions/1.1.5): 77 healthy
+
+These datasets was removed because it is not connected to an s3-bucket (🖕)
+
+- Siemens:
+  - [Monash rsPET-MR](https://openneuro.org/datasets/ds002898/versions/1.4.2): 27 healthy

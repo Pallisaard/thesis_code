@@ -1,11 +1,12 @@
-from typing import Callable, Sequence
+from typing import Sequence
 
 import torch
 from torch.nn import functional as F
 import numpy as np
 
-from dataloading.mri_sample import MRISample
-from dataloading.mri_dataset import MRIDataset
+from thesis_code.dataloading.mri_sample import MRISample
+from thesis_code.dataloading.mri_dataset import MRIDataset
+from tqdm import tqdm
 
 
 class MRITransform:
@@ -46,10 +47,30 @@ class ZScoreNormalize(MRITransform):
         self.mean: float | None = None
         self.std: float | None = None
 
-    def fit(self, dataset: MRIDataset):
-        images = np.stack([sample["image"].numpy() for sample in dataset])
-        self.mean = images.mean()
-        self.std = images.std()
+    def fit(self, dataset: MRIDataset, batch_size: int = 32) -> "ZScoreNormalize":
+        mean_sum: float = 0.0
+        sq_sum: float = 0.0
+        num_samples: float = 0.0
+
+        for i in tqdm(
+            range(0, len(dataset), batch_size),
+            total=len(dataset) // batch_size,
+            desc="Fitting ZScoreNormalize",
+        ):
+            batch_idx = range(i, min(i + batch_size, len(dataset)))
+            batch = [dataset[idx] for idx in batch_idx]
+            batch_mris = torch.stack([sample["image"] for sample in batch])
+
+            mean_sum += (batch_mris).sum().item()
+            sq_sum += (batch_mris**2).sum().item()
+            num_samples += len(batch_mris)
+
+        mean: float = mean_sum / num_samples
+        std: float = np.sqrt(sq_sum / num_samples - mean**2)
+
+        self.mean = mean
+        self.std = std
+        return self
 
     def __call__(self, sample: MRISample) -> MRISample:
         if self.mean is None or self.std is None:

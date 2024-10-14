@@ -1,12 +1,11 @@
 import torch
 import pytest
-import numpy as np
 from unittest.mock import MagicMock
 
 # Import the necessary classes and types
-from dataloading.mri_sample import MRISample
-from dataloading.transforms import Compose, Resize, ZScoreNormalize
-from dataloading.mri_dataset import MRIDataset
+from dataloading import MRISample
+from dataloading import Compose, Resize, ZScoreNormalize
+from dataloading import MRIDataset
 
 
 # Helper function to create a sample image

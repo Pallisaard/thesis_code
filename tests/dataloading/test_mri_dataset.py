@@ -7,7 +7,7 @@ import torch
 import numpy as np
 from numpy.typing import NDArray
 
-from dataloading.mri_dataset import MRIDataset
+from thesis_code.dataloading import MRIDataset, MRISample
 
 
 @pytest.fixture
@@ -17,23 +17,21 @@ def mock_nifti_data() -> NDArray:
 
 @pytest.fixture
 def mock_nifti_file(tmp_path: Path) -> Path:
-    file = tmp_path / "scans" / "test_image.nii.gz"
+    file = tmp_path / "test_image.nii.gz"
     file.parent.mkdir(parents=True, exist_ok=True)
     file.touch()
     return file
 
 
 @pytest.fixture
-def mock_nibabel(mock_nifti_data):
-    with patch("dataloading.mri_dataset.nib") as mock_nib:
-        mock_img = Mock()
-        mock_img.get_fdata.return_value = mock_nifti_data
-        mock_nib.load.return_value = mock_img
-        yield mock_nib
+def mock_load_nifti(mock_nifti_data):
+    with patch("thesis_code.dataloading.mri_dataset.load_nifti") as mock_load:
+        mock_load.return_value = torch.from_numpy(mock_nifti_data)
+        yield mock_load
 
 
 @pytest.fixture
-def mri_dataset(tmp_path, mock_nifti_file, mock_nibabel):
+def mri_dataset(mock_nifti_file, mock_load_nifti, tmp_path):
     return MRIDataset(str(tmp_path))
 
 

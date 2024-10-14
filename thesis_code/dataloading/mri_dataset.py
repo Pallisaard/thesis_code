@@ -1,12 +1,10 @@
 from pathlib import Path
-from typing import TypedDict
 from collections.abc import Callable
 
-import torch
 from torch.utils.data import Dataset
-import nibabel as nib
 
-from dataloading.mri_sample import MRISample
+from thesis_code.dataloading.mri_sample import MRISample
+from thesis_code.dataloading.utils import load_nifti
 
 
 class MRIDataset(Dataset):
@@ -21,7 +19,7 @@ class MRIDataset(Dataset):
         self.samples: list[Path] = self._load_dataset(self.data_path)
 
     def _load_dataset(self, data_path: Path) -> list[Path]:
-        scans_dir = data_path / "scans"
+        scans_dir = data_path
         if not scans_dir.exists():
             raise ValueError(f"Scans directory not found in {data_path}")
 
@@ -33,10 +31,9 @@ class MRIDataset(Dataset):
         return len(self.samples)
 
     def __getitem__(self, idx: int) -> MRISample:
-        file = self.samples[idx]
-        img = nib.load(str(file))  # type: ignore
-        img_data = img.get_fdata()  # type: ignore
-        sample: MRISample = {"image": torch.from_numpy(img_data)}
+        file_path = self.samples[idx]
+        mri = load_nifti(file_path)
+        sample: MRISample = {"image": mri}
 
         if self.transform is not None:
             sample = self.transform(sample)
@@ -45,17 +42,3 @@ class MRIDataset(Dataset):
 
     def __repr__(self) -> str:
         return f"MRIDataset({self.name}, {self.data_path})"
-
-
-def get_val_dataset(path: str) -> MRIDataset:
-    test_path = Path(path) / "val"
-    return MRIDataset(test_path)
-
-
-def get_train_dataset(path: str) -> MRIDataset:
-    train_path = Path(path) / "train"
-    return MRIDataset(train_path)
-
-
-def get_mri_dataset(path: str) -> MRIDataset:
-    return MRIDataset(path)
