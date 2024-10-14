@@ -1,12 +1,10 @@
 from pathlib import Path
 from collections.abc import Callable
 
-import torch
 from torch.utils.data import Dataset
-import nibabel as nib
 
-from dataloading.mri_sample import MRISample
-from dataloading.utils import load_nifti
+from thesis_code.dataloading.mri_sample import MRISample
+from thesis_code.dataloading.utils import load_nifti
 
 
 class MRIDataset(Dataset):

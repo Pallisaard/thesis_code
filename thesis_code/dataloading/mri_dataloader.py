@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from dataloading.mri_dataset import MRIDataset
-from dataloading.transforms import MRITransform
+from thesis_code.dataloading.mri_dataset import MRIDataset
+from thesis_code.dataloading.transforms import MRITransform
 
 
 def get_val_dataset(path: str, transforms: MRITransform | None = None) -> MRIDataset:

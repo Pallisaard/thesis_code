@@ -9,8 +9,7 @@ from torchmetrics.image import (
     StructuralSimilarityIndexMeasure,
 )
 
-from dataloading.mri_sample import MRISample
-from metrics import batch_ssi_3d
+from thesis_code.dataloading.mri_sample import MRISample
 
 
 class ConvUnit(nn.Module):

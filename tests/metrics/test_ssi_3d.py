@@ -1,5 +1,5 @@
 import torch
-from metrics import ssi_3d, batch_ssi_3d
+from thesis_code.metrics import ssi_3d, batch_ssi_3d
 
 
 def test_ssi_3d_single_value_low_res():

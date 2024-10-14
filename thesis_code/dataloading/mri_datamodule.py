@@ -1,8 +1,8 @@
 import lightning as L
 from torch.utils.data import DataLoader
 
-from dataloading.mri_dataloader import get_val_dataset, get_train_dataset
-from dataloading.transforms import MRITransform
+from thesis_code.dataloading.mri_dataloader import get_val_dataset, get_train_dataset
+from thesis_code.dataloading.transforms import MRITransform
 
 
 class MRIDataModule(L.LightningDataModule):

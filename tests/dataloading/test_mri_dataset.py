@@ -7,7 +7,7 @@ import torch
 import numpy as np
 from numpy.typing import NDArray
 
-from dataloading import MRIDataset, MRISample
+from thesis_code.dataloading import MRIDataset, MRISample
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def mock_nifti_file(tmp_path: Path) -> Path:
 
 @pytest.fixture
 def mock_load_nifti(mock_nifti_data):
-    with patch("dataloading.mri_dataset.load_nifti") as mock_load:
+    with patch("thesis_code.dataloading.mri_dataset.load_nifti") as mock_load:
         mock_load.return_value = torch.from_numpy(mock_nifti_data)
         yield mock_load
 

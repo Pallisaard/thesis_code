@@ -4,8 +4,8 @@ import torch
 from torch.nn import functional as F
 import numpy as np
 
-from dataloading.mri_sample import MRISample
-from dataloading.mri_dataset import MRIDataset
+from thesis_code.dataloading.mri_sample import MRISample
+from thesis_code.dataloading.mri_dataset import MRIDataset
 from tqdm import tqdm
 
 
