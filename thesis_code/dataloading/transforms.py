@@ -1,4 +1,5 @@
 from typing import Sequence
+from abc import ABC, abstractmethod
 
 import torch
 from torch.nn import functional as F
@@ -9,9 +10,9 @@ from thesis_code.dataloading.mri_dataset import MRIDataset
 from tqdm import tqdm
 
 
-class MRITransform:
-    def __call__(self, sample: MRISample) -> MRISample:
-        raise NotImplementedError
+class MRITransform(ABC):
+    @abstractmethod
+    def __call__(self, sample: MRISample) -> MRISample: ...
 
 
 class Compose(MRITransform):
