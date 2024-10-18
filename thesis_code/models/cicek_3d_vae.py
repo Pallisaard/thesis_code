@@ -249,7 +249,7 @@ class VAE3D(nn.Module):
         return beta
 
 
-class VAE3DLightningModule(L.LightningModule):
+class LitVAE3D(L.LightningModule):
     def __init__(
         self,
         in_shape: Tuple[int, int, int, int],
