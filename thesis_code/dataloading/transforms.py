@@ -1,4 +1,5 @@
 from typing import Sequence
+from abc import ABC, abstractmethod
 
 import torch
 from torch.nn import functional as F
@@ -9,9 +10,9 @@ from thesis_code.dataloading.mri_dataset import MRIDataset
 from tqdm import tqdm
 
 
-class MRITransform:
-    def __call__(self, sample: MRISample) -> MRISample:
-        raise NotImplementedError
+class MRITransform(ABC):
+    @abstractmethod
+    def __call__(self, sample: MRISample) -> MRISample: ...
 
 
 class Compose(MRITransform):
@@ -119,3 +120,21 @@ class ZScoreNormalize(MRITransform):
         norm.mean = mean
         norm.std = std
         return norm
+
+
+class RangeNormalize(MRITransform):
+    def __init__(self, min_val: float, max_val: float):
+        self.min_val = min_val
+        self.max_val = max_val
+
+    def __call__(self, sample: MRISample) -> MRISample:
+        image = sample["image"]
+        normalized_image = (image - self.min_val) / (self.max_val - self.min_val)
+        sample["image"] = normalized_image
+        return sample
+
+    def denormalize(self, sample: MRISample) -> MRISample:
+        image = sample["image"]
+        denormalized_image = (image * (self.max_val - self.min_val)) + self.min_val
+        sample["image"] = denormalized_image
+        return sample
