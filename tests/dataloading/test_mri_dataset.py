@@ -1,13 +1,13 @@
 from pathlib import Path
 from typing import List
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 import torch
 import numpy as np
 from numpy.typing import NDArray
 
-from thesis_code.dataloading import MRIDataset, MRISample
+from thesis_code.dataloading import MRIDataset
 
 
 @pytest.fixture
@@ -74,7 +74,3 @@ def test_dataset_repr(mri_dataset):
     assert (
         str(mri_dataset) == f"MRIDataset({mri_dataset.name}, {mri_dataset.data_path})"
     )
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
