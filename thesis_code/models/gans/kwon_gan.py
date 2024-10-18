@@ -2,6 +2,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as L
+from torchmetrics.image import (
+    StructuralSimilarityIndexMeasure,
+)
+from thesis_code.training.callbacks import (
+    get_checkpoint_callback,
+    DEFAULT_CHECKPOINT_PATH,
+)
 
 from thesis_code.dataloading.mri_sample import MRISample
 
@@ -18,6 +25,9 @@ class LitKwonGan(L.LightningModule):
         lambda_recon: float = 1.0,
     ):
         super().__init__()
+        # Save hyperparameters to the checkpoint
+        self.save_hyperparameters()
+
         self.generator = generator
         self.critic = critic
         self.code_critic = code_critic
@@ -26,8 +36,12 @@ class LitKwonGan(L.LightningModule):
         self.n_critic_steps = n_critic_steps
         self.lambda_recon = lambda_recon
 
-        self.l1_loss = nn.L1Loss()
-        self.bce_loss = nn.BCELoss()
+        self.ssim = StructuralSimilarityIndexMeasure(
+            gaussian_kernel=True,
+            kernel_size=11,
+            sigma=1.5,
+            reduction="elementwise_mean",
+        )
 
         self.automatic_optimization = False  # Manual optimization
 
@@ -35,6 +49,8 @@ class LitKwonGan(L.LightningModule):
         z = self.sample_z(x.size(0))
         assert self.generator(z).shape == x.shape
         assert self.critic(x).shape == (x.shape[0], 1)
+        assert self.code_critic(z).shape == (z.shape[0], 1)
+        assert self.encoder(x).shape == z.shape
 
     def sample_z(self, batch_size):
         return torch.randn(batch_size, self.latent_dim, device=self.device)
@@ -182,6 +198,70 @@ class LitKwonGan(L.LightningModule):
             {"d_loss": d_loss, "g_loss": g_loss, "c_loss": c_loss, "e_loss": e_loss}
         )
 
+    def validation_step(self, batch: MRISample, batch_idx: int):
+        real_data = batch["image"]
+        batch_size = real_data.size(0)
+        latent_dim = self.generator.latent_dim
+
+        # Sample noise and latent codes
+        random_codes = torch.randn(batch_size, latent_dim, device=self.device)
+        latent_codes = self.encoder(real_data)
+        # All generated data
+        fake_data = self.generator(random_codes)
+        recon_data = self.generator(latent_codes)
+        # All scores from the critic, should be scalars
+        real_critic_score = self.critic(real_data)
+        fake_critic_score = self.critic(fake_data)
+        recon_critic_score = self.critic(recon_data)
+        # All scores from the code critic, should be scalars
+        real_code_critic_score = self.code_critic(random_codes)
+        fake_code_critic_score = self.code_critic(latent_codes)
+
+        # Encoder loss and optimization
+        e_loss = self.encoder_loss(
+            fake_code_critic_score=fake_code_critic_score,
+            real_data=real_data,
+            recon_data=recon_data,
+        )
+
+        # Generator loss and optimization
+        g_loss = self.generator_loss(
+            real_critic_score=real_critic_score,
+            fake_critic_score=fake_critic_score,
+            real_data=real_data,
+            recon_data=recon_data,
+        )
+
+        # critic loss and optimization
+        d_loss = self.critic_loss(
+            real_critic_score=real_critic_score,
+            fake_critic_score=fake_critic_score,
+            recon_critic_score=recon_critic_score,
+            real_data=real_data,
+            fake_data=fake_data,
+        )
+
+        # Code critic loss and optimization
+        c_loss = self.code_critic_loss(
+            real_code_critic_score=real_code_critic_score,
+            fake_code_critic_score=fake_code_critic_score,
+            random_codes=random_codes,
+            fake_codes=latent_codes,
+        )
+        self.ssim(recon_data, real_data)
+
+        # Log losses
+        self.log_dict(
+            {
+                "val_d_loss": d_loss,
+                "val_g_loss": g_loss,
+                "val_c_loss": c_loss,
+                "val_e_loss": e_loss,
+                "val_total_loss": d_loss + g_loss + c_loss + e_loss,
+                "val_ssim": self.ssim,
+            }
+        )
+
     def configure_optimizers(self):
         # Separate optimizers for generator, critic, and code critic
         opt_g = torch.optim.Adam(self.generator.parameters())
@@ -200,12 +280,8 @@ class LitKwonGan(L.LightningModule):
 
         batch_size = fake_data.size(0)
         # Computes the gradient of the critic with respect to the fake data
-        gradient = torch.autograd.grad(
-            outputs=model(interpolates_grad).sum(),
-            inputs=interpolates_grad,
-            create_graph=True,
-            retain_graph=True,
-        )[0]
+
+        gradient = self._compute_gradient(model, interpolates_grad)
 
         # Flatten so the norm computation is easier
         gradient = gradient.view(batch_size, -1)
@@ -214,3 +290,13 @@ class LitKwonGan(L.LightningModule):
         # Compute the gradient penalty
 
         return torch.mean((gradient_norms - 1) ** 2)
+
+    def _compute_gradient(self, model, interpolates_grad):
+        gradient = torch.autograd.grad(
+            outputs=model(interpolates_grad).sum(),
+            inputs=interpolates_grad,
+            create_graph=True,
+            retain_graph=True,
+        )[0]
+
+        return gradient
