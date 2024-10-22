@@ -165,3 +165,7 @@ cython_debug/
 .DS_Store
 poetry.toml
 .vscode
+*.pth
+*.pt
+checkpoints/
+lightning/
