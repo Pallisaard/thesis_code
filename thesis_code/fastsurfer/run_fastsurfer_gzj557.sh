@@ -23,12 +23,12 @@ run_fastsurfer() {
                     -B ~/final_dataset:/data \
                     -B ~/fastsurfer-output:/output \
                     -B ~/FastSurfer:/FastSurfer \
-                    -B ~/fs_license:/fs_license \
+                    -B ~/fs-license:/fs_license \
                     ~/singularity/fastsurfer-gpu.sif \
                     /FastSurfer/run_fastsurfer.sh \
                     --fs_license /fs_license/license.txt \
                     --t1 $input_file --sid $subject_id --sd /output \
-                    --seg_only --no_cereb --no_hypothal
+                    --seg_only
 }
 
 # Call the function with the provided arguments
