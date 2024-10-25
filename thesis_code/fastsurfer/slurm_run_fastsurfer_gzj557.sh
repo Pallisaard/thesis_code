@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=fastsurfer
-#SBATCH --output=~/slurm_output/run_fastsurfer/fastsurfer_%A_%a.out
-#SBATCH --error=~/slurm_output/run_fastsurfer/fastsurfer_%A_%a.err
+#SBATCH --output=fastsurfer_%A_%a.out
+#SBATCH --error=fastsurfer_%A_%a.err
 #SBATCH --array=1-5%5   # Array job for 2740 MRI files, limit to 5 jobs running at once
 #SBATCH --gres=gpu:1       # Request 1 GPU per job
 #SBATCH --cpus-per-task=2  # Number of CPUs for each task
