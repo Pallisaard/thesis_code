@@ -2,20 +2,12 @@
 #SBATCH --job-name=fastsurfer
 #SBATCH --output=fastsurfer_%A_%a.out
 #SBATCH --error=fastsurfer_%A_%a.err
-#SBATCH --array=1-2740%5   # Array job for 2740 MRI files, limit to 5 jobs running at once
+# #SBATCH --array=1-5%5   # Array job for 2740 MRI files, limit to 5 jobs running at once
 #SBATCH --gres=gpu:1       # Request 1 GPU per job
-#SBATCH --cpus-per-task=4  # Number of CPUs for each task
-
-
-
-# If /data/final_dataset/scans/ does not exist, throw error
-if [ ! -d /data/final_dataset/scans/ ] ; then
-    echo "Directory /data/final_dataset/scans/ does not exist."
-    exit 1
-fi
+#SBATCH --cpus=2  # Number of CPUs for each task
 
 # Get the MRI file based on the SLURM array task ID
-MRI_FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" /data/final_dataset/mri_file_list.txt)
+MRI_FILE=$(sed -n "${a}p" ~/final_dataset/nii_gz_files_test.txt)
 
 # Extract the subject ID from the file name (or pass another way)
 SUBJECT_ID=$(basename $MRI_FILE .nii.gz)
