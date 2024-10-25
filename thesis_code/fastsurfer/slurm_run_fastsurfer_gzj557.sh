@@ -4,7 +4,7 @@
 #SBATCH --error=fastsurfer_%A_%a.err
 # #SBATCH --array=1-5%5   # Array job for 2740 MRI files, limit to 5 jobs running at once
 #SBATCH --gres=gpu:1       # Request 1 GPU per job
-#SBATCH --cpus=2  # Number of CPUs for each task
+#SBATCH --cpus-per-task=2  # Number of CPUs for each task
 #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
 
