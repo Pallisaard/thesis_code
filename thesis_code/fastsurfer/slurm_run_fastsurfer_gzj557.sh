@@ -19,6 +19,9 @@ MRI_FILE=$(sed -n "${a}p" ~/final_dataset/nii_gz_files_test.txt)
 # Extract the subject ID from the file name (or pass another way)
 SUBJECT_ID=$(basename $MRI_FILE .nii.gz)
 
+echo "mri file" $MRI_FILE
+echo "subject id" $SUBJECT_ID
+
 # Call your existing run_fastsurfer.sh script
 ./run_fastsurfer_gzj557.sh $MRI_FILE $SUBJECT_ID
 
