@@ -6,8 +6,7 @@
 #SBATCH --gres=gpu:1       # Request 1 GPU per job
 #SBATCH --cpus-per-task=4  # Number of CPUs for each task
 
-# Load the necessary modules (if needed)
-module load freesurfer/fastsurfer
+
 
 # If /data/final_dataset/scans/ does not exist, throw error
 if [ ! -d /data/final_dataset/scans/ ] ; then
@@ -28,4 +27,4 @@ SUBJECT_ID=$(basename $MRI_FILE .nii.gz)
 cp ~/fastsurfer-output/${SUBJECT_ID}/mri/orig_nu.mgz ~/final_dataset/fs_scans/${SUBJECT_ID}.mgz
 
 # Reorient the NIfTI file
-python reorient_nii.py ~/final_dataset/fs_scans/${SUBJECT_ID}.mgz
+python ~/thesis_code/thesis_code/data_collection/reorient_nii.py ~/final_dataset/fs_scans/${SUBJECT_ID}.mgz
