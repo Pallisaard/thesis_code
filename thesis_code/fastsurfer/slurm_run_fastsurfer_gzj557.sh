@@ -2,7 +2,7 @@
 #SBATCH --job-name=fastsurfer
 #SBATCH --output=fastsurfer_%A_%a.out
 #SBATCH --error=fastsurfer_%A_%a.err
-#SBATCH --array=1-2800%5   # Array job for 2800 MRI files, limit to 5 jobs running at once
+#SBATCH --array=1-2740%5   # Array job for 2740 MRI files, limit to 5 jobs running at once
 #SBATCH --gres=gpu:1       # Request 1 GPU per job
 #SBATCH --cpus-per-task=4  # Number of CPUs for each task
 

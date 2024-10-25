@@ -1,13 +1,7 @@
 import argparse
 import numpy as np
 import nibabel as nib
-from itertools import batched
 from pathlib import Path
-from tqdm import tqdm
-from functools import partial
-from concurrent.futures import ProcessPoolExecutor
-
-from scipy.ndimage import zoom
 
 
 def reorient_nii_to_ras(nii):

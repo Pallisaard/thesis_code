@@ -30,14 +30,14 @@ def list_nii_gz_files(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="List .nii.gz files in a folder.")
     parser.add_argument(
-        "folder-path", help="Path to the folder containing .nii.gz files"
+        "folder_path", help="Path to the folder containing .nii.gz files"
     )
     parser.add_argument(
         "--replace",
         help="Optional string in the format 'before:after' to replace parts of the path",
     )
     parser.add_argument(
-        "--output-name",
+        "--output_name",
         type=str,
         default="nii_gz_files.txt",
         help="Optional filename to write the output to. Default: nii_gz_files.txt",
