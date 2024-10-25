@@ -8,6 +8,11 @@
 #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
 
+module load cuda/11.8
+module load cudnn/8.6.0
+
+source ~/venv/bin/activate
+
 # Get the MRI file based on the SLURM array task ID
 MRI_FILE=$(sed -n "${a}p" ~/final_dataset/nii_gz_files_test.txt)
 
