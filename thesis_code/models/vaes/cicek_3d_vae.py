@@ -1,3 +1,4 @@
+import abc
 from functools import reduce
 from typing import Tuple
 
@@ -10,6 +11,18 @@ from torchmetrics.image import (
 )
 
 from thesis_code.dataloading.mri_sample import MRISample
+
+
+class AbstractVAE3D(abc.ABC):
+    @abc.abstractmethod
+    def calculate_loss(
+        self,
+        x: torch.Tensor,
+        recon_x: torch.Tensor,
+        mu: torch.Tensor,
+        log_var: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        pass
 
 
 class ConvUnit(nn.Module):
@@ -150,7 +163,7 @@ class VAE3DDecoder(nn.Module):
         return self.decoder(z)
 
 
-class VAE3D(nn.Module):
+class VAE3D(nn.Module, AbstractVAE3D):
     def __init__(
         self,
         in_shape: Tuple[int, int, int, int],
@@ -160,6 +173,7 @@ class VAE3D(nn.Module):
         pool_size: int = 2,
         kernel_size: int = 2,
         stride: int = 2,
+        beta: float = 1.0,
     ):
         super().__init__()
         self.in_shape = in_shape
@@ -169,9 +183,11 @@ class VAE3D(nn.Module):
         self.out_size = in_shape[1:]
         self.encoder_out_channels_per_block = encoder_out_channels_per_block
         self.decoder_out_channels_per_block = decoder_out_channels_per_block
+        self.latent_dim = latent_dim
         self.pool_size = pool_size
         self.kernel_size = kernel_size
         self.stride = stride
+        self.beta = beta
 
         self.encoder = VAE3DEncoder(encoder_out_channels_per_block, pool_size, in_shape)
         self.decoder = VAE3DDecoder(
@@ -219,7 +235,13 @@ class VAE3D(nn.Module):
         recon_x = self.decode(z)
         return recon_x, mu, log_var
 
-    def calculate_loss(self, x, recon_x, mu, log_var, beta=1.0):
+    def calculate_loss(
+        self,
+        x: torch.Tensor,
+        recon_x: torch.Tensor,
+        mu: torch.Tensor,
+        log_var: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Calculate beta-VAE loss = reconstruction loss + β * KL divergence
         If we set beta=1, it'll be the normal VAE loss with reconstruction.
@@ -231,7 +253,7 @@ class VAE3D(nn.Module):
         kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
 
         # Total loss with beta weighting
-        total_loss = recon_loss + beta * kld_loss
+        total_loss = recon_loss + self.beta * kld_loss
 
         # You might want to log these separately for monitoring
         return total_loss, recon_loss, kld_loss
