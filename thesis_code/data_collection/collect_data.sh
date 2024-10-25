@@ -145,10 +145,6 @@ for dataset in "${datasets[@]}"; do
   fi
 done
 
-mkdir final_dataset
-mv final_dataset/ds00* 
-mv ds00* metadata/
-
 # Misc: Arbitrary cleanup
 # This scan is broken for some reason (i swear to god fuck)
 rm -f final_dataset/scans/ds004217_sub-011_T1w.nii.gz

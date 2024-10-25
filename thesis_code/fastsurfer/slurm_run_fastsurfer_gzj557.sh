@@ -9,8 +9,14 @@
 # Load the necessary modules (if needed)
 module load freesurfer/fastsurfer
 
+# If /data/final_dataset/scans/ does not exist, throw error
+if [ ! -d /data/final_dataset/scans/ ] ; then
+    echo "Directory /data/final_dataset/scans/ does not exist."
+    exit 1
+fi
+
 # Get the MRI file based on the SLURM array task ID
-MRI_FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" /path/to/mri_file_list.txt)
+MRI_FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" /data/final_dataset/mri_file_list.txt)
 
 # Extract the subject ID from the file name (or pass another way)
 SUBJECT_ID=$(basename $MRI_FILE .nii.gz)

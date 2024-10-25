@@ -4,6 +4,7 @@ import nibabel as nib
 from itertools import batched
 from pathlib import Path
 from tqdm import tqdm
+from functools import partial
 from concurrent.futures import ProcessPoolExecutor
 
 from scipy.ndimage import zoom
@@ -100,19 +101,29 @@ def parse_args():
         default=None,
         help="Number of worker processes to use. Defaults to the number of CPU cores.",
     )
-    return parser.parse_args()
+    parser.add_argument(
+        "--reorient-only", action="store_true", help="Only reorient the NIfTI files."
+    )
+    parser.add_argument(
+        "--reshape-only", action="store_true", help="Only reshape the NIfTI files."
+    )
+    args = parser.parse_args()
+    assert not (args.reorient_only and args.reshape_only), "Cannot use both flags."
+    return args
 
 
-def process_batch(nii_files_batch):
+def process_batch(nii_files_batch, reorient=False, reshape=False):
     for nii_path in nii_files_batch:
         nii = nib.load(nii_path)  # type: ignore
-        reoriented_nii = reorient_nii_to_ras(nii)
-        # reshaped_nii = resample_and_pad_nifti(reoriented_nii)
+        reoriented_nii = nii if reorient else reorient_nii_to_ras(nii)
+        reshaped_nii = (
+            reoriented_nii if reshape else resample_and_pad_nifti(reoriented_nii)
+        )
         # save reorientation with same name as input
         output_path = nii_path.with_name(
             nii_path.stem.replace(".nii", "") + "_reoriented.nii.gz"
         )
-        nib.save(reoriented_nii, output_path)  # type: ignore
+        nib.save(reshaped_nii, output_path)  # type: ignore
 
     # Delete files in nii_files_batch
     for nii_path in nii_files_batch:
@@ -126,11 +137,15 @@ def main():
         # For a single .nii.gz file
         nii_path = Path(args.input_path)
         nii = nib.load(nii_path)  # type: ignore
-        reoriented_nii = reorient_nii_to_ras(nii)
-        # reshaped_nii = resample_and_pad_nifti(reoriented_nii)
+        reoriented_nii = nii if args.reshape_only else reorient_nii_to_ras(nii)
+        reshaped_nii = (
+            reoriented_nii
+            if args.reorient_only
+            else resample_and_pad_nifti(reoriented_nii)
+        )
         # save reorientation with same name as input
         output_path = nii_path if args.out_filename is None else args.out_filename
-        nib.save(reoriented_nii, output_path)  # type: ignore
+        nib.save(reshaped_nii, output_path)  # type: ignore
         return 0
 
     # For all .nii.gz files in the input directory
@@ -142,6 +157,10 @@ def main():
     nii_files_batches = batched(nii_files, batch_size)
     n_batches = len(nii_files) // batch_size
 
+    process_batch_partial = partial(
+        process_batch, reshape=args.reorient_only, reorient=args.reshape_only
+    )
+
     with ProcessPoolExecutor(max_workers=args.num_workers) as executor:
         # executor.map returns an iterator
         # tqdm wraps the iterator to provide a progress bar
@@ -149,7 +168,7 @@ def main():
         # executed and progress bar updates
         list(
             tqdm(
-                executor.map(process_batch, nii_files_batches),
+                executor.map(process_batch_partial, nii_files_batches),
                 total=n_batches,
                 desc="Processing batches",
             )
