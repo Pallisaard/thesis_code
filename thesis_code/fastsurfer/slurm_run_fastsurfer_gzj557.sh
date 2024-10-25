@@ -2,7 +2,7 @@
 #SBATCH --job-name=fastsurfer
 #SBATCH --output=fastsurfer_%A_%a.out
 #SBATCH --error=fastsurfer_%A_%a.err
-#SBATCH --array=1-5%5   # Array job for 2740 MRI files, limit to 5 jobs running at once
+#SBATCH --array=1-2%1   # Array job for 2740 MRI files, limit to 5 jobs running at once
 #SBATCH --gres=gpu:1       # Request 1 GPU per job
 #SBATCH --cpus-per-task=2  # Number of CPUs for each task
 #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
@@ -23,7 +23,7 @@ echo "mri file" $MRI_FILE
 echo "subject id" $SUBJECT_ID
 
 # Call your existing run_fastsurfer.sh script
-./run_fastsurfer_gzj557.sh $MRI_FILE $SUBJECT_ID
+~/thesis_code/thesis_code/fastsurfer/run_fastsurfer_gzj557.sh $MRI_FILE $SUBJECT_ID
 
 # Copy the output to the final directory
 cp ~/fastsurfer-output/${SUBJECT_ID}/mri/orig_nu.mgz ~/final_dataset/fs_scans/${SUBJECT_ID}.mgz
