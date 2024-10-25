@@ -23,3 +23,9 @@ SUBJECT_ID=$(basename $MRI_FILE .nii.gz)
 
 # Call your existing run_fastsurfer.sh script
 ./run_fastsurfer_gzj557.sh $MRI_FILE $SUBJECT_ID
+
+# Copy the output to the final directory
+cp ~/fastsurfer-output/${SUBJECT_ID}/mri/orig_nu.mgz ~/final_dataset/fs_scans/${SUBJECT_ID}.mgz
+
+# Reorient the NIfTI file
+python reorient_nii.py ~/final_dataset/fs_scans/${SUBJECT_ID}.mgz
