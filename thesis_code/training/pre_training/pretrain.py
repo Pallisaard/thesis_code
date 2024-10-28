@@ -1,6 +1,7 @@
 import argparse
 from typing import Literal
 
+import torch
 from lightning.pytorch.trainer import Trainer
 import lightning as L
 from torchsummary import summary
@@ -263,6 +264,11 @@ def main():
     print("Running pre-training script")
     args = parse_args()
     check_args(args)
+
+    print(
+        "devices:",
+        [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())],
+    )
 
     print("Creating model")
     model = get_model(args.model_name, args.latent_dim, args.load_from_checkpoint)
