@@ -3,6 +3,7 @@ from typing import Literal
 
 from lightning.pytorch.trainer import Trainer
 import lightning as L
+import torchsummary
 
 # from models import VAE3DLightningModule
 from thesis_code.models.vaes import LitVAE3D
@@ -267,6 +268,12 @@ def main():
     model = get_model(args.model_name, args.latent_dim, args.load_from_checkpoint)
 
     print("Model summary:")
+    summary_input = (
+        (1, 1, 64, 64, 64)
+        if args.model_name == "cicek_3d_vae_64"
+        else (1, 1, 256, 256, 256)
+    )
+    torchsummary.summary(model, summary_input)
 
     print("Creating datamodule")
     transform = get_transforms(args)
@@ -289,11 +296,11 @@ def main():
         callbacks=get_callbacks_from_args(args),
     )
 
-    print("Fitting model")
-    trainer.fit(model, datamodule=data_module)
+    # print("Fitting model")
+    # trainer.fit(model, datamodule=data_module)
 
-    print("Testing model")
-    trainer.test(model, datamodule=data_module)
+    # print("Testing model")
+    # trainer.test(model, datamodule=data_module)
 
     print("Finished pre-training script")
 
