@@ -22,7 +22,7 @@ python pretrain --model-name "cicek-3d-vae" \
                 --normalize-max 1 \
                 --accelerator 'gpu' \
                 --strategy 'ddp' \
-                --devices 4 \
+                --devices 'auto' \
                 --max-epochs 100 \
                 --callbacks "checkpoint" "summary" "progress" \
                 --checkpoint-dir "~/lightning/checkpoints" \

@@ -156,7 +156,7 @@ def parse_args() -> argparse.Namespace:
         help="Type of strategy to use. use 'auto' to let Lightning decide and otherwise 'ddp'.",
     )
     parser.add_argument(
-        "--gpus",
+        "--devices",
         default="auto",
         help="Number of devices to use. Use 'auto' to use all available devices.",
     )
