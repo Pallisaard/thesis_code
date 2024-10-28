@@ -17,19 +17,19 @@ cd ~/thesis_code
 
 python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_64" \
                 --latent-dim 256 \
-                --data-path "~/final_dataset/fs_scans" \
+                --data-path ~/final_dataset/fs_scans \
                 --batch-size 8 \
                 --n-workers 0 \
-                --transforms "resize" "range-normalize" \
+                --transforms resize range-normalize \
                 --resize-size 64 \
                 --normalize-min 0 \
                 --normalize-max 1 \
-                --accelerator 'gpu' \
-                --strategy 'ddp' \
-                --devices 'auto' \
+                --accelerator gpu \
+                --strategy ddp \
+                --devices aut' \
                 --max-epochs 100 \
-                --callbacks "checkpoint" "summary" "progress" \
-                --checkpoint-path "~/lightning/checkpoints" \
+                --callbacks checkpoint summary progress \
+                --checkpoint-path ~/lightning/checkpoints \
                 --save-top-k 3 \
                 --save-last \
                 --fast-dev-run \
