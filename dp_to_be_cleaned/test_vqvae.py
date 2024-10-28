@@ -37,7 +37,7 @@ def main(args):
 
     # pl.trainer.seed_everything(seed=42)
 
-    # datamodule = CTDataModule(path=args.dataset_path, batch_size=args.batch_size, n_workers=5, rescale_input=args.rescale_input)
+    # datamodule = CTDataModule(path=args.dataset_path, batch_size=args.batch_size, num_workers=5, rescale_input=args.rescale_input)
 
     model = VQVAE(args)
     print(model)

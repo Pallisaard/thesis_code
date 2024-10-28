@@ -71,14 +71,14 @@ def get_model(
 def get_datamodule(
     data_path: str,
     batch_size: int,
-    n_workers: int,
+    num_workers: int,
     transform: MRITransform,
     size_limit: int | None,
 ) -> MRIDataModule:
     return MRIDataModule(
         data_path=data_path,
         batch_size=batch_size,
-        n_workers=n_workers,
+        num_workers=num_workers,
         transform=transform,
         size_limit=size_limit,
     )
@@ -286,7 +286,7 @@ def main():
     data_module = get_datamodule(
         args.data_path,
         args.batch_size,
-        args.n_workers,
+        args.num_workers,
         transform=transform,
         size_limit=100 if args.fast_dev_run else None,
     )

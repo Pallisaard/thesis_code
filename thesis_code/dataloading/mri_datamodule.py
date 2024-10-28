@@ -14,14 +14,14 @@ class MRIDataModule(L.LightningDataModule):
         self,
         data_path: str = "./data",
         batch_size: int = 8,
-        n_workers: int = 0,
+        num_workers: int = 0,
         transform: MRITransform | None = None,
         size_limit: int | None = None,
     ):
         super().__init__()
         self.data_path = data_path
         self.batch_size = batch_size
-        self.n_workers = n_workers
+        self.num_workers = num_workers
         self.transform = transform
         self.size_limit = size_limit
 
@@ -51,12 +51,12 @@ class MRIDataModule(L.LightningDataModule):
                 "this dataset only supports the fit (train + validate) stages."
             )
 
-    def train_dataloader(self) -> DataLoader:
+    def train_dataloader(self, shuffle: bool = True) -> DataLoader:
         return DataLoader(
             self.mri_train,
             batch_size=self.batch_size,
-            shuffle=True,
-            n_workers=self.n_workers,
+            shuffle=shuffle,
+            num_workers=self.num_workers,
         )
 
     def val_dataloader(self) -> DataLoader:
@@ -64,7 +64,7 @@ class MRIDataModule(L.LightningDataModule):
             self.mri_val,
             batch_size=self.batch_size,
             shuffle=False,
-            n_workers=self.n_workers,
+            num_workers=self.num_workers,
         )
 
     def test_dataloader(self) -> DataLoader:
@@ -72,5 +72,5 @@ class MRIDataModule(L.LightningDataModule):
             self.mri_test,
             batch_size=self.batch_size,
             shuffle=False,
-            n_workers=self.n_workers,
+            num_workers=self.num_workers,
         )

@@ -134,14 +134,14 @@ if __name__ == "__main__":
 
         def train_dataloader(self):
             return DataLoader(
-                self.train_data, batch_size=1, n_workers=15, persistent_workers=True
+                self.train_data, batch_size=1, num_workers=15, persistent_workers=True
             )
 
         def val_dataloader(self):
-            return DataLoader(self.val_data, n_workers=15, persistent_workers=True)
+            return DataLoader(self.val_data, num_workers=15, persistent_workers=True)
 
         def test_data(self):
-            return DataLoader(self.test_data, n_workers=15, persistent_workers=True)
+            return DataLoader(self.test_data, num_workers=15, persistent_workers=True)
 
     # Create a random dataset
     train_dataset = torch.rand([128, 1, 32, 32, 32])
