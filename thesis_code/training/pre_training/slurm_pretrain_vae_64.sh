@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=slurm_pretrain_vae_64
 #SBATCH --gres=gpu:1       # Request 4 GPU per job
-#SBATCH --cpus-per-task=6 # Number of CPUs for each gpu
-#SBATCH --mem=32G          # Memory request
+#SBATCH --cpus-per-task=2  # Number of CPUs for each gpu
+#SBATCH --mem=16G          # Memory request
 #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
 
@@ -16,8 +16,8 @@ cd ~/thesis_code/thesis_code/training/pre_training
 python pretrain.py --model-name "cicek-3d-vae" \
                 --latent-dim 1024 \
                 --data-dir "~/final_dataset/fs_scans" \
-                --batch-size 64 \
-                --num-workers 4 \
+                --batch-size 8 \
+                --num-workers 0 \
                 --transforms "resize" "range-normalize" \
                 --resize-size 64 \
                 --normalize-min 0 \
