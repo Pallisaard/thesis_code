@@ -31,15 +31,16 @@ class Resize(MRITransform):
 
     def __call__(self, sample: MRISample) -> MRISample:
         image = sample["image"]
+        if image.shape[1:] == self.size:
+            return sample
+
         resized_image = F.interpolate(
-            image.unsqueeze(0).float(),  # Add batch and channel dimensions
+            image,  # Add batch and channel dimensions
             size=self.size,
             mode="trilinear",
             align_corners=True,
         )
-        sample["image"] = resized_image.squeeze(
-            0
-        )  # Remove batch and channel dimensions
+        sample["image"] = resized_image  # Remove batch and channel dimensions
         return sample
 
 

@@ -20,7 +20,8 @@ python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_
                 --data-path ~/final_dataset \
                 --batch-size 8 \
                 --num-workers 0 \
-                --transforms range-normalize \
+                --transforms resize range-normalize \
+                --resize-size 256 \
                 --normalize-min 0 \
                 --normalize-max 1 \
                 --accelerator gpu \
