@@ -11,7 +11,7 @@ module load cudnn/8.6.0
 
 source ~/venv/bin/activate
 
-cd ~/thesis_code/training/pre_training
+cd ~/thesis_code/thesis_code/training/pre_training
 
 python pretrain.py --model-name "cicek-3d-vae" \
                 --latent-dim 1024 \
