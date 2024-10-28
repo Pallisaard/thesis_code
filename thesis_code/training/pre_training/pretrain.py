@@ -40,8 +40,8 @@ def get_model(
         return get_specific_model(
             LitVAE3D,
             in_shape=(1, 256, 256, 256),
-            encoder_out_channels_per_block=[16, 32, 64, 128],
-            decoder_out_channels_per_block=[128, 64, 32, 16, 1],
+            encoder_out_channels_per_block=[16, 32, 64, 64],
+            decoder_out_channels_per_block=[64, 64, 32, 16, 1],
             latent_dim=latent_dim,
         )
     elif model_name == "cicek_3d_vae_64":
@@ -49,7 +49,7 @@ def get_model(
             LitVAE3D,
             in_shape=(1, 64, 64, 64),
             encoder_out_channels_per_block=[16, 32, 64],
-            decoder_out_channels_per_block=[64, 64, 32, 16, 1],
+            decoder_out_channels_per_block=[64, 32, 16, 1],
             latent_dim=latent_dim,
         )
     elif model_name == "kwon_gan":
