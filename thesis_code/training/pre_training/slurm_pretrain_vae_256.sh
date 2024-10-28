@@ -3,7 +3,7 @@
 #SBATCH --output=slurm_pretrain_vae_256-%j.out # Name of output file
 #SBATCH --error=slurm_pretrain_vae_256-%j.err # Name of error file
 #SBATCH --gres=gpu:titanrtx:1       # Request 4 GPU per job
-#SBATCH --cpus-per-task=2  # Number of CPUs for each gpu
+#SBATCH --cpus-per-task=6  # Number of CPUs for each gpu
 #SBATCH --mem=16G          # Memory request
 # #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 # #SBATCH --mail-user=rpa@di.ku.dk # Email
@@ -19,7 +19,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_
                 --latent-dim 1024 \
                 --data-path /home/gzj557/final_dataset \
                 --batch-size 3 \
-                --num-workers 0 \
+                --num-workers 5 \
                 --transforms resize range-normalize \
                 --resize-size 256 \
                 --normalize-min 0 \
