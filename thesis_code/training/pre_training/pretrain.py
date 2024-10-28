@@ -304,9 +304,11 @@ def main():
 
     print("Fitting model")
     trainer.fit(model, datamodule=data_module)
+    trainer.print(torch.cuda.memory_summary())
 
     print("Testing model")
     trainer.test(model, datamodule=data_module)
+    trainer.print(torch.cuda.memory_summary())
 
     print("Finished pre-training script")
 
