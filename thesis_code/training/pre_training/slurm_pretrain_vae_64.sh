@@ -17,7 +17,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_
                 --latent-dim 1024 \
                 --data-dir "~/final_dataset/fs_scans" \
                 --batch-size 8 \
-                --num-workers 0 \
+                --n-workers 0 \
                 --transforms "resize" "range-normalize" \
                 --resize-size 64 \
                 --normalize-min 0 \

@@ -14,14 +14,14 @@ class MRIDataModule(L.LightningDataModule):
         self,
         data_dir: str = "./data",
         batch_size: int = 8,
-        num_workers: int = 0,
+        n_workers: int = 0,
         transform: MRITransform | None = None,
         size_limit: int | None = None,
     ):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
-        self.num_workers = num_workers
+        self.n_workers = n_workers
         self.transform = transform
         self.size_limit = size_limit
 
@@ -52,7 +52,7 @@ class MRIDataModule(L.LightningDataModule):
             self.mri_train,
             batch_size=self.batch_size,
             shuffle=True,
-            num_workers=self.num_workers,
+            n_workers=self.n_workers,
         )
 
     def val_dataloader(self) -> DataLoader:
@@ -60,7 +60,7 @@ class MRIDataModule(L.LightningDataModule):
             self.mri_val,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.num_workers,
+            n_workers=self.n_workers,
         )
 
     def test_dataloader(self) -> DataLoader:
@@ -68,5 +68,5 @@ class MRIDataModule(L.LightningDataModule):
             self.mri_test,
             batch_size=self.batch_size,
             shuffle=False,
-            num_workers=self.num_workers,
+            n_workers=self.n_workers,
         )

@@ -76,7 +76,7 @@ def get_datamodule(
     return MRIDataModule(
         data_dir=data_dir,
         batch_size=batch_size,
-        num_workers=n_workers,
+        n_workers=n_workers,
         transform=transform,
         size_limit=size_limit,
     )

@@ -76,13 +76,13 @@ class CatDataModule(LightningDataModule):
         self.test_data = data[:2]
 
     def train_dataloader(self):
-        return DataLoader(self.train_data, batch_size=1, num_workers=8)
+        return DataLoader(self.train_data, batch_size=1, n_workers=8)
 
     def val_dataloader(self):
-        return DataLoader(self.val_data, num_workers=8)
+        return DataLoader(self.val_data, n_workers=8)
 
     def test_dataloader(self):
-        return DataLoader(self.test_data, num_workers=8)
+        return DataLoader(self.test_data, n_workers=8)
 
 
 # Create a random dataset
