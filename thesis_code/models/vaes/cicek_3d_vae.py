@@ -309,10 +309,10 @@ class VAE3D(nn.Module, AbstractVAE3D):
         If we set beta=1, it'll be the normal VAE loss with reconstruction.
         """
         # Reconstruction loss (MSE for continuous values)
-        recon_loss = F.mse_loss(recon_x, x, reduction="sum")
+        recon_loss = F.mse_loss(recon_x, x, reduction="mean")
 
         # KL divergence loss
-        kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
+        kld_loss = -0.5 * torch.mean(1 + log_var - mu.pow(2) - log_var.exp())
 
         beta = self.get_beta(epoch)
 
@@ -387,9 +387,9 @@ class LitVAE3D(L.LightningModule):
         )  # Assuming your model has this method
 
         # Log losses
-        self.log("train_loss", loss, sync_dist=True)
-        self.log("recon_loss", recon_loss, sync_dist=True)
-        self.log("kld_loss", kld_loss, sync_dist=True)
+        self.log("train_total_loss", loss, sync_dist=True)
+        self.log("train_recon_loss", recon_loss, sync_dist=True)
+        self.log("train_kld_loss", kld_loss, sync_dist=True)
 
         return loss
 
@@ -403,7 +403,7 @@ class LitVAE3D(L.LightningModule):
 
         self.ssim(recon_x, x)
 
-        self.log("val_loss", loss, sync_dist=True)
+        self.log("val_total_loss", loss, sync_dist=True)
         self.log("val_recon_loss", recon_loss, sync_dist=True)
         self.log("val_kld_loss", kld_loss, sync_dist=True)
         self.log("val_ssim", self.ssim, sync_dist=True)
@@ -418,7 +418,7 @@ class LitVAE3D(L.LightningModule):
 
         self.ssim(recon_x, x)
 
-        self.log("test_loss", loss, sync_dist=True)
+        self.log("test_total_loss", loss, sync_dist=True)
         self.log("test_recon_loss", recon_loss, sync_dist=True)
         self.log("test_kld_loss", kld_loss, sync_dist=True)
         self.log("test_ssim", self.ssim, sync_dist=True)

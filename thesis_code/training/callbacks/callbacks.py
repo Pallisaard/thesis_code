@@ -11,7 +11,7 @@ def get_checkpoint_callback(
     path: str | Path,
     model_name: str,
     filename: str | None = None,
-    monitor: str = "total_loss",
+    monitor: str = "val_total_loss",
     save_last: bool = True,
     save_top_k: int = 1,
 ) -> ModelCheckpoint:
