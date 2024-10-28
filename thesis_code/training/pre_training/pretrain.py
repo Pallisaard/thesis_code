@@ -5,7 +5,7 @@ from lightning.pytorch.trainer import Trainer
 import lightning as L
 
 # from models import VAE3DLightningModule
-from thesis_code.models import LitVAE3D
+from thesis_code.models.vaes import LitVAE3D
 from thesis_code.models.gans.kwon_gan import LitKwonGan
 from thesis_code.dataloading.mri_datamodule import MRIDataModule
 from thesis_code.dataloading.transforms import (
