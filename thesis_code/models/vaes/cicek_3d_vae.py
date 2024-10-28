@@ -387,9 +387,9 @@ class LitVAE3D(L.LightningModule):
         )  # Assuming your model has this method
 
         # Log losses
-        self.log("train_loss", loss)
-        self.log("recon_loss", recon_loss)
-        self.log("kld_loss", kld_loss)
+        self.log("train_loss", loss, sync_dist=True)
+        self.log("recon_loss", recon_loss, sync_dist=True)
+        self.log("kld_loss", kld_loss, sync_dist=True)
 
         return loss
 
@@ -403,10 +403,10 @@ class LitVAE3D(L.LightningModule):
 
         self.ssim(recon_x, x)
 
-        self.log("val_loss", loss)
-        self.log("val_recon_loss", recon_loss)
-        self.log("val_kld_loss", kld_loss)
-        self.log("val_ssim", self.ssim)
+        self.log("val_loss", loss, sync_dist=True)
+        self.log("val_recon_loss", recon_loss, sync_dist=True)
+        self.log("val_kld_loss", kld_loss, sync_dist=True)
+        self.log("val_ssim", self.ssim, sync_dist=True)
 
     def test_step(self, batch: MRISample, batch_idx: int):
         x = batch["image"]
@@ -418,10 +418,10 @@ class LitVAE3D(L.LightningModule):
 
         self.ssim(recon_x, x)
 
-        self.log("test_loss", loss)
-        self.log("test_recon_loss", recon_loss)
-        self.log("test_kld_loss", kld_loss)
-        self.log("test_ssim", self.ssim)
+        self.log("test_loss", loss, sync_dist=True)
+        self.log("test_recon_loss", recon_loss, sync_dist=True)
+        self.log("test_kld_loss", kld_loss, sync_dist=True)
+        self.log("test_ssim", self.ssim, sync_dist=True)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters())
