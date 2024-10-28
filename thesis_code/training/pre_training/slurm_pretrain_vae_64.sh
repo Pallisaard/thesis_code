@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=pretrain_vae_64
-#SBATCH --output=pretrain_vae_64-%j.out # Name of output file
-#SBATCH --error=pretrain_vae_64-%j.err # Name of error file
+#SBATCH --output=slurm_pretrain_vae_64-%j.out # Name of output file
+#SBATCH --error=slurm_pretrain_vae_64-%j.err # Name of error file
 #SBATCH --gres=gpu:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=2  # Number of CPUs for each gpu
 #SBATCH --mem=16G          # Memory request
