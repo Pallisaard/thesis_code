@@ -106,7 +106,7 @@ def parse_args() -> argparse.Namespace:
         "--batch-size", type=int, default=8, help="Batch size for training"
     )
     parser.add_argument(
-        "--n-workers", type=int, default=0, help="Number of workers for data loader"
+        "--num-workers", type=int, default=0, help="Number of workers for data loader"
     )
     # Transforms
     parser.add_argument(
