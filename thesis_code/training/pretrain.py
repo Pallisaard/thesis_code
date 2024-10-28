@@ -75,7 +75,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model-name",
         required=True,
-        choices=["cicek_3d_vae"],
+        choices=["cicek_3d_vae", "kwon_gan"],
         help="Name of the model to train",
     )
     parser.add_argument(
@@ -92,6 +92,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--n-workers", type=int, default=0, help="Number of workers for data loader"
     )
+    # Transforms
     parser.add_argument(
         "--transforms",
         type=str,
@@ -100,17 +101,32 @@ def parse_args() -> argparse.Namespace:
         help="List of transforms to apply to the data",
         choices=["resize", "z-normalize", "range-normalize"],
     )
+    # Resize transform arguments.
     parser.add_argument(
         "--resize-size",
         type=int,
         default=256,
         help="Size to resize images to before passing to model",
     )
+    # Z-normalize transform arguments.
     parser.add_argument(
         "--normalize-dir",
         type=str,
         default=None,
         help="Path to directory containing normalization statistics to use",
+    )
+    # Range-normalize transform arguments.
+    parser.add_argument(
+        "--normalize-min",
+        type=int,
+        default=-1,
+        help="If using RangeNormalize transform, the minimum of the normalization range.",
+    )
+    parser.add_argument(
+        "--normalize-max",
+        type=int,
+        default=1,
+        help="If using RangeNormalize transform, the maximum of the normalization range.",
     )
 
     # Lightning arguments.
@@ -127,7 +143,7 @@ def parse_args() -> argparse.Namespace:
         help="Type of strategy to use. use 'auto' to let Lightning decide and otherwise 'ddp'.",
     )
     parser.add_argument(
-        "--devices",
+        "--gpus",
         default="auto",
         help="Number of devices to use. Use 'auto' to use all available devices.",
     )
@@ -144,7 +160,7 @@ def parse_args() -> argparse.Namespace:
         help="Maximum number of epochs to train for.",
     )
     parser.add_argument(
-        "--max_time",
+        "--max-time",
         type=str,
         default="00:04:00:00",
         help="Maximum time to train for in hours.",
@@ -158,13 +174,13 @@ def parse_args() -> argparse.Namespace:
         choices=["checkpoint", "summary", "progress"],
     )
     parser.add_argument(
-        "--checkpoint-path",
+        "--checkpoint-dir",
         type=str,
         default="lightning/checkpoints",
         help="Path to save model checkpoints.",
     )
     parser.add_argument(
-        "--save_top_k",
+        "--save-top-k",
         type=int,
         default=1,
         help="Number of top models to save when checkpointing.",
@@ -180,18 +196,6 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default="ssim",
         help="Metric to monitor for checkpointing.",
-    )
-    parser.add_argument(
-        "--normalize-min",
-        type=int,
-        default=-1,
-        help="If using RangeNormalize transform, the minimum of the normalization range.",
-    )
-    parser.add_argument(
-        "--normalize-max",
-        type=int,
-        default=1,
-        help="If using RangeNormalize transform, the maximum of the normalization range.",
     )
     parser.add_argument(
         "--load-from-checkpoint",
@@ -223,7 +227,7 @@ def get_transforms(args: argparse.Namespace) -> MRITransform:
     return Compose(transforms)
 
 
-def get_callbacks(args: argparse.Namespace) -> list[L.Callback]:
+def get_callbacks_from(*, args: argparse.Namespace) -> list[L.Callback]:
     callbacks = []
     if "checkpoint" in args.callbacks:
         callbacks.append(
@@ -268,7 +272,7 @@ def main():
         fast_dev_run=args.fast_dev_run,
         max_epochs=args.max_epochs,
         max_time=args.max_time,
-        callbacks=get_callbacks(args),
+        callbacks=get_callbacks_from(args=args),
     )
     print("Trainer:", trainer)
 

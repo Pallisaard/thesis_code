@@ -15,10 +15,24 @@ def analyze_single_nii_gz_file(filepath):
         img = nib.load(filepath)  # type: ignore
         data_type = img.get_data_dtype()  # type: ignore
         resolution = img.shape  # type: ignore
+        zooms = img.header.get_zooms()  # type: ignore
+        fdata = img.get_fdata()  # type: ignore
+        min = fdata.min()  # type: ignore
+        max = fdata.max()  # type: ignore
 
         print("File:", filepath)
-        print("Data type:", data_type)
-        print("Resolution:", resolution)
+        print(
+            "Data type:",
+            data_type,
+            "Resolution:",
+            resolution,
+            "Zooms:",
+            zooms,
+            "Min:",
+            min,
+            "Max:",
+            max,
+        )
     except Exception as e:
         print(f"Error reading file {filepath}: {e}")
 
