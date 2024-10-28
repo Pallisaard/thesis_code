@@ -279,7 +279,7 @@ def main():
     summary_input = (
         (1, 64, 64, 64) if args.model_name == "cicek_3d_vae_64" else (1, 256, 256, 256)
     )
-    print(summary(torch_model, summary_input, batch_size=8))
+    print(summary(torch_model, summary_input, batch_size=2))
 
     print("Creating datamodule")
     transform = get_transforms(args)
