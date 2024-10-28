@@ -18,7 +18,7 @@ cd ~/thesis_code
 python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_64" \
                 --latent-dim 256 \
                 --data-path /home/gzj557/final_dataset \
-                --batch-size 128 \
+                --batch-size 32 \
                 --num-workers 5 \
                 --transforms resize range-normalize \
                 --resize-size 64 \
