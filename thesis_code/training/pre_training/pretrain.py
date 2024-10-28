@@ -187,7 +187,7 @@ def parse_args() -> argparse.Namespace:
         choices=["checkpoint", "summary", "progress"],
     )
     parser.add_argument(
-        "--checkpoint-dir",
+        "--checkpoint-path",
         type=str,
         default="lightning/checkpoints",
         help="Path to save model checkpoints.",
