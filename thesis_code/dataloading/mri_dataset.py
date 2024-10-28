@@ -17,8 +17,8 @@ class MRIDataset(Dataset):
         self.data_path: Path = Path(data_path)
         self.name: str = self.data_path.name
         self.transform = transform
-        self.samples: list[Path] = self._load_dataset(self.data_path)
         self.size_limit = size_limit
+        self.samples: list[Path] = self._load_dataset(self.data_path)
 
     def _load_dataset(self, data_path: Path) -> list[Path]:
         scans_dir = data_path

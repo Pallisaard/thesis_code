@@ -3,9 +3,9 @@ import pytest
 from unittest.mock import MagicMock
 
 # Import the necessary classes and types
-from dataloading import MRISample
-from dataloading import Compose, Resize, ZScoreNormalize
-from dataloading import MRIDataset
+from thesis_code.dataloading import MRISample
+from thesis_code.dataloading import Compose, Resize, ZScoreNormalize
+from thesis_code.dataloading import MRIDataset
 
 
 # Helper function to create a sample image

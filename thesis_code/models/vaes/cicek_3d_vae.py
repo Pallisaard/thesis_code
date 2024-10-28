@@ -1,6 +1,6 @@
 import abc
 from functools import reduce
-from typing import Tuple
+from typing import Literal, Tuple
 
 import torch
 import torch.nn as nn
@@ -21,8 +21,62 @@ class AbstractVAE3D(abc.ABC):
         recon_x: torch.Tensor,
         mu: torch.Tensor,
         log_var: torch.Tensor,
+        epoch: int,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         pass
+
+
+class ResNetBlock3D(nn.Module):
+    def __init__(self, in_channels, out_channels, stride=1):
+        """
+        3D ResNet block with two convolution layers and a residual connection.
+
+        Args:
+            in_channels (int): Number of input channels
+            out_channels (int): Number of output channels
+            stride (int): Stride for the first convolution (default: 1)
+            downsample (nn.Module): Optional downsampling layer for residual connection
+        """
+        super(ResNetBlock3D, self).__init__()
+
+        # First convolution layer
+        self.conv1 = nn.Conv3d(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=3,
+            stride=stride,
+            padding=1,
+            bias=False,
+        )
+        self.bn1 = nn.BatchNorm3d(out_channels)
+        self.relu = nn.ReLU()
+
+        # Second convolution layer
+        self.conv2 = nn.Conv3d(
+            in_channels=out_channels,
+            out_channels=out_channels,
+            kernel_size=3,
+            stride=1,
+            padding=1,
+            bias=False,
+        )
+        self.bn2 = nn.BatchNorm3d(out_channels)
+
+    def forward(self, x):
+        # First conv block
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+
+        # Second conv block
+        out = self.conv2(out)
+        out = self.bn2(out)
+
+        # Add residual connection
+        out += x
+        out = self.relu(out)
+
+        return out
 
 
 class ConvUnit(nn.Module):
@@ -174,6 +228,9 @@ class VAE3D(nn.Module, AbstractVAE3D):
         kernel_size: int = 2,
         stride: int = 2,
         beta: float = 1.0,
+        beta_annealing: Literal["monotonic", "constant"] = "monotonic",
+        max_beta: float = 1.0,
+        warmup_epochs: int = 10,
     ):
         super().__init__()
         self.in_shape = in_shape
@@ -188,6 +245,9 @@ class VAE3D(nn.Module, AbstractVAE3D):
         self.kernel_size = kernel_size
         self.stride = stride
         self.beta = beta
+        self.beta_annealing = beta_annealing
+        self.max_beta = max_beta
+        self.warmup_epochs = warmup_epochs
 
         self.encoder = VAE3DEncoder(encoder_out_channels_per_block, pool_size, in_shape)
         self.decoder = VAE3DDecoder(
@@ -241,6 +301,7 @@ class VAE3D(nn.Module, AbstractVAE3D):
         recon_x: torch.Tensor,
         mu: torch.Tensor,
         log_var: torch.Tensor,
+        epoch: int,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Calculate beta-VAE loss = reconstruction loss + β * KL divergence
@@ -252,22 +313,32 @@ class VAE3D(nn.Module, AbstractVAE3D):
         # KL divergence loss
         kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
 
+        beta = self.get_beta(epoch)
+
         # Total loss with beta weighting
-        total_loss = recon_loss + self.beta * kld_loss
+        total_loss = recon_loss + beta * kld_loss
 
         # You might want to log these separately for monitoring
         return total_loss, recon_loss, kld_loss
 
+    def get_beta(self, epoch: int):
+        if self.beta_annealing == "constant":
+            return self.beta
+        elif self.beta_annealing == "monotonic":
+            return self.monotonic_beta_annealing(epoch)
+
     # For KL annealing - check beta-VAE paper
-    def get_beta(self, current_epoch, warmup_epochs=10, max_beta=1.0):
+    def monotonic_beta_annealing(self, current_epoch):
         """
         Calculate beta value with optional annealing
         """
-        if warmup_epochs > 0:
+        if self.warmup_epochs > 0:
             # Gradually increase beta from 0 to max_beta
-            beta = min(max_beta * (current_epoch / warmup_epochs), max_beta)
+            beta = min(
+                self.max_beta * (current_epoch / self.warmup_epochs), self.max_beta
+            )
         else:
-            beta = max_beta
+            beta = self.max_beta
         return beta
 
 
@@ -311,7 +382,7 @@ class LitVAE3D(L.LightningModule):
 
         # Calculate loss
         loss, recon_loss, kld_loss = self.model.calculate_loss(
-            x, recon_x, mu, log_var
+            x, recon_x, mu, log_var, self.current_epoch + 1
         )  # Assuming your model has this method
 
         # Log losses
@@ -325,7 +396,9 @@ class LitVAE3D(L.LightningModule):
         x = batch["image"]
         recon_x, mu, log_var = self(x)
 
-        loss, recon_loss, kld_loss = self.model.calculate_loss(x, recon_x, mu, log_var)
+        loss, recon_loss, kld_loss = self.model.calculate_loss(
+            x, recon_x, mu, log_var, self.current_epoch + 1
+        )
 
         self.ssim(recon_x, x)
 
