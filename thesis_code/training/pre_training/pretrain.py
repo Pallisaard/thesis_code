@@ -208,7 +208,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--checkpoint-monitor",
         type=str,
-        default="ssim",
+        default="val_total_loss",
         help="Metric to monitor for checkpointing.",
     )
     parser.add_argument(
