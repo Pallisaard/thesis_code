@@ -5,8 +5,8 @@
 #SBATCH --gres=gpu:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=2  # Number of CPUs for each gpu
 #SBATCH --mem=16G          # Memory request
-#SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
-#SBATCH --mail-user=rpa@di.ku.dk # Email
+# #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
+# #SBATCH --mail-user=rpa@di.ku.dk # Email
 
 module load cuda/11.8
 module load cudnn/8.6.0
