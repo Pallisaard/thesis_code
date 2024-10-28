@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=slurm_pretrain_vae_64
 #SBATCH --gres=gpu:4       # Request 4 GPU per job
-#SBATCH --cpus_per_tasks=6 # Number of CPUs for each gpu
+#SBATCH --cpus_per_task=6 # Number of CPUs for each gpu
 #SBATCH --mem=32G          # Memory request
 #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
