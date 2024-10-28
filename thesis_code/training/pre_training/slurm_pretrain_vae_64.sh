@@ -29,7 +29,6 @@ python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_
                 --devices aut' \
                 --max-epochs 100 \
                 --callbacks checkpoint summary progress \
-                --checkpoint-path ~/lightning/checkpoints \
                 --save-top-k 3 \
                 --save-last \
                 --fast-dev-run \
