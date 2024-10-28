@@ -42,7 +42,6 @@ class MRIDataset(Dataset):
         if self.transform is not None:
             sample = self.transform(sample)
 
-        print("sample shape after retrieval:", sample["image"].shape)
         return sample
 
     def __repr__(self) -> str:
