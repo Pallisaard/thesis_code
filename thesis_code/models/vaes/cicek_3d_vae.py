@@ -408,6 +408,21 @@ class LitVAE3D(L.LightningModule):
         self.log("val_kld_loss", kld_loss)
         self.log("val_ssim", self.ssim)
 
+    def test_step(self, batch: MRISample, batch_idx: int):
+        x = batch["image"]
+        recon_x, mu, log_var = self(x)
+
+        loss, recon_loss, kld_loss = self.model.calculate_loss(
+            x, recon_x, mu, log_var, self.current_epoch + 1
+        )
+
+        self.ssim(recon_x, x)
+
+        self.log("test_loss", loss)
+        self.log("test_recon_loss", recon_loss)
+        self.log("test_kld_loss", kld_loss)
+        self.log("test_ssim", self.ssim)
+
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters())
         return optimizer
