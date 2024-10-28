@@ -33,14 +33,13 @@ class Resize(MRITransform):
         image = sample["image"]
         if image.shape[1:] == self.size:
             return sample
-
         resized_image = F.interpolate(
             image.unsqueeze(0),  # Add batch and channel dimensions
             size=self.size,
             mode="trilinear",
             align_corners=True,
-        )  # Remove batch dimension
-        sample["image"] = resized_image.squeeze(0)  # Remove batch dimension
+        ).squeeze(0)  # Remove batch dimension
+        sample["image"] = resized_image
         return sample
 
 

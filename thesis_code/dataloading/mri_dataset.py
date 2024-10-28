@@ -36,7 +36,7 @@ class MRIDataset(Dataset):
 
     def __getitem__(self, idx: int) -> MRISample:
         file_path = self.samples[idx]
-        mri = load_nifti(file_path).unsqueeze(0)
+        mri = load_nifti(file_path).unsqueeze(0).float()
         sample: MRISample = {"image": mri}
 
         if self.transform is not None:
