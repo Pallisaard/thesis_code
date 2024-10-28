@@ -302,11 +302,11 @@ def main():
         callbacks=get_callbacks_from_args(args),
     )
 
-    # print("Fitting model")
-    # trainer.fit(model, datamodule=data_module)
+    print("Fitting model")
+    trainer.fit(model, datamodule=data_module)
 
-    # print("Testing model")
-    # trainer.test(model, datamodule=data_module)
+    print("Testing model")
+    trainer.test(model, datamodule=data_module)
 
     print("Finished pre-training script")
 
