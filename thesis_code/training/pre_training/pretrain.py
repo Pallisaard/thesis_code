@@ -267,11 +267,13 @@ def main():
     print("Creating model")
     model = get_model(args.model_name, args.latent_dim, args.load_from_checkpoint)
 
+    torch_model = model.model.cuda()
+
     print("Model summary:")
     summary_input = (
         (1, 64, 64, 64) if args.model_name == "cicek_3d_vae_64" else (1, 256, 256, 256)
     )
-    print(summary(model, summary_input))
+    print(summary(torch_model, summary_input))
 
     print("Creating datamodule")
     transform = get_transforms(args)
