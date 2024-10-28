@@ -7,7 +7,7 @@ from dataloading.transforms import ZScoreNormalize
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data-dir",
+        "--data-path",
         type=str,
         default="data/",
         help="Path to directory containing the data.",
@@ -23,7 +23,7 @@ def parse_args() -> argparse.Namespace:
 
 def main():
     args = parse_args()
-    dataset = MRIDataset(data_path=args.data_dir)
+    dataset = MRIDataset(data_path=args.data_path)
 
     print(f"Dataset: {dataset}")
 

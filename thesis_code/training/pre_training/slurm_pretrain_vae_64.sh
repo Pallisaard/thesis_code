@@ -17,7 +17,7 @@ cd ~/thesis_code
 
 python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_64" \
                 --latent-dim 1024 \
-                --data-dir "~/final_dataset/fs_scans" \
+                --data-path "~/final_dataset/fs_scans" \
                 --batch-size 8 \
                 --n-workers 0 \
                 --transforms "resize" "range-normalize" \
@@ -29,7 +29,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_
                 --devices 'auto' \
                 --max-epochs 100 \
                 --callbacks "checkpoint" "summary" "progress" \
-                --checkpoint-dir "~/lightning/checkpoints" \
+                --checkpoint-path "~/lightning/checkpoints" \
                 --save-top-k 3 \
                 --save-last \
                 --fast-dev-run \

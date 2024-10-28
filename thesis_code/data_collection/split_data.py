@@ -1,4 +1,4 @@
-### Count number of files in data_dir, use arguments 'split_ratio' or 'val_size' to split data into train and validation sets, and save the split data into two separate directories.'
+### Count number of files in data_path, use arguments 'split_ratio' or 'val_size' to split data into train and validation sets, and save the split data into two separate directories.'
 # The split should be randomly drawn indices and should be reproducible (an argument should be seed).
 
 import argparse
@@ -11,7 +11,7 @@ import numpy as np
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--data-dir",
+        "--data-path",
         type=str,
         default="data/",
         help="Path to directory containing the data.",
@@ -53,15 +53,15 @@ def main():
 
     np.random.seed(args.seed)
 
-    data_dir = Path(args.data_dir)
-    if not data_dir.exists():
-        raise ValueError(f"Data directory not found: {data_dir}")
+    data_path = Path(args.data_path)
+    if not data_path.exists():
+        raise ValueError(f"Data directory not found: {data_path}")
 
     output_dir = Path(args.output_dir)
     if not output_dir.exists():
         raise ValueError(f"Output directory not found: {output_dir}")
 
-    samples = list(data_dir.glob("*.nii.gz"))
+    samples = list(data_path.glob("*.nii.gz"))
     print(f"Number of samples: {len(samples)}")
 
     if args.split_ratio is None and args.val_size is None:

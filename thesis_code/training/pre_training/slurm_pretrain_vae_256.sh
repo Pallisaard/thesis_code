@@ -13,7 +13,7 @@ source ~/venv/bin/activate
 
 python pretrain --model-name "cicek-3d-vae" \
                 --latent-dim 1024 \
-                --data-dir "~/final_dataset/fs_scans" \
+                --data-path "~/final_dataset/fs_scans" \
                 --batch-size 64 \
                 --num-workers 4 \
                 --transforms "resize" "range-normalize" \

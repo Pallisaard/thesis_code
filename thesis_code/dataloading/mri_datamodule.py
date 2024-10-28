@@ -12,14 +12,14 @@ from thesis_code.dataloading.transforms import MRITransform
 class MRIDataModule(L.LightningDataModule):
     def __init__(
         self,
-        data_dir: str = "./data",
+        data_path: str = "./data",
         batch_size: int = 8,
         n_workers: int = 0,
         transform: MRITransform | None = None,
         size_limit: int | None = None,
     ):
         super().__init__()
-        self.data_dir = data_dir
+        self.data_path = data_path
         self.batch_size = batch_size
         self.n_workers = n_workers
         self.transform = transform
@@ -31,16 +31,20 @@ class MRIDataModule(L.LightningDataModule):
     def setup(self, stage: str) -> None:
         if stage == "fit":
             self.mri_train = get_train_dataset(
-                path=self.data_dir, transform=self.transform, size_limit=self.size_limit
+                path=self.data_path,
+                transform=self.transform,
+                size_limit=self.size_limit,
             )
             self.mri_val = get_val_dataset(
-                path=self.data_dir,
+                path=self.data_path,
                 transforms=self.transform,
                 size_limit=self.size_limit,
             )
         elif stage == "test":
             self.mri_test = get_test_dataset(
-                path=self.data_dir, transform=self.transform, size_limit=self.size_limit
+                path=self.data_path,
+                transform=self.transform,
+                size_limit=self.size_limit,
             )
         else:
             raise ValueError(

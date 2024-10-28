@@ -67,14 +67,14 @@ def get_model(
 
 
 def get_datamodule(
-    data_dir: str,
+    data_path: str,
     batch_size: int,
     n_workers: int,
     transform: MRITransform,
     size_limit: int | None,
 ) -> MRIDataModule:
     return MRIDataModule(
-        data_dir=data_dir,
+        data_path=data_path,
         batch_size=batch_size,
         n_workers=n_workers,
         transform=transform,
@@ -96,7 +96,7 @@ def parse_args() -> argparse.Namespace:
         "--latent-dim", type=int, default=256, help="Dimension of the latent space"
     )
     parser.add_argument(
-        "--data-dir", type=str, required=True, help="Path to the data directory"
+        "--data-path", type=str, required=True, help="Path to the data directory"
     )
 
     # Data module arguments.
@@ -271,7 +271,7 @@ def main():
     print("Creating datamodule")
     transform = get_transforms(args)
     data_module = get_datamodule(
-        args.data_dir,
+        args.data_path,
         args.batch_size,
         args.n_workers,
         transform=transform,
