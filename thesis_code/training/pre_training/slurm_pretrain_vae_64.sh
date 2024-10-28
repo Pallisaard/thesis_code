@@ -6,14 +6,14 @@
 #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
 
-module load cuda/11.8
-module load cudnn/8.6.0
+# module load cuda/11.8
+# module load cudnn/8.6.0
 
-source ~/venv/bin/activate
+# source ~/venv/bin/activate
 
-cd ~/thesis_code/thesis_code/training/pre_training
+# cd ~/thesis_code/thesis_code/training/pre_training
 
-python pretrain.py --model-name "cicek-3d-vae" \
+python -m thesis_code.training.pre_training.pretrain --model-name "cicek-3d-vae" \
                 --latent-dim 1024 \
                 --data-dir "~/final_dataset/fs_scans" \
                 --batch-size 8 \
