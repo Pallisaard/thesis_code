@@ -27,7 +27,7 @@ class AbstractVAE3D(abc.ABC):
 
 
 class ResNetBlock3D(nn.Module):
-    def __init__(self, in_channels, out_channels, stride=1):
+    def __init__(self, in_channels, out_channels, stride=1, groups=32):
         """
         3D ResNet block with two convolution layers and a residual connection.
 
@@ -48,8 +48,9 @@ class ResNetBlock3D(nn.Module):
             padding=1,
             bias=False,
         )
-        self.bn1 = nn.BatchNorm3d(out_channels)
-        self.relu = nn.ReLU()
+        # self.bn1 = nn.BatchNorm3d(out_channels)
+        self.gn1 = nn.GroupNorm(num_groups=groups, num_channels=out_channels)
+        self.relu = nn.ReLU(inplace=True)
 
         # Second convolution layer
         self.conv2 = nn.Conv3d(
@@ -60,17 +61,18 @@ class ResNetBlock3D(nn.Module):
             padding=1,
             bias=False,
         )
-        self.bn2 = nn.BatchNorm3d(out_channels)
+        # self.bn2 = nn.BatchNorm3d(out_channels)
+        self.gn2 = nn.GroupNorm(num_groups=groups, num_channels=out_channels)
 
     def forward(self, x):
         # First conv block
         out = self.conv1(x)
-        out = self.bn1(out)
+        out = self.gn1(out)
         out = self.relu(out)
 
         # Second conv block
         out = self.conv2(out)
-        out = self.bn2(out)
+        out = self.gn2(out)
 
         # Add residual connection
         out += x
