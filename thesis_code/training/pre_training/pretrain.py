@@ -269,11 +269,9 @@ def main():
 
     print("Model summary:")
     summary_input = (
-        (1, 1, 64, 64, 64)
-        if args.model_name == "cicek_3d_vae_64"
-        else (1, 1, 256, 256, 256)
+        (1, 64, 64, 64) if args.model_name == "cicek_3d_vae_64" else (1, 256, 256, 256)
     )
-    torchsummary.summary(model, summary_input)
+    print(torchsummary.summary(model, summary_input))
 
     print("Creating datamodule")
     transform = get_transforms(args)
