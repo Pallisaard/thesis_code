@@ -277,8 +277,6 @@ def main():
         transform=transform,
         size_limit=100 if args.fast_dev_run else None,
     )
-    print("Model:", model)
-    print("Data module:", data_module)
 
     print("Creating trainer")
     trainer = Trainer(
@@ -290,13 +288,12 @@ def main():
         max_time=args.max_time,
         callbacks=get_callbacks_from_args(args),
     )
-    print("Trainer:", trainer)
 
     print("Fitting model")
-    # trainer.fit(model, datamodule=data_module)
+    trainer.fit(model, datamodule=data_module)
 
     print("Testing model")
-    # trainer.test(model, datamodule=data_module)
+    trainer.test(model, datamodule=data_module)
 
     print("Finished pre-training script")
 
