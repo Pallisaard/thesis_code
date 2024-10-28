@@ -66,13 +66,18 @@ def get_model(
 
 
 def get_datamodule(
-    data_dir: str, batch_size: int, n_workers: int, transform: MRITransform
+    data_dir: str,
+    batch_size: int,
+    n_workers: int,
+    transform: MRITransform,
+    size_limit: int | None,
 ) -> MRIDataModule:
     return MRIDataModule(
         data_dir=data_dir,
         batch_size=batch_size,
         num_workers=n_workers,
         transform=transform,
+        size_limit=size_limit,
     )
 
 
@@ -235,7 +240,7 @@ def get_transforms(args: argparse.Namespace) -> MRITransform:
     return Compose(transforms)
 
 
-def get_callbacks_from(*, args: argparse.Namespace) -> list[L.Callback]:
+def get_callbacks_from_args(args: argparse.Namespace) -> list[L.Callback]:
     callbacks = []
     if "checkpoint" in args.callbacks:
         callbacks.append(
@@ -267,7 +272,11 @@ def main():
     print("Creating datamodule")
     transform = get_transforms(args)
     data_module = get_datamodule(
-        args.data_dir, args.batch_size, args.n_workers, transform=transform
+        args.data_dir,
+        args.batch_size,
+        args.n_workers,
+        transform=transform,
+        size_limit=100 if args.fast_dev_run else None,
     )
     print("Model:", model)
     print("Data module:", data_module)
@@ -280,11 +289,12 @@ def main():
         fast_dev_run=args.fast_dev_run,
         max_epochs=args.max_epochs,
         max_time=args.max_time,
-        callbacks=get_callbacks_from(args=args),
+        callbacks=get_callbacks_from_args(args),
     )
     print("Trainer:", trainer)
 
-    trainer.fit(model, data_module)
+    trainer.fit(model, datamodule=data_module)
+    trainer.test(model, datamodule=data_module)
 
 
 if __name__ == "__main__":

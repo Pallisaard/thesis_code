@@ -12,11 +12,13 @@ class MRIDataset(Dataset):
         self,
         data_path: str | Path,
         transform: Callable[[MRISample], MRISample] | None = None,
+        size_limit: int | None = None,
     ):
         self.data_path: Path = Path(data_path)
         self.name: str = self.data_path.name
         self.transform = transform
         self.samples: list[Path] = self._load_dataset(self.data_path)
+        self.size_limit = size_limit
 
     def _load_dataset(self, data_path: Path) -> list[Path]:
         scans_dir = data_path
@@ -24,7 +26,9 @@ class MRIDataset(Dataset):
             raise ValueError(f"Scans directory not found in {data_path}")
 
         samples: list[Path] = list(scans_dir.glob("**/*.nii.gz"))
-        print(f"{len(samples)} MRI images loaded.")
+        if self.size_limit is not None:
+            samples = samples[: self.size_limit]
+
         return samples
 
     def __len__(self) -> int:
