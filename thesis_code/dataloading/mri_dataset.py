@@ -36,12 +36,13 @@ class MRIDataset(Dataset):
 
     def __getitem__(self, idx: int) -> MRISample:
         file_path = self.samples[idx]
-        mri = load_nifti(file_path)
+        mri = load_nifti(file_path).unsqueeze(0)
         sample: MRISample = {"image": mri}
 
         if self.transform is not None:
             sample = self.transform(sample)
 
+        print("sample shape after retrieval:", sample["image"].shape)
         return sample
 
     def __repr__(self) -> str:

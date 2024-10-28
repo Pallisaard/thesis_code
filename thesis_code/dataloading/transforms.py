@@ -32,12 +32,12 @@ class Resize(MRITransform):
     def __call__(self, sample: MRISample) -> MRISample:
         image = sample["image"]
         resized_image = F.interpolate(
-            image.unsqueeze(0).unsqueeze(0).float(),  # Add batch and channel dimensions
+            image.unsqueeze(0).float(),  # Add batch and channel dimensions
             size=self.size,
             mode="trilinear",
             align_corners=True,
         )
-        sample["image"] = resized_image.squeeze(0).squeeze(
+        sample["image"] = resized_image.squeeze(
             0
         )  # Remove batch and channel dimensions
         return sample
