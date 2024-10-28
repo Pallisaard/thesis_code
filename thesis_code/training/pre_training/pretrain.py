@@ -163,8 +163,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--fast-dev-run",
-        type=bool,
-        default=False,
+        action="store_true",
         help="Whether to run a fast development run.",
     )
     parser.add_argument(
@@ -201,8 +200,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--save-last",
-        type=bool,
-        default=True,
+        action="store_true",
         help="Whether to save the last model checkpoint.",
     )
     parser.add_argument(
