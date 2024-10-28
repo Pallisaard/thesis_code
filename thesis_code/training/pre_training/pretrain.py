@@ -217,6 +217,12 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Path to load model from checkpoint. Default None will initialize a new model.",
     )
+    parser.add_argument(
+        "--log-every-n-steps",
+        type=int,
+        default=50,
+        help="Log every n steps during training.",
+    )
     return parser.parse_args()
 
 
@@ -285,6 +291,7 @@ def main():
 
     print("Creating trainer")
     trainer = Trainer(
+        log_every_n_steps=args.log_every_n_steps,
         accelerator=args.accelerator,
         strategy=args.strategy,
         devices=args.devices,

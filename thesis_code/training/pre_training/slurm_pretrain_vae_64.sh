@@ -2,8 +2,8 @@
 #SBATCH --job-name=pretrain_vae_64
 #SBATCH --output=slurm_pretrain_vae_64-%j.out # Name of output file
 #SBATCH --error=slurm_pretrain_vae_64-%j.err # Name of error file
-#SBATCH --gres=gpu:titanrtx:4       # Request 4 GPU per job
-#SBATCH --cpus-per-task=6  # Number of CPUs for each gpu
+#SBATCH --gres=gpu:titanrtx:1       # Request 4 GPU per job
+#SBATCH --cpus-per-task=3  # Number of CPUs for each gpu
 #SBATCH --mem=16G          # Memory request
 # #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 # #SBATCH --mail-user=rpa@di.ku.dk # Email
@@ -19,7 +19,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_
                 --latent-dim 256 \
                 --data-path /home/gzj557/final_dataset \
                 --batch-size 32 \
-                --num-workers 5 \
+                --num-workers 2 \
                 --transforms resize range-normalize \
                 --resize-size 64 \
                 --normalize-min 0 \
@@ -31,3 +31,4 @@ python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_
                 --callbacks checkpoint summary \
                 --save-top-k 3 \
                 --save-last \
+                --log-every-n-steps 10 \
