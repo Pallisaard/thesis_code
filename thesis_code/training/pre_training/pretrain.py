@@ -15,7 +15,7 @@ from thesis_code.dataloading.transforms import (
     ZScoreNormalize,
     RangeNormalize,
 )
-from thesis_code.training.callbacks import (
+from thesis_code.training.callbacks.callbacks import (
     get_checkpoint_callback,
     get_summary_callback,
     get_progress_bar_callback,
