@@ -21,7 +21,7 @@ from thesis_code.training.callbacks.callbacks import (
     get_progress_bar_callback,
 )
 
-type MODEL_NAME = Literal["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan"]
+MODEL_NAME = Literal["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan"]
 
 
 def get_specific_model(
