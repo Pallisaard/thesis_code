@@ -175,7 +175,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-time",
         type=str,
-        default="00:04:00:00",
+        default=None,
         help="Maximum time to train for in hours.",
     )
     parser.add_argument(
@@ -292,8 +292,13 @@ def main():
     )
     print("Trainer:", trainer)
 
-    trainer.fit(model, datamodule=data_module)
-    trainer.test(model, datamodule=data_module)
+    print("Fitting model")
+    # trainer.fit(model, datamodule=data_module)
+
+    print("Testing model")
+    # trainer.test(model, datamodule=data_module)
+
+    print("Finished pre-training script")
 
 
 if __name__ == "__main__":
