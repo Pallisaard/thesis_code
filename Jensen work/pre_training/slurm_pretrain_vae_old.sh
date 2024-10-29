@@ -16,7 +16,7 @@ conda activate thesis
 bash training/slurm_pretrain_vae.sh \
   --model-name "cicek_3d_vae" \
   --latent-dim 256 \
-  --data-dir "../data/final_dataset" \
+  --data-path "../data/final_dataset" \
   --batch-size 32 \
   --n-workers 4 \
   --normalize-dir ../data/z_score_params.txt \

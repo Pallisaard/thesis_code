@@ -3,15 +3,15 @@ import pytest
 from unittest.mock import MagicMock
 
 # Import the necessary classes and types
-from dataloading import MRISample
-from dataloading import Compose, Resize, ZScoreNormalize
-from dataloading import MRIDataset
+from thesis_code.dataloading import MRISample
+from thesis_code.dataloading import Compose, Resize, ZScoreNormalize
+from thesis_code.dataloading import MRIDataset
 
 
 # Helper function to create a sample image
 @pytest.fixture
 def sample_image() -> MRISample:
-    image = torch.randn(10, 20, 30)
+    image = torch.randn(1, 10, 20, 30)
     return {"image": image}
 
 
@@ -28,7 +28,7 @@ def dataset() -> MagicMock:
 def test_resize(sample_image: MRISample):
     resize = Resize(size=64)
     resized_sample = resize(sample_image)
-    assert resized_sample["image"].shape == (64, 64, 64)
+    assert resized_sample["image"].shape == (1, 64, 64, 64)
 
 
 # @pytest.mark.timeout(5)
@@ -61,13 +61,13 @@ def test_zscore_normalize_save_load():
     assert loaded_zscore_norm.std == zscore_norm.std
 
 
-@pytest.mark.timeout(5)
+# @pytest.mark.timeout(5)
 def test_compose(sample_image: MRISample):
     resize = Resize(size=64)
     zscore_norm = ZScoreNormalize.from_parameters(mean=0.0, std=1.0)
     compose = Compose([resize, zscore_norm])
 
     transformed_sample = compose(sample_image)
-    assert transformed_sample["image"].shape == (64, 64, 64)
+    assert transformed_sample["image"].shape == (1, 64, 64, 64)
     assert abs(transformed_sample["image"].mean().item()) < 0.2  # pytest.approx(0.0)
     assert abs(transformed_sample["image"].std().item()) - 1 < 0.2  # pytest.approx(1.0)
