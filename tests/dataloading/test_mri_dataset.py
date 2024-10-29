@@ -12,7 +12,7 @@ from thesis_code.dataloading import MRIDataset
 
 @pytest.fixture
 def mock_nifti_data() -> NDArray:
-    return np.ones((10, 10, 10), dtype=np.float32)
+    return np.ones((1, 10, 10, 10), dtype=np.float32)
 
 
 @pytest.fixture
@@ -24,9 +24,10 @@ def mock_nifti_file(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def mock_load_nifti(mock_nifti_data):
+def mock_load_nifti():
     with patch("thesis_code.dataloading.mri_dataset.load_nifti") as mock_load:
-        mock_load.return_value = torch.from_numpy(mock_nifti_data)
+        nifti = np.ones((10, 10, 10), dtype=np.float32)
+        mock_load.return_value = torch.from_numpy(nifti)
         yield mock_load
 
 

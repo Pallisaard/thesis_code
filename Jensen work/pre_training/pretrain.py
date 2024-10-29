@@ -1,11 +1,13 @@
 import argparse
 from typing import Literal
 
+import torch
 from lightning.pytorch.trainer import Trainer
 import lightning as L
+from torchsummary import summary
 
 # from models import VAE3DLightningModule
-from thesis_code.models import LitVAE3D
+from thesis_code.models.vaes import LitVAE3D
 from thesis_code.models.gans.kwon_gan import LitKwonGan
 from thesis_code.dataloading.mri_datamodule import MRIDataModule
 from thesis_code.dataloading.transforms import (
@@ -15,38 +17,53 @@ from thesis_code.dataloading.transforms import (
     ZScoreNormalize,
     RangeNormalize,
 )
-from thesis_code.training.callbacks import (
+from thesis_code.training.callbacks.callbacks import (
     get_checkpoint_callback,
     get_summary_callback,
     get_progress_bar_callback,
 )
 
-type MODEL_NAME = Literal["cicek_3d_vae", "kwon_gan"]
+MODEL_NAME = Literal["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan"]
 
 
 def get_specific_model(
-    model_class, checkpoint_path: str | None = None, **kwargs
+    model_class, checkpoint_path: str | None = None, model_kwargs={}
 ) -> L.LightningModule:
     if checkpoint_path is not None:
         return model_class.load_from_checkpoint(checkpoint_path)
-    return model_class(**kwargs)
+    return model_class(**model_kwargs)
 
 
 def get_model(
-    model_name: MODEL_NAME, latent_dim: int, load_from_checkpoint: str | None
+    model_name: MODEL_NAME, latent_dim: int, checkpoint_path: str | None
 ) -> L.LightningModule:
-    match model_name:
-        case "cicek_3d_vae":
-            return get_specific_model(
-                LitVAE3D,
+    if model_name == "cicek_3d_vae_256":
+        return get_specific_model(
+            LitVAE3D,
+            checkpoint_path=checkpoint_path,
+            model_kwargs=dict(
                 in_shape=(1, 256, 256, 256),
-                encoder_out_channels_per_block=[16, 32, 64, 128],
-                decoder_out_channels_per_block=[128, 64, 32, 16, 1],
+                encoder_out_channels_per_block=[8, 16, 32, 64],
+                decoder_out_channels_per_block=[64, 64, 16, 8, 1],
                 latent_dim=latent_dim,
-            )
-        case "kwon_gan":
-            return get_specific_model(
-                LitKwonGan,
+            ),
+        )
+    elif model_name == "cicek_3d_vae_64":
+        return get_specific_model(
+            LitVAE3D,
+            checkpoint_path=checkpoint_path,
+            model_kwargs=dict(
+                in_shape=(1, 64, 64, 64),
+                encoder_out_channels_per_block=[16, 32, 64],
+                decoder_out_channels_per_block=[64, 32, 16, 1],
+                latent_dim=latent_dim,
+            ),
+        )
+    elif model_name == "kwon_gan":
+        return get_specific_model(
+            LitKwonGan,
+            checkpoint_path=checkpoint_path,
+            model_kwargs=dict(
                 generator=None,
                 critic=None,
                 code_critic=None,
@@ -54,17 +71,25 @@ def get_model(
                 lambda_grad_policy=10.0,
                 n_critic_steps=5,
                 lambda_recon=1.0,
-            )
+            ),
+        )
+    else:
+        raise ValueError(f"Model name {model_name} not recognized")
 
 
 def get_datamodule(
-    data_dir: str, batch_size: int, n_workers: int, transform: MRITransform
+    data_path: str,
+    batch_size: int,
+    num_workers: int,
+    transform: MRITransform,
+    size_limit: int | None,
 ) -> MRIDataModule:
     return MRIDataModule(
-        data_dir=data_dir,
+        data_path=data_path,
         batch_size=batch_size,
-        num_workers=n_workers,
+        num_workers=num_workers,
         transform=transform,
+        size_limit=size_limit,
     )
 
 
@@ -75,14 +100,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model-name",
         required=True,
-        choices=["cicek_3d_vae"],
+        choices=["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan"],
         help="Name of the model to train",
     )
     parser.add_argument(
         "--latent-dim", type=int, default=256, help="Dimension of the latent space"
     )
     parser.add_argument(
-        "--data-dir", type=str, required=True, help="Path to the data directory"
+        "--data-path", type=str, required=True, help="Path to the data directory"
     )
 
     # Data module arguments.
@@ -90,8 +115,9 @@ def parse_args() -> argparse.Namespace:
         "--batch-size", type=int, default=8, help="Batch size for training"
     )
     parser.add_argument(
-        "--n-workers", type=int, default=0, help="Number of workers for data loader"
+        "--num-workers", type=int, default=0, help="Number of workers for data loader"
     )
+    # Transforms
     parser.add_argument(
         "--transforms",
         type=str,
@@ -100,17 +126,32 @@ def parse_args() -> argparse.Namespace:
         help="List of transforms to apply to the data",
         choices=["resize", "z-normalize", "range-normalize"],
     )
+    # Resize transform arguments.
     parser.add_argument(
         "--resize-size",
         type=int,
         default=256,
         help="Size to resize images to before passing to model",
     )
+    # Z-normalize transform arguments.
     parser.add_argument(
         "--normalize-dir",
         type=str,
         default=None,
         help="Path to directory containing normalization statistics to use",
+    )
+    # Range-normalize transform arguments.
+    parser.add_argument(
+        "--normalize-min",
+        type=int,
+        default=-1,
+        help="If using RangeNormalize transform, the minimum of the normalization range.",
+    )
+    parser.add_argument(
+        "--normalize-max",
+        type=int,
+        default=1,
+        help="If using RangeNormalize transform, the maximum of the normalization range.",
     )
 
     # Lightning arguments.
@@ -133,8 +174,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--fast-dev-run",
-        type=bool,
-        default=False,
+        action="store_true",
         help="Whether to run a fast development run.",
     )
     parser.add_argument(
@@ -144,9 +184,9 @@ def parse_args() -> argparse.Namespace:
         help="Maximum number of epochs to train for.",
     )
     parser.add_argument(
-        "--max_time",
+        "--max-time",
         type=str,
-        default="00:04:00:00",
+        default=None,
         help="Maximum time to train for in hours.",
     )
     parser.add_argument(
@@ -164,40 +204,33 @@ def parse_args() -> argparse.Namespace:
         help="Path to save model checkpoints.",
     )
     parser.add_argument(
-        "--save_top_k",
+        "--save-top-k",
         type=int,
         default=1,
         help="Number of top models to save when checkpointing.",
     )
     parser.add_argument(
         "--save-last",
-        type=bool,
-        default=True,
+        action="store_true",
         help="Whether to save the last model checkpoint.",
     )
     parser.add_argument(
         "--checkpoint-monitor",
         type=str,
-        default="ssim",
+        default="val_total_loss",
         help="Metric to monitor for checkpointing.",
-    )
-    parser.add_argument(
-        "--normalize-min",
-        type=int,
-        default=-1,
-        help="If using RangeNormalize transform, the minimum of the normalization range.",
-    )
-    parser.add_argument(
-        "--normalize-max",
-        type=int,
-        default=1,
-        help="If using RangeNormalize transform, the maximum of the normalization range.",
     )
     parser.add_argument(
         "--load-from-checkpoint",
         type=str,
         default=None,
         help="Path to load model from checkpoint. Default None will initialize a new model.",
+    )
+    parser.add_argument(
+        "--log-every-n-steps",
+        type=int,
+        default=50,
+        help="Log every n steps during training.",
     )
     return parser.parse_args()
 
@@ -223,7 +256,7 @@ def get_transforms(args: argparse.Namespace) -> MRITransform:
     return Compose(transforms)
 
 
-def get_callbacks(args: argparse.Namespace) -> list[L.Callback]:
+def get_callbacks_from_args(args: argparse.Namespace) -> list[L.Callback]:
     callbacks = []
     if "checkpoint" in args.callbacks:
         callbacks.append(
@@ -247,32 +280,46 @@ def main():
     args = parse_args()
     check_args(args)
 
+    print(
+        "devices:",
+        [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())],
+    )
+
     print("Creating model")
     model = get_model(args.model_name, args.latent_dim, args.load_from_checkpoint)
-
-    print("Model summary:")
 
     print("Creating datamodule")
     transform = get_transforms(args)
     data_module = get_datamodule(
-        args.data_dir, args.batch_size, args.n_workers, transform=transform
+        args.data_path,
+        args.batch_size,
+        args.num_workers,
+        transform=transform,
+        size_limit=100 if args.fast_dev_run else None,
     )
-    print("Model:", model)
-    print("Data module:", data_module)
 
     print("Creating trainer")
     trainer = Trainer(
+        log_every_n_steps=args.log_every_n_steps,
         accelerator=args.accelerator,
         strategy=args.strategy,
         devices=args.devices,
         fast_dev_run=args.fast_dev_run,
         max_epochs=args.max_epochs,
         max_time=args.max_time,
-        callbacks=get_callbacks(args),
+        callbacks=get_callbacks_from_args(args),
+        limit_train_batches=0.05,
     )
-    print("Trainer:", trainer)
 
-    trainer.fit(model, data_module)
+    print("Fitting model")
+    trainer.fit(model, datamodule=data_module)
+    # trainer.print(torch.cuda.memory_summary())
+
+    print("Testing model")
+    # trainer.test(model, datamodule=data_module)
+    # trainer.print(torch.cuda.memory_summary())
+
+    print("Finished pre-training script")
 
 
 if __name__ == "__main__":

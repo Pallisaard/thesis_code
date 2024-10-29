@@ -5,7 +5,7 @@ import pytorch_lightning as L
 from torchmetrics.image import (
     StructuralSimilarityIndexMeasure,
 )
-from thesis_code.training.callbacks import (
+from thesis_code.training.callbacks.callbacks import (
     get_checkpoint_callback,
     DEFAULT_CHECKPOINT_PATH,
 )
