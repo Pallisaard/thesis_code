@@ -35,25 +35,25 @@ def get_specific_model(
 
 
 def get_model(
-    model_name: MODEL_NAME, latent_dim: int, load_from_checkpoint: str | None
+    model_name: MODEL_NAME, latent_dim: int, checkpoint_path: str | None
 ) -> L.LightningModule:
     if model_name == "cicek_3d_vae_256":
         return get_specific_model(
             LitVAE3D,
+            checkpoint_path=checkpoint_path,
             in_shape=(1, 256, 256, 256),
             encoder_out_channels_per_block=[8, 16, 32, 64],
             decoder_out_channels_per_block=[64, 64, 16, 8, 1],
             latent_dim=latent_dim,
-            load_from_checkpoint=load_from_checkpoint,
         )
     elif model_name == "cicek_3d_vae_64":
         return get_specific_model(
             LitVAE3D,
+            load_from_checkpoint=checkpoint_path,
             in_shape=(1, 64, 64, 64),
             encoder_out_channels_per_block=[16, 32, 64],
             decoder_out_channels_per_block=[64, 32, 16, 1],
             latent_dim=latent_dim,
-            load_from_checkpoint=load_from_checkpoint,
         )
     elif model_name == "kwon_gan":
         return get_specific_model(
