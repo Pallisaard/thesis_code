@@ -7,7 +7,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from .evonorm import EvoNorm3DS0
+from models.VQVAE.evonorm import EvoNorm3DS0
 
 
 class EvonormResBlock(nn.Module):
@@ -18,19 +18,19 @@ class EvonormResBlock(nn.Module):
         super().__init__()
 
         assert mode in ("down", "same", "up", "out")
-        if mode == "out":
-            mode = "same"
+        if mode == 'out':
+            mode = 'same'
         self.mode = mode
 
         branch_channels = max(max(in_channels, out_channels) // bottleneck_divisor, 1)
 
-        if mode == "down":
+        if mode == 'down':
             conv = nn.Conv3d
             kernel_size, stride, padding = 4, 2, 1
-        elif mode in ("same", "out"):
+        elif mode in ('same', 'out'):
             conv = nn.Conv3d
             kernel_size, stride, padding = 3, 1, 1
-        elif mode == "up":
+        elif mode == 'up':
             conv = ResizeConv3D
             kernel_size, stride, padding = 3, 1, 1
 
@@ -61,21 +61,18 @@ class EvonormResBlock(nn.Module):
             padding=0,
         )
 
-        self.skip_conv = (
-            conv(
-                in_channels=in_channels,
-                out_channels=out_channels,
-                kernel_size=(1 if mode != "down" else 2),
-                stride=(1 if mode != "down" else 2),
-                padding=(0 if mode != "down" else 0),
-            )
-            if not (mode in ("same", "out") and in_channels == out_channels)
-            else None
-        )
+        self.skip_conv = conv(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=(1 if mode != 'down' else 2),
+            stride=(1 if mode != 'down' else 2),
+            padding=(0 if mode != 'down' else 0),
+        ) if not (mode in ("same", "out") and in_channels == out_channels) else None
 
         self.initialize_weights()
 
     def forward(self, input: torch.Tensor):
+
         out = self.branch_conv1(self.evonorm_1(input))
         out = self.branch_conv2(self.evonorm_2(out))
         out = self.branch_conv3(self.evonorm_3(out))
@@ -86,11 +83,12 @@ class EvonormResBlock(nn.Module):
 
     @torch.no_grad()
     def initialize_weights(self):
+
         # branch_conv1
         for weight in (
             self.branch_conv1.weight,
             self.branch_conv2.weight,
-            self.branch_conv3.weight,
+            self.branch_conv3.weight
         ):
             nn.init.kaiming_normal_(weight)
 
@@ -99,16 +97,15 @@ class EvonormResBlock(nn.Module):
             nn.init.zeros_(self.skip_conv.bias)
 
 
+
 class PreActFixupResBlock(nn.Module):
     # Adapted from:
     # https://github.com/hongyi-zhang/Fixup/blob/master/imagenet/models/fixup_resnet_imagenet.py#L20
 
-    def __init__(
-        self, in_channels, out_channels, mode, activation=nn.ELU, bottleneck_divisor=2
-    ):
+    def __init__(self, in_channels, out_channels, mode, activation=nn.ELU, bottleneck_divisor=2):
         super().__init__()
 
-        padding_mode = "circular"
+        padding_mode = 'circular'
         # padding_mode = 'replicate' # this only makes sense if the padding size is at most 1
 
         assert mode in ("down", "same", "up", "out")
@@ -118,24 +115,18 @@ class PreActFixupResBlock(nn.Module):
 
         self.activation = activation()
 
-        (
-            self.bias1a,
-            self.bias1b,
-            self.bias2a,
-            self.bias2b,
-            self.bias3a,
-            self.bias3b,
-            self.bias4,
-        ) = (nn.Parameter(torch.zeros(1)) for _ in range(7))
+        self.bias1a, self.bias1b, self.bias2a, self.bias2b, self.bias3a, self.bias3b, self.bias4 = (
+            nn.Parameter(torch.zeros(1)) for _ in range(7)
+        )
         self.scale = nn.Parameter(torch.ones(1))
 
-        if mode == "down":
+        if mode == 'down':
             conv = nn.Conv3d
             kernel_size, stride, padding = 4, 2, 1
-        elif mode in ("same", "out"):
+        elif mode in ('same', 'out'):
             conv = nn.Conv3d
             kernel_size, stride, padding = 3, 1, 1
-        elif mode == "up":
+        elif mode == 'up':
             conv = ResizeConv3D
             kernel_size, stride, padding = 3, 1, 1
 
@@ -145,7 +136,7 @@ class PreActFixupResBlock(nn.Module):
             kernel_size=1,
             stride=1,
             padding=0,
-            bias=False,
+            bias=False
         )
 
         self.branch_conv2 = conv(
@@ -155,7 +146,7 @@ class PreActFixupResBlock(nn.Module):
             stride=stride,
             padding=padding,
             bias=False,
-            padding_mode=padding_mode,
+            padding_mode=padding_mode
         )
 
         self.branch_conv3 = nn.Conv3d(
@@ -164,7 +155,7 @@ class PreActFixupResBlock(nn.Module):
             kernel_size=1,
             stride=1,
             padding=0,
-            bias=False,
+            bias=False
         )
 
         if not (mode in ("same", "out") and in_channels == out_channels):
@@ -172,15 +163,17 @@ class PreActFixupResBlock(nn.Module):
             self.skip_conv = conv(
                 in_channels=in_channels,
                 out_channels=out_channels,
-                kernel_size=(1 if mode != "down" else 2),
-                stride=(1 if mode != "down" else 2),
+                kernel_size=(1 if mode != 'down' else 2),
+                stride=(1 if mode != 'down' else 2),
                 padding=0,
-                bias=False,
+                bias=False
             )
         else:
             self.skip_conv = None
 
+
     def forward(self, input: torch.Tensor):
+
         out = self.activation(input + self.bias1a)
         out = self.branch_conv1(out + self.bias1b)
 
@@ -202,13 +195,13 @@ class PreActFixupResBlock(nn.Module):
 
     @torch.no_grad()
     def initialize_weights(self, num_layers):
+
         # branch_conv1
         weight = self.branch_conv1.weight
         nn.init.normal_(
             weight,
             mean=0,
-            std=np.sqrt(2 / (weight.shape[0] * np.prod(weight.shape[2:])))
-            * num_layers ** (-0.5),
+            std=np.sqrt(2 / (weight.shape[0] * np.prod(weight.shape[2:]))) * num_layers ** (-0.5)
         )
 
         # branch_conv2
@@ -242,13 +235,13 @@ class FixupResBlock(nn.Module):
         )
         self.scale = nn.Parameter(torch.ones(1))
 
-        if mode == "down":
+        if mode == 'down':
             conv = nn.Conv3d
             kernel_size, stride, padding = 4, 2, 1
-        elif mode in ("same", "out"):
+        elif mode in ('same', 'out'):
             conv = nn.Conv3d
             kernel_size, stride, padding = 3, 1, 1
-        elif mode == "up":
+        elif mode == 'up':
             conv = ResizeConv3D
             kernel_size, stride, padding = 3, 1, 1
 
@@ -264,10 +257,10 @@ class FixupResBlock(nn.Module):
         self.skip_conv = conv(
             in_channels=in_channels,
             out_channels=out_channels,
-            kernel_size=(1 if mode != "down" else 2),
-            stride=(1 if mode != "down" else 2),
-            padding=(0 if mode != "down" else 0),
-            bias=True,
+            kernel_size=(1 if mode != 'down' else 2),
+            stride=(1 if mode != 'down' else 2),
+            padding=(0 if mode != 'down' else 0),
+            bias=True
         )
 
         self.branch_conv2 = nn.Conv3d(
@@ -276,10 +269,12 @@ class FixupResBlock(nn.Module):
             kernel_size=3,
             stride=1,
             padding=1,
-            bias=False,
+            bias=False
         )
 
+
     def forward(self, input):
+
         out = self.branch_conv1(input + self.bias1a)
         out = self.activation(out + self.bias1b)
 
@@ -288,7 +283,7 @@ class FixupResBlock(nn.Module):
 
         out = out + self.skip_conv(input)
 
-        if self.mode != "out":
+        if self.mode != 'out':
             out = self.activation(out)
 
         return out
@@ -299,8 +294,7 @@ class FixupResBlock(nn.Module):
         nn.init.normal_(
             weight,
             mean=0,
-            std=np.sqrt(2 / (weight.shape[0] * np.prod(weight.shape[2:])))
-            * num_layers ** (-0.5),
+            std=np.sqrt(2 / (weight.shape[0] * np.prod(weight.shape[2:]))) * num_layers ** (-0.5)
         )
         nn.init.constant_(tensor=self.branch_conv2.weight, val=0)
 
@@ -310,28 +304,20 @@ class FixupResBlock(nn.Module):
 
 class DownBlock(nn.Module):
     def __init__(
-        self, in_channels, n_down=2, resblock=FixupResBlock, n_post_downscale_blocks=0
+        self,
+        in_channels,
+        n_down=2,
+        resblock=FixupResBlock,
+        n_post_downscale_blocks=0
     ):
         super().__init__()
 
-        self.layers = nn.Sequential(
-            *chain.from_iterable(
-                (
-                    resblock(
-                        in_channels * 2**i, in_channels * 2 ** (i + 1), mode="down"
-                    ),
-                    *(
-                        resblock(
-                            in_channels * 2 ** (i + 1),
-                            in_channels * 2 ** (i + 1),
-                            mode="same",
-                        )
-                        for _ in range(n_post_downscale_blocks)
-                    ),
-                )
-                for i in range(n_down)
-            )
-        )
+        self.layers = nn.Sequential(*chain.from_iterable(
+            (resblock(in_channels*2**i, in_channels*2**(i+1), mode='down'),
+            *(resblock(in_channels*2**(i+1), in_channels*2**(i+1), mode='same')
+              for _ in range(n_post_downscale_blocks)))
+            for i in range(n_down)
+        ))
 
     def forward(self, data):
         return self.layers(data)
@@ -344,39 +330,24 @@ class UpBlock(nn.Module):
         out_channels,
         aux_channels=0,
         n_up=2,
-        mode="encoder",
+        mode='encoder',
         resblock=FixupResBlock,
         n_post_upscale_blocks=0,
     ):
         super().__init__()
 
-        assert mode in ("encoder", "decoder")
+        assert mode in ('encoder', 'decoder')
 
         # Some slight channel size shenanigans required for the first layer because of possible concat beforehand
-        self.layers = nn.Sequential(
-            *chain.from_iterable(
-                (
-                    (
-                        resblock(
-                            in_channels
-                            if i == n_up - 1
-                            else out_channels * (2 ** (i + 1)),
-                            out_channels * (2**i),
-                            mode="up",
-                        ),
-                        *(
-                            resblock(
-                                out_channels * (2**i),
-                                out_channels * (2**i),
-                                mode="same",
-                            )
-                            for _ in range(n_post_upscale_blocks)
-                        ),
-                    )
-                    for i in range(n_up - 1, -1, -1)
-                )
-            )
-        )
+        self.layers = nn.Sequential(*chain.from_iterable((
+            (resblock(
+                in_channels if i == n_up-1 else out_channels*(2**(i+1)),
+                out_channels*(2**i),
+                mode='up'),
+            *(resblock(out_channels*(2**i), out_channels*(2**i), mode='same')
+              for _ in range(n_post_upscale_blocks)))
+            for i in range(n_up-1, -1, -1)
+        )))
 
     def forward(self, data):
         return self.layers(data)
@@ -396,7 +367,7 @@ class PreQuantizationConditioning(nn.Module):
 
         if self.has_aux:
             self.upsample = UpBlock(
-                out_channels * 2**n_up,
+                out_channels * 2 ** n_up,
                 out_channels,
                 n_up=n_up,
                 resblock=resblock,
@@ -404,7 +375,7 @@ class PreQuantizationConditioning(nn.Module):
             )
             self.proj = nn.Conv3d(in_channels, in_channels, kernel_size=1)
 
-        self.pre_q = resblock(in_channels, out_channels, mode="same")
+        self.pre_q = resblock(in_channels, out_channels, mode='same')
 
     def forward(self, data, auxilary=None):
         assert self.has_aux is (auxilary is not None)
@@ -426,7 +397,7 @@ class Encoder(nn.Module):
         n_pre_q_blocks=0,
         n_post_upscale_blocks=0,
         n_post_downscale_blocks=0,
-        resblock=FixupResBlock,
+        resblock=FixupResBlock
     ):
         super().__init__()
 
@@ -439,33 +410,28 @@ class Encoder(nn.Module):
         )
 
         for i in range(n_enc):
-            after_channels = before_channels * 2**n_down_per_enc
+            after_channels = before_channels * 2 ** n_down_per_enc
 
             self.down.append(
                 DownBlock(
                     before_channels,
                     n_down_per_enc,
                     resblock=resblock,
-                    n_post_downscale_blocks=n_post_downscale_blocks,
+                    n_post_downscale_blocks=n_post_downscale_blocks
                 ),
             )
 
             assert after_channels % 8 == 0
             embedding_dim = after_channels // 8
 
-            self.pre_quantize.append(
-                nn.Sequential(
-                    *(
-                        resblock(after_channels, after_channels, mode="same")
-                        for _ in range(n_pre_q_blocks)
-                    )
-                )
-            )
+            self.pre_quantize.append(nn.Sequential(
+                *(resblock(after_channels, after_channels, mode='same')
+                  for _ in range(n_pre_q_blocks))
+            ))
 
             self.pre_quantize_cond.append(
                 PreQuantizationConditioning(
-                    in_channels=after_channels
-                    + (embedding_dim if i != n_enc - 1 else 0),
+                    in_channels=after_channels + (embedding_dim if i != n_enc-1 else 0),
                     out_channels=embedding_dim,
                     n_up=n_down_per_enc,
                     resblock=resblock,
@@ -473,14 +439,11 @@ class Encoder(nn.Module):
                 )
             )
             self.quantize.append(
-                Quantizer(
-                    num_embeddings=num_embeddings[i],
-                    embedding_dim=embedding_dim,
-                    commitment_cost=0.1,
-                )
+                Quantizer(num_embeddings=num_embeddings[i], embedding_dim=embedding_dim, commitment_cost=0.1)
             )
 
             before_channels = after_channels
+
 
     def forward(self, data):
         down = self.parse_input(data)
@@ -488,19 +451,8 @@ class Encoder(nn.Module):
 
         aux = None
         quantizations = []
-        for down, pre_quantize, pre_quantize_cond, quantize in reversed(
-            list(
-                zip(
-                    downsampled,
-                    self.pre_quantize,
-                    self.pre_quantize_cond,
-                    self.quantize,
-                )
-            )
-        ):
-            quantizations.append(
-                (quantization := quantize(pre_quantize_cond(pre_quantize(down), aux)))
-            )
+        for down, pre_quantize, pre_quantize_cond, quantize in reversed(list(zip(downsampled, self.pre_quantize, self.pre_quantize_cond, self.quantize))):
+            quantizations.append((quantization := quantize(pre_quantize_cond(pre_quantize(down), aux))))
 
             _, aux, *_ = quantization
 
@@ -508,8 +460,7 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
-    """I'm sorry this logic is such a mess"""
-
+    '''I'm sorry this logic is such a mess'''
     def __init__(
         self,
         out_channels,
@@ -527,32 +478,28 @@ class Decoder(nn.Module):
         after_channels = base_network_channels
 
         for i in range(n_enc):
-            before_channels = after_channels * 2**n_up_per_enc
+            before_channels = after_channels * 2 ** n_up_per_enc
 
             assert before_channels % 8 == 0
             embedding_dim = before_channels // 8
 
-            in_channels = embedding_dim + (before_channels if i != n_enc - 1 else 0)
+            in_channels = embedding_dim + (before_channels if i != n_enc-1 else 0)
 
-            if i != n_enc - 1:
+            if i != n_enc-1:
                 self.proj.append(nn.Conv3d(in_channels, in_channels, kernel_size=1))
 
-            self.up.append(
-                nn.Sequential(
-                    *(
-                        resblock(in_channels, in_channels, mode="same")
-                        for _ in range(n_post_q_blocks)
-                    ),
-                    UpBlock(
-                        in_channels=in_channels,
-                        out_channels=after_channels,
-                        n_up=n_up_per_enc,
-                        mode="decoder",
-                        resblock=resblock,
-                        n_post_upscale_blocks=n_post_upscale_blocks,
-                    ),
-                )
-            )
+            self.up.append(nn.Sequential(
+                *(resblock(in_channels, in_channels, mode='same')
+                  for _ in range(n_post_q_blocks)),
+                UpBlock(
+                    in_channels=in_channels,
+                    out_channels=after_channels,
+                    n_up=n_up_per_enc,
+                    mode='decoder',
+                    resblock=resblock,
+                    n_post_upscale_blocks=n_post_upscale_blocks
+                ),
+            ))
 
             after_channels = before_channels
 
@@ -560,20 +507,13 @@ class Decoder(nn.Module):
         self.out = nn.Conv3d(base_network_channels, out_channels, kernel_size=1)
 
     def forward(self, quantizations):
-        for i, (quantization, up) in enumerate(
-            reversed(list(zip(quantizations, self.up)))
-        ):
-            out = (
-                quantization
-                if i == 0
-                else self.proj[-i](torch.cat([quantization, out], dim=1))
-            )
+        for i, (quantization, up) in enumerate(reversed(list(zip(quantizations, self.up)))):
+            out = quantization if i == 0 else self.proj[-i](torch.cat([quantization, out], dim=1))
             out = up(out)
 
         out = self.out(out)
 
         return out
-
 
 class Encoder2(nn.Module):
     def __init__(
@@ -586,7 +526,7 @@ class Encoder2(nn.Module):
         n_pre_q_blocks=0,
         n_post_upscale_blocks=0,
         n_post_downscale_blocks=0,
-        resblock=FixupResBlock,
+        resblock=FixupResBlock
     ):
         super().__init__()
 
@@ -599,14 +539,14 @@ class Encoder2(nn.Module):
         )
 
         for i in range(n_enc):
-            after_channels = before_channels * 2**n_down_per_enc
+            after_channels = before_channels * 2 ** n_down_per_enc
 
             self.down.append(
                 DownBlock(
                     before_channels,
                     n_down_per_enc,
                     resblock=resblock,
-                    n_post_downscale_blocks=n_post_downscale_blocks,
+                    n_post_downscale_blocks=n_post_downscale_blocks
                 ),
             )
 
@@ -615,31 +555,23 @@ class Encoder2(nn.Module):
 
             self.pre_quantize_cond.append(
                 PreQuantizationConditioning(
-                    in_channels=after_channels
-                    + (embedding_dim if i != n_enc - 1 else 0),
+                    in_channels=after_channels + (embedding_dim if i != n_enc-1 else 0),
                     out_channels=embedding_dim,
                     n_up=n_down_per_enc,
                     resblock=resblock,
                     n_post_upscale_blocks=n_post_upscale_blocks,
                 )
             )
-            self.pre_quantize.append(
-                nn.Sequential(
-                    *(
-                        resblock(embedding_dim, embedding_dim, mode="same")
-                        for _ in range(n_pre_q_blocks)
-                    )
-                )
-            )
+            self.pre_quantize.append(nn.Sequential(
+                *(resblock(embedding_dim, embedding_dim, mode='same')
+                  for _ in range(n_pre_q_blocks))
+            ))
             self.quantize.append(
-                Quantizer(
-                    num_embeddings=num_embeddings[i],
-                    embedding_dim=embedding_dim,
-                    commitment_cost=0.1,
-                )
+                Quantizer(num_embeddings=num_embeddings[i], embedding_dim=embedding_dim, commitment_cost=0.1)
             )
 
             before_channels = after_channels
+
 
     def forward(self, data):
         down = self.parse_input(data)
@@ -647,19 +579,8 @@ class Encoder2(nn.Module):
 
         aux = None
         quantizations = []
-        for down, pre_quantize, pre_quantize_cond, quantize in reversed(
-            list(
-                zip(
-                    downsampled,
-                    self.pre_quantize,
-                    self.pre_quantize_cond,
-                    self.quantize,
-                )
-            )
-        ):
-            quantizations.append(
-                (quantization := quantize(pre_quantize(pre_quantize_cond(down, aux))))
-            )
+        for down, pre_quantize, pre_quantize_cond, quantize in reversed(list(zip(downsampled, self.pre_quantize, self.pre_quantize_cond, self.quantize))):
+            quantizations.append((quantization := quantize(pre_quantize(pre_quantize_cond(down, aux)))))
 
             _, aux, *_ = quantization
 
@@ -669,12 +590,12 @@ class Encoder2(nn.Module):
 class ResizeConv3D(nn.Conv3d):
     def __init__(self, *conv_args, **conv_kwargs):
         super(ResizeConv3D, self).__init__(*conv_args, **conv_kwargs)
-        self.upsample = nn.Upsample(
-            mode="trilinear", scale_factor=2, align_corners=False
-        )
+        self.upsample = nn.Upsample(mode='trilinear', scale_factor=2, align_corners=False)
 
     def forward(self, input):
         return super().forward(self.upsample(input))
+
+
 
 
 class Quantizer(nn.Module):
@@ -684,21 +605,15 @@ class Quantizer(nn.Module):
     """
     EMA-updated Vector Quantizer
     """
-
     def __init__(
-        self,
-        num_embeddings: int,
-        embedding_dim: int,
-        commitment_cost: float,
-        decay=0.99,
-        laplace_alpha=1e-5,
+        self, num_embeddings : int, embedding_dim : int, commitment_cost : float, decay=0.99, laplace_alpha=1e-5
     ):
         super(Quantizer, self).__init__()
 
         embed = torch.randn(num_embeddings, embedding_dim)
-        self.register_buffer("embed", embed)  # e_i
-        self.register_buffer("embed_avg", embed.clone())  # m_i
-        self.register_buffer("cluster_size", torch.zeros(num_embeddings))  # N_i
+        self.register_buffer("embed", embed) # e_i
+        self.register_buffer("embed_avg", embed.clone()) # m_i
+        self.register_buffer("cluster_size", torch.zeros(num_embeddings)) # N_i
 
         # TODO: replace with bool, cuda_mul_bool issue fixed in
         # https://github.com/pytorch/pytorch/pull/48310
@@ -731,14 +646,14 @@ class Quantizer(nn.Module):
             torch.distributed.all_reduce(dw)
 
         self.cluster_size.data.mul_(self.decay).add_(
-            new_cluster_size, alpha=(1 - self.decay)
+            new_cluster_size, alpha=(1-self.decay)
         )
 
-        self.embed_avg.data.mul_(self.decay).add_(dw, alpha=(1 - self.decay))
+        self.embed_avg.data.mul_(self.decay).add_(dw, alpha=(1-self.decay))
 
         # Laplacian smoothing
         n = self.cluster_size.sum()
-        cluster_size = n * (  # times n because we don't want probabilities but counts
+        cluster_size = n * ( # times n because we don't want probabilities but counts
             (self.cluster_size + self.laplace_alpha)
             / (n + self.num_embeddings * self.laplace_alpha)
         )
@@ -766,14 +681,12 @@ class Quantizer(nn.Module):
         self.cluster_size.data.add_(cluster_size / self.num_embeddings)
         self.first_pass.mul_(0)
 
-    @torch.amp.autocast("cpu", enabled=False)
+    @torch.amp.autocast('cpu',enabled=False)
     def forward(self, inputs):
         inputs = inputs.float()
 
         with torch.no_grad():
-            channel_last = inputs.permute(
-                0, 2, 3, 4, 1
-            )  # XXX: might not actually be necessary
+            channel_last = inputs.permute(0, 2, 3, 4, 1) # XXX: might not actually be necessary
             input_shape = channel_last.shape
 
             flat_input = channel_last.reshape(-1, self.embedding_dim)
@@ -784,11 +697,8 @@ class Quantizer(nn.Module):
             # although faster, mm is too inaccurate:
             # https://github.com/pytorch/pytorch/issues/42479
             encoding_indices = torch.argmin(
-                torch.cdist(
-                    flat_input, self.embed, compute_mode="donot_use_mm_for_euclid_dist"
-                ),
-                dim=1,
-            )
+                torch.cdist(flat_input, self.embed, compute_mode='donot_use_mm_for_euclid_dist')
+            , dim=1)
             quantized = self.embed_code(encoding_indices).reshape(input_shape)
 
             if self.training:
@@ -813,5 +723,5 @@ class Quantizer(nn.Module):
             loss,
             quantized,
             # perplexity,
-            encoding_indices,
+            encoding_indices
         )

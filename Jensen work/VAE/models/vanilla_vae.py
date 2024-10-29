@@ -102,7 +102,7 @@ class Decoder(nn.Module):
         return x
     
 class VAE(nn.Module):
-    def __init__(self):
+    def __init__(self,*args):
         super(VAE, self).__init__()
         self.encoder = Encoder()
         self.decoder = Decoder()
@@ -110,9 +110,10 @@ class VAE(nn.Module):
     def forward(self, x):
         mu, sigma, z = self.encoder(x)
         recon_x = self.decoder(z)
-        return recon_x, mu, sigma
+        return (recon_x, mu, sigma)
     
-    def loss(self, recon_x, mu, sigma, x):
+    def loss(self, forward, x):
+        recon_x, mu, sigma = forward
         # Reconstruction loss (e.g., MSE or BCE)
         recon_loss = F.mse_loss(recon_x, x, reduction='sum')
         
