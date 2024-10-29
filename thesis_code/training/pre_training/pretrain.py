@@ -299,6 +299,7 @@ def main():
         max_epochs=args.max_epochs,
         max_time=args.max_time,
         callbacks=get_callbacks_from_args(args),
+        limit_train_batches=0.05,
     )
 
     print("Fitting model")

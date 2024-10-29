@@ -31,4 +31,4 @@ python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_
                 --callbacks checkpoint summary \
                 --save-top-k 3 \
                 --save-last \
-                --log-every-n-steps 10 \
+                --log-every-n-steps 1 \
