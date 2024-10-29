@@ -22,7 +22,7 @@ class AbstractVAE3D(abc.ABC):
         mu: torch.Tensor,
         log_var: torch.Tensor,
         epoch: int,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         pass
 
     # class ResNetBlock3D(nn.Module):
@@ -303,7 +303,7 @@ class VAE3D(nn.Module, AbstractVAE3D):
         mu: torch.Tensor,
         log_var: torch.Tensor,
         epoch: int,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Calculate beta-VAE loss = reconstruction loss + β * KL divergence
         If we set beta=1, it'll be the normal VAE loss with reconstruction.
@@ -314,13 +314,13 @@ class VAE3D(nn.Module, AbstractVAE3D):
         # KL divergence loss
         kld_loss = -0.5 * torch.mean(1 + log_var - mu.pow(2) - log_var.exp())
 
-        beta = self.get_beta(epoch)
+        beta = torch.tensor(self.get_beta(epoch))
 
         # Total loss with beta weighting
         total_loss = recon_loss + beta * kld_loss
 
         # You might want to log these separately for monitoring
-        return total_loss, recon_loss, kld_loss
+        return total_loss, recon_loss, kld_loss, beta
 
     def get_beta(self, epoch: int):
         if self.beta_annealing == "constant":
@@ -382,7 +382,7 @@ class LitVAE3D(L.LightningModule):
         recon_x, mu, log_var = self(x)
 
         # Calculate loss
-        loss, recon_loss, kld_loss = self.model.calculate_loss(
+        loss, recon_loss, kld_loss, beta = self.model.calculate_loss(
             x, recon_x, mu, log_var, self.current_epoch + 1
         )  # Assuming your model has this method
 
@@ -390,6 +390,7 @@ class LitVAE3D(L.LightningModule):
         self.log("train_total_loss", loss, sync_dist=True)
         self.log("train_recon_loss", recon_loss, sync_dist=True)
         self.log("train_kld_loss", kld_loss, sync_dist=True)
+        self.log("beta", beta, sync_dist=True)
 
         return loss
 
@@ -397,7 +398,7 @@ class LitVAE3D(L.LightningModule):
         x = batch["image"]
         recon_x, mu, log_var = self(x)
 
-        loss, recon_loss, kld_loss = self.model.calculate_loss(
+        loss, recon_loss, kld_loss, beta = self.model.calculate_loss(
             x, recon_x, mu, log_var, self.current_epoch + 1
         )
 
@@ -406,13 +407,14 @@ class LitVAE3D(L.LightningModule):
         self.log("val_total_loss", loss, sync_dist=True)
         self.log("val_recon_loss", recon_loss, sync_dist=True)
         self.log("val_kld_loss", kld_loss, sync_dist=True)
+        self.log("beta", beta, sync_dist=True)
         self.log("val_ssim", self.ssim, sync_dist=True)
 
     def test_step(self, batch: MRISample, batch_idx: int):
         x = batch["image"]
         recon_x, mu, log_var = self(x)
 
-        loss, recon_loss, kld_loss = self.model.calculate_loss(
+        loss, recon_loss, kld_loss, beta = self.model.calculate_loss(
             x, recon_x, mu, log_var, self.current_epoch + 1
         )
 
@@ -421,6 +423,7 @@ class LitVAE3D(L.LightningModule):
         self.log("test_total_loss", loss, sync_dist=True)
         self.log("test_recon_loss", recon_loss, sync_dist=True)
         self.log("test_kld_loss", kld_loss, sync_dist=True)
+        self.log("beta", beta, sync_dist=True)
         self.log("test_ssim", self.ssim, sync_dist=True)
 
     def configure_optimizers(self):
