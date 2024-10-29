@@ -44,6 +44,7 @@ def get_model(
             encoder_out_channels_per_block=[8, 16, 32, 64],
             decoder_out_channels_per_block=[64, 64, 16, 8, 1],
             latent_dim=latent_dim,
+            load_from_checkpoint=load_from_checkpoint,
         )
     elif model_name == "cicek_3d_vae_64":
         return get_specific_model(
@@ -52,6 +53,7 @@ def get_model(
             encoder_out_channels_per_block=[16, 32, 64],
             decoder_out_channels_per_block=[64, 32, 16, 1],
             latent_dim=latent_dim,
+            load_from_checkpoint=load_from_checkpoint,
         )
     elif model_name == "kwon_gan":
         return get_specific_model(
