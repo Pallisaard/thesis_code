@@ -56,7 +56,7 @@ for category, source_dir in tqdm(source_dirs.items(), desc="Categories"):
         source_dir.glob("*.nii.gz"), desc=f"Processing {category}", leave=False
     ):
         # Extract the filename without extension
-        file_stem = nii_file.stem
+        file_stem = nii_file.stem.replace(".nii", "")
 
         # Construct the path to the mask.mgz file
         mask_path: Path = fastsurfer_output_dir / file_stem / "mri" / "mask.mgz"
