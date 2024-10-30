@@ -64,7 +64,7 @@ for category, source_dir in tqdm(source_dirs.items(), desc="Categories"):
         # Check if the mask file exists
         if not mask_path.exists():
             print(f"Mask file not found: {mask_path}")
-            raise FileNotFoundError
+            raise FileNotFoundError(f"Mask file not found: {mask_path}")
 
         # Load the mask.mgz file using nibabel
         mask_img = nib.load(mask_path)  # type: ignore
