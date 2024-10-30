@@ -3,7 +3,7 @@ from pathlib import Path
 import nibabel as nib
 import argparse
 from tqdm import tqdm
-from .reorient_nii import reorient_nii_to_ras
+from thesis_code.data_collection.reorient_nii import reorient_nii_to_ras
 
 
 def parse_args() -> argparse.Namespace:
