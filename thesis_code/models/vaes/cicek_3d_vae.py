@@ -390,7 +390,7 @@ class LitVAE3D(L.LightningModule):
         self.log("train_total_loss", loss, sync_dist=True)
         self.log("train_recon_loss", recon_loss, sync_dist=True)
         self.log("train_kld_loss", kld_loss, sync_dist=True)
-        self.log("beta", beta, sync_dist=True)
+        # self.log("beta", beta, sync_dist=True)
 
         return loss
 
@@ -407,7 +407,7 @@ class LitVAE3D(L.LightningModule):
         self.log("val_total_loss", loss, sync_dist=True)
         self.log("val_recon_loss", recon_loss, sync_dist=True)
         self.log("val_kld_loss", kld_loss, sync_dist=True)
-        self.log("beta", beta, sync_dist=True)
+        # self.log("beta", beta, sync_dist=True)
         self.log("val_ssim", self.ssim, sync_dist=True)
 
     def test_step(self, batch: MRISample, batch_idx: int):
@@ -423,7 +423,7 @@ class LitVAE3D(L.LightningModule):
         self.log("test_total_loss", loss, sync_dist=True)
         self.log("test_recon_loss", recon_loss, sync_dist=True)
         self.log("test_kld_loss", kld_loss, sync_dist=True)
-        self.log("beta", beta, sync_dist=True)
+        # self.log("beta", beta, sync_dist=True)
         self.log("test_ssim", self.ssim, sync_dist=True)
 
     def configure_optimizers(self):
