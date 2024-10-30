@@ -23,14 +23,12 @@ class MRIDataset(Dataset):
         self.strip_skulls = strip_skulls
 
         self.samples: list[Path] = self._load_dataset(self.data_path)
-        self.brain_masks: list[Path] = self._load_dataset(
-            self.data_path / "brain_masks"
-        )
+        self.brain_masks: list[Path] = self._load_dataset(self.data_path / "masks")
 
     def get_brain_mask(self, mri_path: Path) -> torch.Tensor:
         # Brain stripping code
         brain_mask_file_name = mri_path.stem + "_mask.nii.gz"
-        return load_nifti(self.data_path / "brain_masks" / brain_mask_file_name)
+        return load_nifti(self.data_path / "masks" / brain_mask_file_name)
 
     def apply_brain_mask(
         self, mri: torch.Tensor, brain_mask: torch.Tensor
