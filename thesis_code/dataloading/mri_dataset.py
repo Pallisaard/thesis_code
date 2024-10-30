@@ -54,12 +54,12 @@ class MRIDataset(Dataset):
         mri = load_nifti(file_path).unsqueeze(0).float()
         sample: MRISample = {"image": mri}
 
-        if self.transform is not None:
-            sample = self.transform(sample)
-
         if self.strip_skulls:
             brain_mask = self.get_brain_mask(file_path)
             sample["image"] = self.apply_brain_mask(sample["image"], brain_mask)
+
+        if self.transform is not None:
+            sample = self.transform(sample)
 
         return sample
 
