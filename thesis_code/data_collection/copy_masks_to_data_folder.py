@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import nibabel as nib
 import argparse
+from tqdm import tqdm
 
 
 def parse_args() -> argparse.Namespace:
@@ -39,13 +40,15 @@ dest_dir = data_dir / "masks"
 dest_dir.mkdir(parents=True, exist_ok=True)
 
 # Iterate through each source directory
-for category, source_dir in source_dirs.items():
+for category, source_dir in tqdm(source_dirs.items(), desc="Categories"):
     # Create category subdirectory in destination
     category_dest_dir = dest_dir / category
     category_dest_dir.mkdir(parents=True, exist_ok=True)
 
     # Iterate through each file in the source directory
-    for nii_file in source_dir.glob("*.nii.gz"):
+    for nii_file in tqdm(
+        source_dir.glob("*.nii.gz"), desc=f"Processing {category}", leave=False
+    ):
         # Extract the filename without extension
         file_stem = nii_file.stem
 
