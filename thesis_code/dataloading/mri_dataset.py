@@ -27,7 +27,7 @@ class MRIDataset(Dataset):
 
     def get_brain_mask(self, mri_path: Path) -> torch.Tensor:
         # Brain stripping code
-        brain_mask_file_name = mri_path.stem + "_mask.nii.gz"
+        brain_mask_file_name = mri_path.stem.replace(".nii", "") + "_mask.nii.gz"
         return load_nifti(self.data_path / "masks" / brain_mask_file_name)
 
     def apply_brain_mask(
