@@ -13,71 +13,59 @@ from torchmetrics.image import (
 from thesis_code.dataloading.mri_sample import MRISample
 
 
-class AbstractVAE3D(abc.ABC):
-    @abc.abstractmethod
-    def calculate_loss(
-        self,
-        x: torch.Tensor,
-        recon_x: torch.Tensor,
-        mu: torch.Tensor,
-        log_var: torch.Tensor,
-        epoch: int,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        pass
+# class ResNetBlock3D(nn.Module):
+#     def __init__(self, in_channels, out_channels, stride=1, groups=32):
+#         """
+#         3D ResNet block with two convolution layers and a residual connection.
 
-    # class ResNetBlock3D(nn.Module):
-    #     def __init__(self, in_channels, out_channels, stride=1, groups=32):
-    #         """
-    #         3D ResNet block with two convolution layers and a residual connection.
+#         Args:
+#             in_channels (int): Number of input channels
+#             out_channels (int): Number of output channels
+#             stride (int): Stride for the first convolution (default: 1)
+#             downsample (nn.Module): Optional downsampling layer for residual connection
+#         """
+#         super(ResNetBlock3D, self).__init__()
 
-    #         Args:
-    #             in_channels (int): Number of input channels
-    #             out_channels (int): Number of output channels
-    #             stride (int): Stride for the first convolution (default: 1)
-    #             downsample (nn.Module): Optional downsampling layer for residual connection
-    #         """
-    #         super(ResNetBlock3D, self).__init__()
+#         # First convolution layer
+#         self.conv1 = nn.Conv3d(
+#             in_channels=in_channels,
+#             out_channels=out_channels,
+#             kernel_size=3,
+#             stride=stride,
+#             padding=1,
+#             bias=False,
+#         )
+#         # self.bn1 = nn.BatchNorm3d(out_channels)
+#         self.gn1 = nn.GroupNorm(num_groups=groups, num_channels=out_channels)
+#         self.relu = nn.ReLU(inplace=True)
 
-    #         # First convolution layer
-    #         self.conv1 = nn.Conv3d(
-    #             in_channels=in_channels,
-    #             out_channels=out_channels,
-    #             kernel_size=3,
-    #             stride=stride,
-    #             padding=1,
-    #             bias=False,
-    #         )
-    #         # self.bn1 = nn.BatchNorm3d(out_channels)
-    #         self.gn1 = nn.GroupNorm(num_groups=groups, num_channels=out_channels)
-    #         self.relu = nn.ReLU(inplace=True)
+#         # Second convolution layer
+#         self.conv2 = nn.Conv3d(
+#             in_channels=out_channels,
+#             out_channels=out_channels,
+#             kernel_size=3,
+#             stride=1,
+#             padding=1,
+#             bias=False,
+#         )
+#         # self.bn2 = nn.BatchNorm3d(out_channels)
+#         self.gn2 = nn.GroupNorm(num_groups=groups, num_channels=out_channels)
 
-    #         # Second convolution layer
-    #         self.conv2 = nn.Conv3d(
-    #             in_channels=out_channels,
-    #             out_channels=out_channels,
-    #             kernel_size=3,
-    #             stride=1,
-    #             padding=1,
-    #             bias=False,
-    #         )
-    #         # self.bn2 = nn.BatchNorm3d(out_channels)
-    #         self.gn2 = nn.GroupNorm(num_groups=groups, num_channels=out_channels)
+# def forward(self, x):
+#     # First conv block
+#     out = self.conv1(x)
+#     out = self.gn1(out)
+#     out = self.relu(out)
 
-    # def forward(self, x):
-    #     # First conv block
-    #     out = self.conv1(x)
-    #     out = self.gn1(out)
-    #     out = self.relu(out)
+#     # Second conv block
+#     out = self.conv2(out)
+#     out = self.gn2(out)
 
-    #     # Second conv block
-    #     out = self.conv2(out)
-    #     out = self.gn2(out)
+#     # Add residual connection
+#     out += x
+#     out = self.relu(out)
 
-    #     # Add residual connection
-    #     out += x
-    #     out = self.relu(out)
-
-    #     return out
+#     return out
 
 
 class ConvUnit(nn.Module):
@@ -218,7 +206,7 @@ class VAE3DDecoder(nn.Module):
         return self.decoder(z)
 
 
-class VAE3D(nn.Module, AbstractVAE3D):
+class VAE3D(nn.Module):
     def __init__(
         self,
         in_shape: Tuple[int, int, int, int],
@@ -228,8 +216,8 @@ class VAE3D(nn.Module, AbstractVAE3D):
         pool_size: int = 2,
         kernel_size: int = 2,
         stride: int = 2,
-        beta: float = 1.0,
         beta_annealing: Literal["monotonic", "constant"] = "monotonic",
+        constant_beta: float = 1.0,
         max_beta: float = 1.0,
         warmup_epochs: int = 10,
     ):
@@ -245,9 +233,9 @@ class VAE3D(nn.Module, AbstractVAE3D):
         self.pool_size = pool_size
         self.kernel_size = kernel_size
         self.stride = stride
-        self.beta = beta
         self.beta_annealing = beta_annealing
-        self.max_beta = max_beta
+        self.constant_beta = torch.Tensor(constant_beta, device=self.device)
+        self.max_beta = torch.Tensor(max_beta, device=self.device)
         self.warmup_epochs = warmup_epochs
 
         self.encoder = VAE3DEncoder(encoder_out_channels_per_block, pool_size, in_shape)
@@ -314,7 +302,7 @@ class VAE3D(nn.Module, AbstractVAE3D):
         # KL divergence loss
         kld_loss = -0.5 * torch.mean(1 + log_var - mu.pow(2) - log_var.exp())
 
-        beta = torch.tensor(self.get_beta(epoch))
+        beta = self.get_beta(epoch)
 
         # Total loss with beta weighting
         total_loss = recon_loss + beta * kld_loss
@@ -322,20 +310,22 @@ class VAE3D(nn.Module, AbstractVAE3D):
         # You might want to log these separately for monitoring
         return total_loss, recon_loss, kld_loss, beta
 
-    def get_beta(self, epoch: int):
+    def get_beta(self, epoch: int) -> torch.Tensor:
         if self.beta_annealing == "constant":
-            return self.beta
+            return self.constant_beta
         elif self.beta_annealing == "monotonic":
             return self.monotonic_beta_annealing(epoch)
+        else:
+            raise ValueError("beta_annealing must be one of ['monotonic', 'constant']")
 
     # For KL annealing - check beta-VAE paper
-    def monotonic_beta_annealing(self, current_epoch):
+    def monotonic_beta_annealing(self, current_epoch: int) -> torch.Tensor:
         """
         Calculate beta value with optional annealing
         """
         if self.warmup_epochs > 0:
             # Gradually increase beta from 0 to max_beta
-            beta = min(
+            beta = torch.min(
                 self.max_beta * (current_epoch / self.warmup_epochs), self.max_beta
             )
         else:
@@ -390,7 +380,7 @@ class LitVAE3D(L.LightningModule):
         self.log("train_total_loss", loss, sync_dist=True)
         self.log("train_recon_loss", recon_loss, sync_dist=True)
         self.log("train_kld_loss", kld_loss, sync_dist=True)
-        # self.log("beta", beta, sync_dist=True)
+        self.log("beta", beta)
 
         return loss
 
@@ -407,7 +397,7 @@ class LitVAE3D(L.LightningModule):
         self.log("val_total_loss", loss, sync_dist=True)
         self.log("val_recon_loss", recon_loss, sync_dist=True)
         self.log("val_kld_loss", kld_loss, sync_dist=True)
-        # self.log("beta", beta, sync_dist=True)
+        self.log("beta", beta, sync_dist=True)
         self.log("val_ssim", self.ssim, sync_dist=True)
 
     def test_step(self, batch: MRISample, batch_idx: int):
