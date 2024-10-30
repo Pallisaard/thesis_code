@@ -15,7 +15,12 @@ def parse_args() -> argparse.Namespace:
         default="/data",
         help="Path to the data directory containing train, test, and val subdirectories.",
     )
-
+    parser.add_argument(
+        "--fastsurfer-output-dir",
+        type=str,
+        default="/fastsurfer-output",
+        help="Path to the fastsurfer-output directory containing the masks.",
+    )
     return parser.parse_args()
 
 
@@ -25,6 +30,7 @@ if not os.path.exists(args.data_dir):
     raise FileNotFoundError(f"Data directory not found: {args.data_dir}")
 
 data_dir = Path(args.data_dir)
+fastsurfer_output_dir = Path(args.fastsurfer_output_dir)
 
 # Define source directories
 source_dirs = {
@@ -53,7 +59,7 @@ for category, source_dir in tqdm(source_dirs.items(), desc="Categories"):
         file_stem = nii_file.stem
 
         # Construct the path to the mask.mgz file
-        mask_path = Path(f"fastsurfer-output/{file_stem}/mri/mask.mgz")
+        mask_path: Path = fastsurfer_output_dir / file_stem / "mri" / "mask.mgz"
 
         # Check if the mask file exists
         if not mask_path.exists():
@@ -64,9 +70,9 @@ for category, source_dir in tqdm(source_dirs.items(), desc="Categories"):
         mask_img = nib.load(mask_path)  # type: ignore
 
         # Construct the destination path
-        dest_path = category_dest_dir / f"{file_stem}_mask.nii.gz"
+        dest_path: Path = category_dest_dir / f"{file_stem}_mask.nii.gz"
 
         # Save the loaded mask to the destination path in .nii.gz format
-        nib.save(mask_img, dest_path)  # type: ignore
+        nib.save(mask_img, str(dest_path))  # type: ignore
 
-        print(f"Saved mask to: {dest_path}")
+        # print(f"Saved mask to: {dest_path}")
