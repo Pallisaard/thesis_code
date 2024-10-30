@@ -33,7 +33,7 @@ class MRIDataset(Dataset):
     def apply_brain_mask(
         self, mri: torch.Tensor, brain_mask: torch.Tensor
     ) -> torch.Tensor:
-        return mri * brain_mask.to(mri.dtype)
+        return mri * brain_mask
 
     def _load_dataset(self, data_path: Path) -> list[Path]:
         scans_dir = data_path
@@ -55,7 +55,7 @@ class MRIDataset(Dataset):
         sample: MRISample = {"image": mri}
 
         if self.strip_skulls:
-            brain_mask = self.get_brain_mask(file_path)
+            brain_mask = self.get_brain_mask(file_path).float()
             sample["image"] = self.apply_brain_mask(sample["image"], brain_mask)
 
         if self.transform is not None:
