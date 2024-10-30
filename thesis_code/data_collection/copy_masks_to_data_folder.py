@@ -66,11 +66,15 @@ for category, source_dir in tqdm(source_dirs.items(), desc="Categories"):
             print(f"Mask file not found: {mask_path}")
             raise FileNotFoundError(f"Mask file not found: {mask_path}")
 
-        # Load the mask.mgz file using nibabel
-        mask_img = nib.load(mask_path)  # type: ignore
-
         # Construct the destination path
         dest_path: Path = category_dest_dir / f"{file_stem}_mask.nii.gz"
+
+        if dest_path.exists():
+            print(f"Mask already exists: {dest_path}")
+            continue
+
+        # Load the mask.mgz file using nibabel
+        mask_img = nib.load(mask_path)  # type: ignore
 
         # Save the loaded mask to the destination path in .nii.gz format
         nib.save(mask_img, str(dest_path))  # type: ignore
