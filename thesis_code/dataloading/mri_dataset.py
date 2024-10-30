@@ -1,6 +1,7 @@
 from pathlib import Path
 from collections.abc import Callable
 
+import torch
 from torch.utils.data import Dataset
 
 from thesis_code.dataloading.mri_sample import MRISample
@@ -13,12 +14,28 @@ class MRIDataset(Dataset):
         data_path: str | Path,
         transform: Callable[[MRISample], MRISample] | None = None,
         size_limit: int | None = None,
+        skull_strip: bool = False,
     ):
         self.data_path: Path = Path(data_path)
         self.name: str = self.data_path.name
         self.transform = transform
         self.size_limit = size_limit
+        self.skull_strip = skull_strip
+
         self.samples: list[Path] = self._load_dataset(self.data_path)
+        self.brain_masks: list[Path] = self._load_dataset(
+            self.data_path / "brain_masks"
+        )
+
+    def get_brain_mask(self, mri_path: Path) -> torch.Tensor:
+        # Brain stripping code
+        brain_mask_file_name = mri_path.stem + "_mask.nii.gz"
+        return load_nifti(self.data_path / "brain_masks" / brain_mask_file_name)
+
+    def apply_brain_mask(
+        self, mri: torch.Tensor, brain_mask: torch.Tensor
+    ) -> torch.Tensor:
+        return mri * brain_mask
 
     def _load_dataset(self, data_path: Path) -> list[Path]:
         scans_dir = data_path
@@ -41,6 +58,10 @@ class MRIDataset(Dataset):
 
         if self.transform is not None:
             sample = self.transform(sample)
+
+        if self.skull_strip:
+            brain_mask = self.get_brain_mask(file_path)
+            sample["image"] = self.apply_brain_mask(sample["image"], brain_mask)
 
         return sample
 
