@@ -11,4 +11,4 @@ source ~/venv/bin/activate
 
 cd ~/thesis_code/
 
-python -m thesis_code.data_collection.copy_masks_to_data_folder --data-dir ~/final_dataset --fastsurfer-output-dir ~/fastsurfer_output
+python -m thesis_code.data_collection.copy_masks_to_data_folder --data-dir ~/final_dataset --fastsurfer-output-dir ~/fastsurfer-output
