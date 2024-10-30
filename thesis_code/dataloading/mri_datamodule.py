@@ -17,6 +17,7 @@ class MRIDataModule(L.LightningDataModule):
         num_workers: int = 0,
         transform: MRITransform | None = None,
         size_limit: int | None = None,
+        strip_skulls: bool = True,
     ):
         super().__init__()
         self.data_path = data_path
@@ -24,6 +25,7 @@ class MRIDataModule(L.LightningDataModule):
         self.num_workers = num_workers
         self.transform = transform
         self.size_limit = size_limit
+        self.strip_skulls = strip_skulls
 
     def prepare_data(self) -> None:
         return super().prepare_data()
@@ -34,17 +36,20 @@ class MRIDataModule(L.LightningDataModule):
                 path=self.data_path,
                 transform=self.transform,
                 size_limit=self.size_limit,
+                strip_skulls=self.strip_skulls,
             )
             self.mri_val = get_val_dataset(
                 path=self.data_path,
                 transforms=self.transform,
                 size_limit=self.size_limit,
+                strip_skulls=self.strip_skulls,
             )
         elif stage == "test":
             self.mri_test = get_test_dataset(
                 path=self.data_path,
                 transform=self.transform,
                 size_limit=self.size_limit,
+                strip_skulls=self.strip_skulls,
             )
         else:
             raise ValueError(

@@ -14,13 +14,13 @@ class MRIDataset(Dataset):
         data_path: str | Path,
         transform: Callable[[MRISample], MRISample] | None = None,
         size_limit: int | None = None,
-        skull_strip: bool = False,
+        strip_skulls: bool = False,
     ):
         self.data_path: Path = Path(data_path)
         self.name: str = self.data_path.name
         self.transform = transform
         self.size_limit = size_limit
-        self.skull_strip = skull_strip
+        self.strip_skulls = strip_skulls
 
         self.samples: list[Path] = self._load_dataset(self.data_path)
         self.brain_masks: list[Path] = self._load_dataset(
@@ -59,7 +59,7 @@ class MRIDataset(Dataset):
         if self.transform is not None:
             sample = self.transform(sample)
 
-        if self.skull_strip:
+        if self.strip_skulls:
             brain_mask = self.get_brain_mask(file_path)
             sample["image"] = self.apply_brain_mask(sample["image"], brain_mask)
 
