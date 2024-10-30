@@ -52,9 +52,13 @@ for category, source_dir in tqdm(source_dirs.items(), desc="Categories"):
     category_dest_dir = dest_dir / category
     category_dest_dir.mkdir(parents=True, exist_ok=True)
 
+    # Get generator of all .nii files in the source directory
+    mask_paths = source_dir.glob("*.nii.gz")
+    num_files = sum(1 for _ in source_dir.glob("*.nii.gz"))
+
     # Iterate through each file in the source directory
     for nii_file in tqdm(
-        source_dir.glob("*.nii.gz"), desc=f"Processing {category}", leave=False
+        mask_paths, total=num_files, desc=f"Processing {category}", leave=False
     ):
         # Extract the filename without extension
         file_stem = nii_file.stem.replace(".nii", "")
