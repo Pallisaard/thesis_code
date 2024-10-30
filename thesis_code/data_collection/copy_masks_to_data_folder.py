@@ -3,6 +3,7 @@ from pathlib import Path
 import nibabel as nib
 import argparse
 from tqdm import tqdm
+from thesis_code.data_collection.reorient_nii import reorient_nii_to_ras
 
 
 def parse_args() -> argparse.Namespace:
@@ -76,7 +77,9 @@ for category, source_dir in tqdm(source_dirs.items(), desc="Categories"):
         # Load the mask.mgz file using nibabel
         mask_img = nib.load(mask_path)  # type: ignore
 
+        reoriented_mask_img = reorient_nii_to_ras(mask_img)
+
         # Save the loaded mask to the destination path in .nii.gz format
-        nib.save(mask_img, str(dest_path))  # type: ignore
+        nib.save(reoriented_mask_img, str(dest_path))  # type: ignore
 
         # print(f"Saved mask to: {dest_path}")
