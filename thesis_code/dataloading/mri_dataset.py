@@ -33,7 +33,7 @@ class MRIDataset(Dataset):
     def apply_brain_mask(
         self, mri: torch.Tensor, brain_mask: torch.Tensor
     ) -> torch.Tensor:
-        return mri * brain_mask
+        return mri * brain_mask.to(mri.dtype)
 
     def _load_dataset(self, data_path: Path) -> list[Path]:
         scans_dir = data_path
