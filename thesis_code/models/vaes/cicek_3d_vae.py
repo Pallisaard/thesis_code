@@ -234,8 +234,8 @@ class VAE3D(nn.Module):
         self.kernel_size = kernel_size
         self.stride = stride
         self.beta_annealing = beta_annealing
-        self.constant_beta = torch.Tensor(constant_beta, device=self.device)
-        self.max_beta = torch.Tensor(max_beta, device=self.device)
+        self.constant_beta = constant_beta
+        self.max_beta = max_beta
         self.warmup_epochs = warmup_epochs
 
         self.encoder = VAE3DEncoder(encoder_out_channels_per_block, pool_size, in_shape)
@@ -291,7 +291,7 @@ class VAE3D(nn.Module):
         mu: torch.Tensor,
         log_var: torch.Tensor,
         epoch: int,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, float]:
         """
         Calculate beta-VAE loss = reconstruction loss + β * KL divergence
         If we set beta=1, it'll be the normal VAE loss with reconstruction.
@@ -310,7 +310,7 @@ class VAE3D(nn.Module):
         # You might want to log these separately for monitoring
         return total_loss, recon_loss, kld_loss, beta
 
-    def get_beta(self, epoch: int) -> torch.Tensor:
+    def get_beta(self, epoch: int) -> float:
         if self.beta_annealing == "constant":
             return self.constant_beta
         elif self.beta_annealing == "monotonic":
@@ -319,13 +319,13 @@ class VAE3D(nn.Module):
             raise ValueError("beta_annealing must be one of ['monotonic', 'constant']")
 
     # For KL annealing - check beta-VAE paper
-    def monotonic_beta_annealing(self, current_epoch: int) -> torch.Tensor:
+    def monotonic_beta_annealing(self, current_epoch: int) -> float:
         """
         Calculate beta value with optional annealing
         """
         if self.warmup_epochs > 0:
             # Gradually increase beta from 0 to max_beta
-            beta = torch.min(
+            beta = min(
                 self.max_beta * (current_epoch / self.warmup_epochs), self.max_beta
             )
         else:
@@ -413,7 +413,7 @@ class LitVAE3D(L.LightningModule):
         self.log("test_total_loss", loss, sync_dist=True)
         self.log("test_recon_loss", recon_loss, sync_dist=True)
         self.log("test_kld_loss", kld_loss, sync_dist=True)
-        # self.log("beta", beta, sync_dist=True)
+        self.log("beta", beta, sync_dist=True)
         self.log("test_ssim", self.ssim, sync_dist=True)
 
     def configure_optimizers(self):
