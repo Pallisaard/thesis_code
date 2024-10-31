@@ -22,8 +22,10 @@ class MRIDataset(Dataset):
         self.size_limit = size_limit
         self.strip_skulls = strip_skulls
 
-        self.samples: list[Path] = self._load_dataset(self.data_path)
-        self.brain_masks: list[Path] = self._load_dataset(self.data_path / "masks")
+        self.mri_path = (
+            self.data_path / "brain-masked" if self.strip_skulls else self.data_path
+        )
+        self.samples: list[Path] = self._load_dataset(self.mri_path)
 
     def get_brain_mask(self, brain_mask_path: Path) -> torch.Tensor:
         return load_nifti(self.data_path / "masks" / brain_mask_path)
@@ -51,10 +53,6 @@ class MRIDataset(Dataset):
         file_path = self.samples[idx]
         mri = load_nifti(file_path).unsqueeze(0).float()
         sample: MRISample = {"image": mri}
-
-        if self.strip_skulls:
-            brain_mask = self.get_brain_mask(file_path).float()
-            sample["image"] = self.apply_brain_mask(sample["image"], brain_mask)
 
         if self.transform is not None:
             sample = self.transform(sample)
