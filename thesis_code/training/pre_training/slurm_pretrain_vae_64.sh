@@ -3,10 +3,10 @@
 #SBATCH --output=slurm_pretrain_vae_64-%j.out # Name of output file
 #SBATCH --error=slurm_pretrain_vae_64-%j.err # Name of error file
 #SBATCH --gres=gpu:titanrtx:1       # Request 4 GPU per job
-#SBATCH --cpus-per-task=3  # Number of CPUs for each gpu
+#SBATCH --cpus-per-task=5  # Number of CPUs for each gpu
 #SBATCH --mem=16G          # Memory request
-# #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
-# #SBATCH --mail-user=rpa@di.ku.dk # Email
+#SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
+#SBATCH --mail-user=rpa@di.ku.dk # Email
 
 module load cuda/11.8
 module load cudnn/8.6.0
@@ -20,7 +20,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_
                 --data-path /home/gzj557/final_dataset \
                 --batch-size 32 \
                 --strip-skulls \
-                --num-workers 2 \
+                --num-workers 4 \
                 --transforms resize range-normalize \
                 --resize-size 64 \
                 --normalize-min 0 \
