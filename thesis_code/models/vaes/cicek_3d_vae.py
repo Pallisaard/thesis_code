@@ -218,8 +218,8 @@ class VAE3D(nn.Module):
         stride: int = 2,
         beta_annealing: Literal["monotonic", "constant"] = "monotonic",
         constant_beta: float = 1.0,
-        max_beta: float = 1.0,
-        warmup_epochs: int = 10,
+        max_beta: float = 4.0,
+        warmup_epochs: int = 25,
     ):
         super().__init__()
         self.in_shape = in_shape
@@ -329,7 +329,7 @@ class VAE3D(nn.Module):
                 self.max_beta * (current_epoch / self.warmup_epochs), self.max_beta
             )
         else:
-            beta = self.max_beta
+            beta = 0.0
         return beta
 
 
@@ -343,19 +343,27 @@ class LitVAE3D(L.LightningModule):
         pool_size: int = 2,
         kernel_size: int = 2,
         stride: int = 2,
+        beta_annealing: Literal["monotonic", "constant"] = "monotonic",
+        constant_beta: float = 1.0,
+        max_beta: float = 4.0,
+        warmup_epochs: int = 25,
     ):
         super().__init__()
         # Save hyperparameters to the checkpoint
         self.save_hyperparameters()
 
         self.model = VAE3D(
-            in_shape,
-            encoder_out_channels_per_block,
-            decoder_out_channels_per_block,
-            latent_dim,
-            pool_size,
-            kernel_size,
-            stride,
+            in_shape=in_shape,
+            encoder_out_channels_per_block=encoder_out_channels_per_block,
+            decoder_out_channels_per_block=decoder_out_channels_per_block,
+            latent_dim=latent_dim,
+            pool_size=pool_size,
+            kernel_size=kernel_size,
+            stride=stride,
+            beta_annealing=beta_annealing,
+            constant_beta=constant_beta,
+            max_beta=max_beta,
+            warmup_epochs=warmup_epochs,
         )
         self.ssim = StructuralSimilarityIndexMeasure(
             gaussian_kernel=True,

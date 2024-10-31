@@ -40,7 +40,7 @@ class MRIDataset(Dataset):
         if not scans_dir.exists():
             raise ValueError(f"Scans directory not found in {data_path}")
 
-        samples: list[Path] = list(scans_dir.glob("**/*.nii.gz"))
+        samples: list[Path] = list(scans_dir.glob("*.nii.gz"))
         if self.size_limit is not None:
             samples = samples[: self.size_limit]
 

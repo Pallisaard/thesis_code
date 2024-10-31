@@ -194,6 +194,9 @@ def get_model(
                 encoder_out_channels_per_block=[8, 16, 32, 64],
                 decoder_out_channels_per_block=[64, 64, 16, 8, 1],
                 latent_dim=latent_dim,
+                beta_annealing=["monotonic"],
+                max_beta=4.0,
+                warmup_epochs=25,
             ),
         )
     elif model_name == "cicek_3d_vae_64":
