@@ -375,6 +375,11 @@ class LitVAE3D(L.LightningModule):
     def forward(self, x):
         return self.model(x)
 
+    def sample(self, num_samples: int = 1):
+        z = torch.randn(num_samples, self.model.latent_dim).to(self.device)
+        samples = self.model.decode(z)
+        return samples
+
     def training_step(self, batch: MRISample, batch_idx: int):
         x = batch["image"]  # Assuming your dataset returns (image, label)
         recon_x, mu, log_var = self(x)
