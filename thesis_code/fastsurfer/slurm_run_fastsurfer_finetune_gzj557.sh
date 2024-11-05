@@ -24,7 +24,7 @@ echo "subject id" $SUBJECT_ID
 bash ~/thesis_code/thesis_code/fastsurfer/run_fastsurfer_finetune_gzj557.sh $MRI_FILE $SUBJECT_ID
 
 # Copy the output to the final directory
-cp ~/fastsurfer-output/${SUBJECT_ID}/mri/orig_nu.mgz ~/finetune/fs_scans/${SUBJECT_ID}.mgz
+cp ~/fastsurfer-output/${SUBJECT_ID}/mri/orig_nu.mgz ~/finetune_dataset/fs_scans/${SUBJECT_ID}.mgz
 
 # Reorient the NIfTI file
 python ~/thesis_code/thesis_code/data_collection/reorient_nii.py ~/finetune_dataset/fs_scans/${SUBJECT_ID}.mgz
