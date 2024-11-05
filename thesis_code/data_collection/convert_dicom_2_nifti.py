@@ -26,15 +26,20 @@ def convert_dicom_to_nifti(dicom_folder, output_filepath):
         float(first_dcm.SliceThickness),
     ]
 
+    # Calculate the z-axis direction by taking the cross product of the x and y directions
+    z_direction = np.cross(orientation[0], orientation[1])
+
+    # Create the full 3x3 orientation matrix
+    orientation_3x3 = np.vstack([orientation, z_direction])  # Shape is now (3, 3)
+
     # Calculate affine matrix based on DICOM orientation
     affine = np.eye(4)
-    affine[:3, :3] = orientation.T * spacing[:2]  # Applies scaling and orientation
+    affine[:3, :3] = orientation_3x3 * spacing  # Applies scaling and orientation
     affine[:3, 3] = first_dcm.ImagePositionPatient  # Sets origin
     nifti_image = nib.Nifti1Image(volume, affine)  # type: ignore
 
     # Save NIfTI file
     nib.save(nifti_image, output_filepath)  # type: ignore
-    print(f"Saved NIfTI file: {output_filepath}")
 
 
 def process_zip_files(input_dir, output_dir):
@@ -47,7 +52,6 @@ def process_zip_files(input_dir, output_dir):
 
     # Iterate through all zip files in the input directory
     for zip_path in tqdm(zip_files, desc="Processing zip files"):
-        print(f"Processing zip file: {zip_path}")
         # Unpack the zip file in a temporary directory
         with zipfile.ZipFile(zip_path, "r") as zip_ref:
             unpacked_folder = input_dir / zip_path.stem
@@ -68,7 +72,6 @@ def process_zip_files(input_dir, output_dir):
 
         # Delete the unpacked folder after processing
         shutil.rmtree(unpacked_folder)
-        print(f"Removed unpacked folder: {unpacked_folder}")
 
 
 def parse_args():
