@@ -5,8 +5,6 @@
 #SBATCH --array=1-2%2   # Array job for 879 MRI files, limit to 5 jobs running at once
 #SBATCH --gres=gpu:titanrtx:1       # Request 1 GPU per job
 #SBATCH --cpus-per-task=2  # Number of CPUs for each task
-#SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
-#SBATCH --mail-user=rpa@di.ku.dk # Email
 
 module load cuda/11.8
 module load cudnn/8.6.0
