@@ -1,5 +1,4 @@
 import argparse
-import torch
 import nibabel as nib
 import numpy as np
 from thesis_code.training.utils import get_model
@@ -32,8 +31,8 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def save_as_nii(tensor: torch.Tensor, output_path: str):
-    img = nib.Nifti1Image(tensor, affine=np.eye(4))  # type: ignore
+def save_as_nii(array: np.ndarray, output_path: str):
+    img = nib.Nifti1Image(array, affine=np.eye(4))  # type: ignore
     nib.save(img, output_path)  # type: ignore
 
 
