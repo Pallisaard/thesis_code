@@ -32,7 +32,7 @@ pytest-cov = "^5.0.0"
 torchvision = ">=0.17,<1.0"
 einops = "^0.8.0"
 torchsummary = "^1.5.1"
-pydicom = "^3.0.1"
+dicom2nifti = "^2.5.0"
 
 
 [build-system]

@@ -1,45 +1,10 @@
 import os
 import zipfile
 import shutil
-import pydicom
-import nibabel as nib
-import numpy as np
 from pathlib import Path
 import argparse
 from tqdm import tqdm
-
-
-def convert_dicom_to_nifti(dicom_folder, output_filepath):
-    # Read DICOM files and sort them by instance number
-    dicom_files = [pydicom.dcmread(str(fp)) for fp in Path(dicom_folder).glob("*.dcm")]
-    dicom_files.sort(key=lambda x: int(x.InstanceNumber))
-
-    # Stack DICOM images to create a 3D volume
-    volume = np.stack([dcm.pixel_array for dcm in dicom_files])
-
-    # Extract orientation information to build affine
-    first_dcm = dicom_files[0]
-    orientation = np.array(first_dcm.ImageOrientationPatient).reshape(2, 3)
-    spacing = [
-        float(first_dcm.PixelSpacing[0]),
-        float(first_dcm.PixelSpacing[1]),
-        float(first_dcm.SliceThickness),
-    ]
-
-    # Calculate the z-axis direction by taking the cross product of the x and y directions
-    z_direction = np.cross(orientation[0], orientation[1])
-
-    # Create the full 3x3 orientation matrix
-    orientation_3x3 = np.vstack([orientation, z_direction])  # Shape is now (3, 3)
-
-    # Calculate affine matrix based on DICOM orientation
-    affine = np.eye(4)
-    affine[:3, :3] = orientation_3x3 * spacing  # Applies scaling and orientation
-    affine[:3, 3] = first_dcm.ImagePositionPatient  # Sets origin
-    nifti_image = nib.Nifti1Image(volume, affine)  # type: ignore
-
-    # Save NIfTI file
-    nib.save(nifti_image, output_filepath)  # type: ignore
+import dicom2nifti
 
 
 def process_zip_files(input_dir, output_dir):
@@ -65,10 +30,15 @@ def process_zip_files(input_dir, output_dir):
                 # We have reached a directory with DICOM files
                 dicom_folders.append(Path(root))
 
-        for dicom_folder in tqdm(dicom_folders, desc="Converting DICOM to NIfTI"):
+        for dicom_folder in tqdm(
+            dicom_folders, desc="Converting DICOM to NIfTI", leave=False
+        ):
             output_filepath = output_dir / f"{dicom_folder.name}.nii.gz"
             # Convert DICOMs in this folder to a NIfTI file
-            convert_dicom_to_nifti(dicom_folder, output_filepath)
+            dicom2nifti.dicom_series_to_nifti(
+                dicom_folder, output_filepath, reorient_nifti=True
+            )
+            # convert_dicom_to_nifti(dicom_folder, output_filepath)
 
         # Delete the unpacked folder after processing
         shutil.rmtree(unpacked_folder)

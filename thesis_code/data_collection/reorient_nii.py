@@ -30,7 +30,14 @@ def reorient_nii_to_ras(nii):
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Reorient NIfTI files.")
+    parser = argparse.ArgumentParser(
+        description="Reorient a NIfTI file to RAS+ orientation.\n\n"
+        "This script takes a NIfTI file as input, reorients it to RAS+ orientation, "
+        "and saves the reoriented file with a .nii.gz extension.\n\n"
+        "Example usage:\n"
+        "  python reorient_nii.py input_file.nii.gz\n"
+        "This will produce a file named input_file_reoriented.nii.gz in the same directory."
+    )
     parser.add_argument("input_path", type=str, help="Path to the input NIfTI file.")
     args = parser.parse_args()
     return args
@@ -42,7 +49,11 @@ if __name__ == "__main__":
     # For a single .nii.gz file
     nii_path = Path(args.input_path)
     nii = nib.load(nii_path)  # type: ignore
+    # Print previous orientation
+    print(f"Original orientation: {nib.orientations.aff2axcodes(nii.affine)}")  # type: ignore
     reoriented_nii = reorient_nii_to_ras(nii)
+    # Print new orientation
+    print(f"Original orientation: {nib.orientations.aff2axcodes(nii.affine)}")  # type: ignore
     # Replace the extension of the input file with .nii.gz
     output_path = args.input_path.replace(".mgz", ".nii.gz")
     nib.save(reoriented_nii, output_path)  # type: ignore

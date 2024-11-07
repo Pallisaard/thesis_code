@@ -807,6 +807,24 @@ files = [
 ]
 
 [[package]]
+name = "dicom2nifti"
+version = "2.5.0"
+description = "package for converting dicom files to nifti"
+optional = false
+python-versions = "*"
+files = [
+    {file = "dicom2nifti-2.5.0-py3-none-any.whl", hash = "sha256:9518dcc12a3d92c2415deca7dccf4606ec37b57dcecf716dbca53a7852efdaa5"},
+    {file = "dicom2nifti-2.5.0.tar.gz", hash = "sha256:a341e6fc21a093b6fc103c68487b6bb95682b47169060e228c9869ea2ac4dbc9"},
+]
+
+[package.dependencies]
+nibabel = "*"
+numpy = "*"
+pydicom = ">=2.2.0"
+python-gdcm = "*"
+scipy = "*"
+
+[[package]]
 name = "einops"
 version = "0.8.0"
 description = "A new flavour of deep learning operations"
@@ -3057,6 +3075,64 @@ files = [
 six = ">=1.5"
 
 [[package]]
+name = "python-gdcm"
+version = "3.0.24.1"
+description = "Grassroots DICOM runtime libraries"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "python_gdcm-3.0.24.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:556f8accad47a4fcaba0a2abfe96c5f91b1d37e66c1831b905ac179824a7fe2a"},
+    {file = "python_gdcm-3.0.24.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:2fd902d75a0cd2bffbfc1d87d56aa8070d99946254729ef7babb12cd5888a88e"},
+    {file = "python_gdcm-3.0.24.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:45e42764a5230265b6a2d469c5ceb26d467b479adf476a281dbd7570e79648c4"},
+    {file = "python_gdcm-3.0.24.1-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:ac84ed171b5ea5172a3f55d871018b85f17519e08aa663c60cf865a1547db1af"},
+    {file = "python_gdcm-3.0.24.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:554573d18dc52dd2bb65ba1bb5c0b5c2de33282d4287c301f6544b49c08941ed"},
+    {file = "python_gdcm-3.0.24.1-cp310-cp310-win32.whl", hash = "sha256:ed81d7502b7a21375e8c4f317b16ee0691236aae11db30e3272bbdeedb22310a"},
+    {file = "python_gdcm-3.0.24.1-cp310-cp310-win_amd64.whl", hash = "sha256:7c2db75c60ac07d84b4f18a67db70c1075ae216bd7ff3cf0aac5dce31bc7a888"},
+    {file = "python_gdcm-3.0.24.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:2707d7f3775b9de6fe4413d7968bf6ab9bad9257a319ee62b4af62488cd67190"},
+    {file = "python_gdcm-3.0.24.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:d56989567bf9e72f1d74b971e0985eed99522e3fa5839a5ae2de86452f79aa7e"},
+    {file = "python_gdcm-3.0.24.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0c23091cb541081dbda3d3ccf8baa1f5907b0854f81421d9504072b64842000f"},
+    {file = "python_gdcm-3.0.24.1-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:3a76ad020da4efe6a5a65d918c010ae8ff48214d4e8881e27da967c11c6ff496"},
+    {file = "python_gdcm-3.0.24.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d3a4c60cf8b6d5fb956c1bc84317081e76bfc1aa34d34e6a014b4a339f91d720"},
+    {file = "python_gdcm-3.0.24.1-cp311-cp311-win32.whl", hash = "sha256:0ba71b67a342238bfd25f3a9795dbdbbfb6ca9a2c14bf16da1392fe69307fd8d"},
+    {file = "python_gdcm-3.0.24.1-cp311-cp311-win_amd64.whl", hash = "sha256:97258af17a3abc70867246ba509847f16479dc69704bdf3584ea1ca76313768f"},
+    {file = "python_gdcm-3.0.24.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:a173c710dd4ddfc9f89b7c1651221883bc6ab1a322306abc3d408fae283ecb54"},
+    {file = "python_gdcm-3.0.24.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:576ba8beb97b1264735d853d9b1678493578143d8a134ffb9d3175655b99e64e"},
+    {file = "python_gdcm-3.0.24.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:407ab500704f711992568120dea356ce70628a6477f03b541064bbbd1f2d48cf"},
+    {file = "python_gdcm-3.0.24.1-cp312-cp312-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:27236c708414ec5249b791e7855338cd327dff4573025c6ee16b13b2feb52c7a"},
+    {file = "python_gdcm-3.0.24.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4e537b9c3c582e0a19cd89791634da5ff48f1d61eeee633bf6e806c7bed10aba"},
+    {file = "python_gdcm-3.0.24.1-cp312-cp312-win32.whl", hash = "sha256:0fe3684df3be2abcf4ec6931e45f4caa8bd2aa60a84e65ddd612428f0fa39bcc"},
+    {file = "python_gdcm-3.0.24.1-cp312-cp312-win_amd64.whl", hash = "sha256:530e6b3f3904fd87c7e69ad0aee383f7a87213a8bf339314741ca64e3b6a3e94"},
+    {file = "python_gdcm-3.0.24.1-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:45c5927af717f06f7ff8e0d6124746ef15e314954ae105d3a98410b6e327fb15"},
+    {file = "python_gdcm-3.0.24.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:ee88f9cdcd4f5e98da0e608d9692e96173ec8832d5aba1f0234db8af0835d9bd"},
+    {file = "python_gdcm-3.0.24.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2a89a8b1b666f2c3ebe6afbac3fcc3e256566ac8e55080ef03dd1ef7c98cd6b1"},
+    {file = "python_gdcm-3.0.24.1-cp313-cp313-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e5bc32309aeba3d3675ae0e5641aae03a8b9dc66ace058979debd2fea849dda7"},
+    {file = "python_gdcm-3.0.24.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a8ba54c9908ce117734b32340b2e5bbf96d5544109b1af468e2b99f2c6341a15"},
+    {file = "python_gdcm-3.0.24.1-cp313-cp313-win32.whl", hash = "sha256:5920e63ac12b9a430108cd804ee2709fcefb9781bda6b6cb2f7d311a8dc61a04"},
+    {file = "python_gdcm-3.0.24.1-cp313-cp313-win_amd64.whl", hash = "sha256:c586099268f0baf3cfda5851fa6115dc93394930da148fe3c350081b59e7551a"},
+    {file = "python_gdcm-3.0.24.1-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:de850cedc1dc58b8b5ee16c72cf67c5ee1021963a0bcbc0de58e162824afd6ff"},
+    {file = "python_gdcm-3.0.24.1-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8eddf3dc5d7793f3af407972f5185ec5d7edc4989ccaeafbf0d3e5e74f5ba88e"},
+    {file = "python_gdcm-3.0.24.1-cp37-cp37m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8b9f5075cbd39fd4448ef83a298e5dbf0886dea8805d1de90df7de56d7930839"},
+    {file = "python_gdcm-3.0.24.1-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7fdfe2278d8c643087e6e8f9ff560cc2c613e230b14e3257c4f2d7e03efe6de3"},
+    {file = "python_gdcm-3.0.24.1-cp37-cp37m-win32.whl", hash = "sha256:a41209fbd4a64fcaa0fd22f6d953cb72146ecf3df461a947f2625f6ba6b9308b"},
+    {file = "python_gdcm-3.0.24.1-cp37-cp37m-win_amd64.whl", hash = "sha256:f0b47bce94eda86ae8f04fd3fd9040cd972e193c2539d40dca15832a2ea912e5"},
+    {file = "python_gdcm-3.0.24.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:4c3419efc49bce0cd71f32d254b774c55b612e573785dc085452d4c21bc0bc78"},
+    {file = "python_gdcm-3.0.24.1-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:dd236efc2c03a4141fb3adf5bf814cba211bbc2b717e259361a248098d6cca8c"},
+    {file = "python_gdcm-3.0.24.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:96ee58139bd3118418d3ff0eb24e00a0f8d3968f173083ab59d9a462101be3c0"},
+    {file = "python_gdcm-3.0.24.1-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:fa60e64ae4de01f541ee624ea3777b6053821716de5fa999112c79cb13fdc257"},
+    {file = "python_gdcm-3.0.24.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:05c794c064f2fdebe2b219659af0a52e26a7c85812d91653e9be2a4dacc00176"},
+    {file = "python_gdcm-3.0.24.1-cp38-cp38-win32.whl", hash = "sha256:6bfc8a7af28d96388738cf9983309190153a3c8a6848fce46f8e7fb55bdcfcc0"},
+    {file = "python_gdcm-3.0.24.1-cp38-cp38-win_amd64.whl", hash = "sha256:40b1fc6a7e669df51bf1809e209f2c3d5e752b6575c60b67bac630a8fba528e9"},
+    {file = "python_gdcm-3.0.24.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:0557391917073925b0289e4f739558aaf7134e1171a920462758b24fdd71c303"},
+    {file = "python_gdcm-3.0.24.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:8af1b2fb0208081ea51c5e26e6ca1aab4a90b00698f239158470b1928b38d62a"},
+    {file = "python_gdcm-3.0.24.1-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:83ab854d4c0b031805405b9abe7512725f23e1b768f938c9c4e91d33124da742"},
+    {file = "python_gdcm-3.0.24.1-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:3f099c3b8a59d35e8d2e05bf9b5a8c10b118b8e5cf122c5ebd0f6aecce8667e0"},
+    {file = "python_gdcm-3.0.24.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d78e9fe406cd6ac1d697a76321def22e61043b78a633696549ea39b16ac643e3"},
+    {file = "python_gdcm-3.0.24.1-cp39-cp39-win32.whl", hash = "sha256:361e3667dbba8d8d0d8f552cb699197524459bdc02ee062db8fe286ac16c7dda"},
+    {file = "python_gdcm-3.0.24.1-cp39-cp39-win_amd64.whl", hash = "sha256:988daae3828d35dc0ceaba8fb0c337b893991480dfff4c6dbdc6818b3d1b7db4"},
+    {file = "python_gdcm-3.0.24.1.tar.gz", hash = "sha256:101a59c5c2dc34f1eb8e72ccf088a62f45101bf2f844a9e4f6b1711b1268892d"},
+]
+
+[[package]]
 name = "python-json-logger"
 version = "2.0.7"
 description = "A python library adding a json log formatter"
@@ -4151,4 +4227,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "139b11c8f373d5e3ffd7718ed954a20bc06b4731745501e276a40f68dee20a91"
+content-hash = "31bacb62e63e8bbdc814ba8a6a4139aad22fe65d71add721b2e2d83bc393f9a7"
