@@ -21,7 +21,7 @@ echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
                 --data-path /home/gzj557/final_dataset \
-                --batch-size 4 \
+                --batch-size 2 \
                 --num-workers 5 \
                 --transforms resize range-normalize \
                 --resize-size 256 \
@@ -35,4 +35,4 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --callbacks checkpoint summary progress \
                 --save-top-k 3 \
                 --save-last \
-                # --fast-dev-run \
+                --fast-dev-run \
