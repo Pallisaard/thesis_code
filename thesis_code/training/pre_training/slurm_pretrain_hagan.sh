@@ -15,6 +15,9 @@ source ~/venv/bin/activate
 
 cd ~/thesis_code
 
+# echo devices and nvidia-smi
+echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+
 python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
                 --data-path /home/gzj557/final_dataset \
