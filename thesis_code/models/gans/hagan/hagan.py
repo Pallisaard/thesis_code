@@ -32,10 +32,10 @@ class HAGAN(L.LightningModule):
     ):
         super().__init__()
         self.latent_dim = latent_dim
+        # self.D = Discriminator()
         self.G = Generator(latent_dim=self.latent_dim)
-        self.D = Discriminator()
-        self.E = Encoder()
-        self.Sub_E = Sub_Encoder(latent_dim=self.latent_dim)
+        # self.E = Encoder()
+        # self.Sub_E = Sub_Encoder(latent_dim=self.latent_dim)
         self.lr_g = lr_g
         self.lr_d = lr_d
         self.lr_e = lr_e
@@ -48,24 +48,24 @@ class HAGAN(L.LightningModule):
         self.automatic_optimization = False
 
     def configure_optimizers(self):
-        g_optimizer = optim.Adam(
-            self.G.parameters(), lr=self.lr_g, betas=(0.0, 0.999), eps=1e-8
-        )
         d_optimizer = optim.Adam(
             self.D.parameters(), lr=self.lr_d, betas=(0.0, 0.999), eps=1e-8
         )
-        e_optimizer = optim.Adam(
-            self.E.parameters(), lr=self.lr_e, betas=(0.0, 0.999), eps=1e-8
-        )
-        sub_e_optimizer = optim.Adam(
-            self.Sub_E.parameters(), lr=self.lr_e, betas=(0.0, 0.999), eps=1e-8
-        )
-        return [
-            d_optimizer,
-            g_optimizer,
-            e_optimizer,
-            sub_e_optimizer,
-        ]
+        # g_optimizer = optim.Adam(
+        #     self.G.parameters(), lr=self.lr_g, betas=(0.0, 0.999), eps=1e-8
+        # )
+        # e_optimizer = optim.Adam(
+        #     self.E.parameters(), lr=self.lr_e, betas=(0.0, 0.999), eps=1e-8
+        # )
+        # sub_e_optimizer = optim.Adam(
+        #     self.Sub_E.parameters(), lr=self.lr_e, betas=(0.0, 0.999), eps=1e-8
+        # )
+        # return [
+        return d_optimizer
+        # , g_optimizer,
+        # e_optimizer,
+        # sub_e_optimizer,
+        # ]
 
     def training_step(self, batch: MRISample, batch_idx):
         real_images = batch["image"]
@@ -79,7 +79,8 @@ class HAGAN(L.LightningModule):
         self.real_labels = torch.ones((batch_size, 1), device=real_images.device)
         self.fake_labels = torch.zeros((batch_size, 1), device=real_images.device)
 
-        d_opt, g_opt, e_opt, sub_e_opt = self.optimizers()  # type: ignore
+        d_opt = self.optimizers()  # type: ignore
+        # , g_opt, e_opt, sub_e_opt
 
         # D (D^H, D^L)
         self.D.requires_grad_(True)
