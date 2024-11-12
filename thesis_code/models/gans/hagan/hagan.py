@@ -212,8 +212,8 @@ class HAGAN(L.LightningModule):
         """
         y_real_pred = self.D(real_images_crop, real_images_small, crop_idx)
         d_real_loss = self.loss_bce(y_real_pred, self.real_labels)
-        fake_images, fake_images_small = self.G(noise, crop_idx=crop_idx).detach()
-        y_fake_pred = self.D(fake_images, fake_images_small, crop_idx)
+        fake_images, fake_images_small = self.G(noise, crop_idx=crop_idx)
+        y_fake_pred = self.D(fake_images.detach(), fake_images_small.detach(), crop_idx)
         d_fake_loss = self.loss_bce(y_fake_pred, self.fake_labels)
         d_loss = d_real_loss + d_fake_loss
         return d_loss
