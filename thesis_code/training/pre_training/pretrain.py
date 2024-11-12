@@ -32,7 +32,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model-name",
         required=True,
-        choices=["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan"],
+        choices=["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan", "hagan"],
         help="Name of the model to train",
     )
     parser.add_argument(
