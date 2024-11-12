@@ -32,10 +32,10 @@ class HAGAN(L.LightningModule):
     ):
         super().__init__()
         self.latent_dim = latent_dim
+        self.G = Generator(latent_dim=self.latent_dim)
         self.D = Discriminator()
-        # self.G = Generator(latent_dim=self.latent_dim)
-        # self.E = Encoder()
-        # self.Sub_E = Sub_Encoder(latent_dim=self.latent_dim)
+        self.E = Encoder()
+        self.Sub_E = Sub_Encoder(latent_dim=self.latent_dim)
         self.lr_g = lr_g
         self.lr_d = lr_d
         self.lr_e = lr_e
@@ -48,24 +48,24 @@ class HAGAN(L.LightningModule):
         self.automatic_optimization = False
 
     def configure_optimizers(self):
+        g_optimizer = optim.Adam(
+            self.G.parameters(), lr=self.lr_g, betas=(0.0, 0.999), eps=1e-8
+        )
         d_optimizer = optim.Adam(
             self.D.parameters(), lr=self.lr_d, betas=(0.0, 0.999), eps=1e-8
         )
-        # g_optimizer = optim.Adam(
-        #     self.G.parameters(), lr=self.lr_g, betas=(0.0, 0.999), eps=1e-8
-        # )
-        # e_optimizer = optim.Adam(
-        #     self.E.parameters(), lr=self.lr_e, betas=(0.0, 0.999), eps=1e-8
-        # )
-        # sub_e_optimizer = optim.Adam(
-        #     self.Sub_E.parameters(), lr=self.lr_e, betas=(0.0, 0.999), eps=1e-8
-        # )
-        # return [
-        return d_optimizer
-        # , g_optimizer,
-        # e_optimizer,
-        # sub_e_optimizer,
-        # ]
+        e_optimizer = optim.Adam(
+            self.E.parameters(), lr=self.lr_e, betas=(0.0, 0.999), eps=1e-8
+        )
+        sub_e_optimizer = optim.Adam(
+            self.Sub_E.parameters(), lr=self.lr_e, betas=(0.0, 0.999), eps=1e-8
+        )
+        return [
+            d_optimizer,
+            g_optimizer,
+            e_optimizer,
+            sub_e_optimizer,
+        ]
 
     def training_step(self, batch: MRISample, batch_idx):
         real_images = batch["image"]
@@ -79,14 +79,13 @@ class HAGAN(L.LightningModule):
         self.real_labels = torch.ones((batch_size, 1), device=real_images.device)
         self.fake_labels = torch.zeros((batch_size, 1), device=real_images.device)
 
-        d_opt = self.optimizers()  # type: ignore
-        # , g_opt, e_opt, sub_e_opt
+        d_opt, g_opt, e_opt, sub_e_opt = self.optimizers()  # type: ignore
 
         # D (D^H, D^L)
         self.D.requires_grad_(True)
-        # self.G.requires_grad_(False)
-        # self.E.requires_grad_(False)
-        # self.Sub_E.requires_grad_(False)
+        self.G.requires_grad_(False)
+        self.E.requires_grad_(False)
+        self.Sub_E.requires_grad_(False)
         self.D.zero_grad()
         d_loss = self.compute_d_loss(
             real_images_crop=real_images_crop,
@@ -98,47 +97,47 @@ class HAGAN(L.LightningModule):
         d_opt.step()
 
         # G (G^A, G^H, G^L)
-        # self.D.requires_grad_(False)
-        # self.G.requires_grad_(True)
-        # self.E.requires_grad_(False)
-        # self.Sub_E.requires_grad_(False)
-        # self.G.zero_grad()
-        # g_loss = self.compute_g_loss(
-        #     noise=noise,
-        #     crop_idx=crop_idx,
-        # )
-        # self.manual_backward(g_loss)
-        # g_opt.step()
+        self.D.requires_grad_(False)
+        self.G.requires_grad_(True)
+        self.E.requires_grad_(False)
+        self.Sub_E.requires_grad_(False)
+        self.G.zero_grad()
+        g_loss = self.compute_g_loss(
+            noise=noise,
+            crop_idx=crop_idx,
+        )
+        self.manual_backward(g_loss)
+        g_opt.step()
 
-        # # E (E^H)
-        # self.G.requires_grad_(False)
-        # self.D.requires_grad_(False)
-        # self.e.requires_grad_(True)
-        # self.Sub_E.requires_grad_(False)
-        # self.E.zero_grad()
-        # e_loss = self.compute_e_loss(real_images_crop=real_images_crop)
-        # self.manual_backward(e_loss)
-        # e_opt.step()
+        # E (E^H)
+        self.G.requires_grad_(False)
+        self.D.requires_grad_(False)
+        self.e.requires_grad_(True)
+        self.Sub_E.requires_grad_(False)
+        self.E.zero_grad()
+        e_loss = self.compute_e_loss(real_images_crop=real_images_crop)
+        self.manual_backward(e_loss)
+        e_opt.step()
 
-        # # Sub_E (E^G)
-        # self.G.requires_grad_(False)
-        # self.D.requires_grad_(False)
-        # self.E.requires_grad_(False)
-        # self.Sub_E.requires_grad_(True)
-        # self.Sub_E.zero_grad()
-        # sub_e_loss = self.compute_sub_e_loss(
-        #     real_images=real_images,
-        #     real_images_crop=real_images_crop,
-        #     real_images_small=real_images_small,
-        #     crop_idx=crop_idx,
-        # )
-        # self.manual_backward(sub_e_loss)
-        # sub_e_opt.step()
+        # Sub_E (E^G)
+        self.G.requires_grad_(False)
+        self.D.requires_grad_(False)
+        self.E.requires_grad_(False)
+        self.Sub_E.requires_grad_(True)
+        self.Sub_E.zero_grad()
+        sub_e_loss = self.compute_sub_e_loss(
+            real_images=real_images,
+            real_images_crop=real_images_crop,
+            real_images_small=real_images_small,
+            crop_idx=crop_idx,
+        )
+        self.manual_backward(sub_e_loss)
+        sub_e_opt.step()
 
         self.log("d_loss", d_loss, on_step=True, on_epoch=True, logger=True)
-        # self.log("g_loss", g_loss, on_step=True, on_epoch=True, logger=True)
-        # self.log("e_loss", e_loss, on_step=True, on_epoch=True, logger=True)
-        # self.log("sub_e_loss", sub_e_loss, on_step=True, on_epoch=True, logger=True)
+        self.log("g_loss", g_loss, on_step=True, on_epoch=True, logger=True)
+        self.log("e_loss", e_loss, on_step=True, on_epoch=True, logger=True)
+        self.log("sub_e_loss", sub_e_loss, on_step=True, on_epoch=True, logger=True)
 
     def validation_step(self, batch: MRISample, batch_idx):
         real_images = batch["image"]
