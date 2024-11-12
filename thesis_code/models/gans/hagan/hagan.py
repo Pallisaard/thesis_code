@@ -122,10 +122,6 @@ class HAGAN(L.LightningModule):
         # self.untoggle_optimizer(e_opt)
 
         # Sub_E (E^G)
-        # self.G.requires_grad_(False)
-        # self.D.requires_grad_(False)
-        # self.E.requires_grad_(False)
-        # self.Sub_E.requires_grad_(True)
         self.Sub_E.zero_grad()
         sub_e_loss = self.compute_sub_e_loss(
             real_images=real_images,
@@ -133,8 +129,8 @@ class HAGAN(L.LightningModule):
             real_images_small=real_images_small,
             crop_idx=crop_idx,
         )
-        # self.manual_backward(sub_e_loss)
-        # sub_e_opt.step()
+        self.manual_backward(sub_e_loss)
+        sub_e_opt.step()
 
         self.log("d_loss", d_loss, logger=True, sync_dist=True)
         self.log("g_loss", g_loss, logger=True, sync_dist=True)
