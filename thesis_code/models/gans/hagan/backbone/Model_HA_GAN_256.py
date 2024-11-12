@@ -220,11 +220,10 @@ class Sub_Generator(nn.Module):
 
 
 class Generator(nn.Module):
-    def __init__(self, mode="train", latent_dim=1024, channel=32):
+    def __init__(self, latent_dim=1024, channel=32):
         super(Generator, self).__init__()
         _c = channel
 
-        self.mode = mode
         self.relu = nn.ReLU()
 
         # G^A and G^H
