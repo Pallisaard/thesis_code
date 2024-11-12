@@ -28,7 +28,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --normalize-min -1 \
                 --normalize-max 1 \
                 --accelerator gpu \
-                --strategy ddp \
+                --strategy ddp_find_unused_parameters_true \
                 --devices auto \
                 --max-steps 80000 \
                 --callbacks checkpoint summary progress \

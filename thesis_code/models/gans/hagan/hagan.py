@@ -293,6 +293,8 @@ class HAGAN(L.LightningModule):
         return z_hat
 
     def on_after_backward(self):
+        print("Checking for None grads")
         for name, param in self.named_parameters():
             if param.grad is None:
                 print(name)
+        print()
