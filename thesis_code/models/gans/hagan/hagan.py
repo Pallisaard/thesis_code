@@ -84,10 +84,10 @@ class HAGAN(L.LightningModule):
 
         d_opt, g_opt, e_opt, sub_e_opt = self.optimizers()  # type: ignore
 
-        self.untoggle_optimizer(d_opt)
-        self.untoggle_optimizer(g_opt)
-        self.untoggle_optimizer(e_opt)
-        self.untoggle_optimizer(sub_e_opt)
+        # self.untoggle_optimizer(d_opt)
+        # self.untoggle_optimizer(g_opt)
+        # self.untoggle_optimizer(e_opt)
+        # self.untoggle_optimizer(sub_e_opt)
 
         # D (D^H, D^L)
         # self.toggle_optimizer(d_opt)
