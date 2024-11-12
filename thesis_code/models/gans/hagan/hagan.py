@@ -98,17 +98,15 @@ class HAGAN(L.LightningModule):
         self.untoggle_optimizer(d_opt)
 
         # G (G^A, G^H, G^L)
-        # self.D.requires_grad_(False)
-        # self.G.requires_grad_(True)
-        # self.E.requires_grad_(False)
-        # self.Sub_E.requires_grad_(False)
+        self.toggle_optimizer(g_opt)
         self.G.zero_grad()
         g_loss = self.compute_g_loss(
             noise=noise,
             crop_idx=crop_idx,
         )
-        # self.manual_backward(g_loss)
-        # g_opt.step()
+        self.manual_backward(g_loss)
+        g_opt.step()
+        self.untoggle_optimizer(g_opt)
 
         # E (E^H)
         # self.G.requires_grad_(False)
@@ -135,10 +133,10 @@ class HAGAN(L.LightningModule):
         # self.manual_backward(sub_e_loss)
         # sub_e_opt.step()
 
-        self.log("d_loss", d_loss, on_step=True, on_epoch=True, logger=True)
-        self.log("g_loss", g_loss, on_step=True, on_epoch=True, logger=True)
-        self.log("e_loss", e_loss, on_step=True, on_epoch=True, logger=True)
-        self.log("sub_e_loss", sub_e_loss, on_step=True, on_epoch=True, logger=True)
+        self.log("d_loss", d_loss, logger=True, sync_dist=True)
+        self.log("g_loss", g_loss, logger=True, sync_dist=True)
+        self.log("e_loss", e_loss, logger=True, sync_dist=True)
+        self.log("sub_e_loss", sub_e_loss, logger=True, sync_dist=True)
 
     def validation_step(self, batch: MRISample, batch_idx):
         real_images = batch["image"].float()
@@ -178,11 +176,11 @@ class HAGAN(L.LightningModule):
         ssim_score = batch_ssi_3d(real_images, fake_images, reduction="mean")
 
         # Log losses and SSIM scores
-        self.log("val_d_loss", d_loss, logger=True)
-        self.log("val_g_loss", g_loss, logger=True)
-        self.log("val_e_loss", e_loss, logger=True)
-        self.log("val_sub_e_loss", sub_e_loss, logger=True)
-        self.log("val_ssim_score", ssim_score, logger=True)
+        self.log("val_d_loss", d_loss, logger=True, sync_dist=True)
+        self.log("val_g_loss", g_loss, logger=True, sync_dist=True)
+        self.log("val_e_loss", e_loss, logger=True, sync_dist=True)
+        self.log("val_sub_e_loss", sub_e_loss, logger=True, sync_dist=True)
+        self.log("val_ssim_score", ssim_score, logger=True, sync_dist=True)
 
         return {
             "val_d_loss": d_loss,
