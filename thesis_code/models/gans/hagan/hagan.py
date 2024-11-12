@@ -291,6 +291,12 @@ class HAGAN(L.LightningModule):
         z_hat = self.Sub_E(encoded_crops)
         return z_hat
 
+    def on_train_epoch_start(self):
+        print("Checking for None grads")
+        optimizers = self.optimizers()
+        for optimizer in optimizers:  # type: ignore
+            optimizer.zero_grad()
+
     def on_after_backward(self):
         print("Checking for None grads")
         for name, param in self.named_parameters():
