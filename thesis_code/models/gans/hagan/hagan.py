@@ -19,6 +19,9 @@ from thesis_code.metrics.ssi_3d import batch_ssi_3d
 from thesis_code.dataloading import MRISample, MRIDataset, MRIDataModule
 
 
+# NOTE: THE SN IPLEMENTATION IS SO BROKEN THAT IT ISN'T ACTUALLY USED DURING THE TRAINING. IT IS LEFT HERE FOR COMPLETENESS.
+
+
 class HAGAN(L.LightningModule):
     def __init__(
         self,
@@ -140,14 +143,13 @@ class HAGAN(L.LightningModule):
         self.log("sub_e_loss", sub_e_loss, on_step=True, on_epoch=True, logger=True)
 
     def validation_step(self, batch: MRISample, batch_idx):
-        real_images = batch["image"]
+        real_images = batch["image"].float()
         batch_size = real_images.size(0)
-        real_images = real_images.float()
         real_images_small = F.interpolate(real_images, scale_factor=0.25)
         crop_idx = np.random.randint(0, 256 * 7 // 8 + 1)
         real_images_crop = S_H(real_images, crop_idx)
         noise = torch.randn((batch_size, self.latent_dim), device=real_images.device)
-        fake_images, fake_images_small = self.G(noise, crop_idx=crop_idx)
+        fake_images = self.generate_from_noise(noise)
 
         self.real_labels = torch.ones((batch_size, 1), device=real_images.device)
         self.fake_labels = torch.zeros((batch_size, 1), device=real_images.device)
