@@ -117,8 +117,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-epochs",
         type=int,
-        default=100,
+        default=None,
         help="Maximum number of epochs to train for.",
+    )
+    parser.add_argument(
+        "--max-steps",
+        type=int,
+        default=-1,
+        help="Maximum number of steps to train for.",
     )
     parser.add_argument(
         "--max-time",
@@ -325,6 +331,7 @@ def main():
         devices=args.devices,
         fast_dev_run=args.fast_dev_run,
         max_epochs=args.max_epochs,
+        max_steps=args.max_steps,
         max_time=args.max_time,
         callbacks=get_callbacks_from_args(args),
         # limit_train_batches=0.05,
