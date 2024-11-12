@@ -34,7 +34,6 @@ class HAGAN(nn.Module):
         self.D = Discriminator()
         self.E = Encoder()
         self.Sub_E = Sub_Encoder(latent_dim=self.latent_dim)
-        self.S
         self.lr_g = lr_g
         self.lr_d = lr_d
         self.lr_e = lr_e
