@@ -24,6 +24,9 @@ class HAGAN(nn.Module):
         lr_g: float = 0.0001,
         lr_d: float = 0.0004,
         lr_e: float = 0.0001,
+        # Does not show up in original code, but is mentioned in the paper
+        lambda_1: float = 5.0,
+        lambda_2: float = 5.0,
     ):
         super().__init__()
         self.latent_dim = latent_dim
@@ -35,6 +38,8 @@ class HAGAN(nn.Module):
         self.lr_g = lr_g
         self.lr_d = lr_d
         self.lr_e = lr_e
+        self.lambda_1 = lambda_1
+        self.lambda_2 = lambda_2
 
         self.loss_bce = nn.BCEWithLogitsLoss()
         self.loss_l1 = nn.L1Loss()
@@ -71,7 +76,7 @@ class HAGAN(nn.Module):
         self.real_labels = torch.ones((batch_size, 1), device=real_images.device)
         self.fake_labels = torch.zeros((batch_size, 1), device=real_images.device)
 
-        if optimizer_idx == 0:  # D
+        if optimizer_idx == 0:  # D (D^H, D^L)
             self.D.zero_grad()
             self.G.requires_grad_(False)
             self.E.requires_grad_(False)
@@ -98,7 +103,7 @@ class HAGAN(nn.Module):
             )
             return d_loss
 
-        elif optimizer_idx == 1:  # G
+        elif optimizer_idx == 1:  # G (G^A, G^H, G^L)
             self.G.zero_grad()
             self.D.requires_grad_(False)
             self.E.requires_grad_(False)
@@ -123,7 +128,7 @@ class HAGAN(nn.Module):
             )
             return g_loss
 
-        elif optimizer_idx == 2:  # E
+        elif optimizer_idx == 2:  # E (E^H)
             self.E.zero_grad()
             self.G.requires_grad_(False)
             self.D.requires_grad_(False)
@@ -142,7 +147,7 @@ class HAGAN(nn.Module):
             )
             return e_loss
 
-        elif optimizer_idx == 3:  # Sub_E
+        elif optimizer_idx == 3:  # Sub_E (E^G)
             self.Sub_E.zero_grad()
             self.G.requires_grad_(False)
             self.D.requires_grad_(False)
@@ -159,9 +164,13 @@ class HAGAN(nn.Module):
             sub_x_hat_rec, sub_x_hat_rec_small = self.G(sub_z_hat, crop_idx=crop_idx)
 
             sub_e_loss = (
-                self.loss_l1(sub_x_hat_rec, real_images_crop)
-                + self.loss_l1(sub_x_hat_rec_small, real_images_small)
-            ) / 2.0
+                self.lambda_2
+                * (
+                    self.loss_l1(sub_x_hat_rec, real_images_crop)
+                    + self.loss_l1(sub_x_hat_rec_small, real_images_small)
+                )
+                / 2.0
+            )
             self.log(
                 "sub_e_loss",
                 sub_e_loss,
