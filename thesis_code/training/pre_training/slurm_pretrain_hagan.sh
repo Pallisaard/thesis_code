@@ -27,6 +27,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --resize-size 256 \
                 --normalize-min -1 \
                 --normalize-max 1 \
+                --checkpoint-monitor val_g_loss \
                 --accelerator gpu \
                 --strategy ddp_find_unused_parameters_true \
                 --devices auto \
