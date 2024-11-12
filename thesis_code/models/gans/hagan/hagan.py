@@ -85,10 +85,10 @@ class HAGAN(L.LightningModule):
         d_opt, g_opt, e_opt, sub_e_opt = self.optimizers()  # type: ignore
 
         # D (D^H, D^L)
-        self.D.requires_grad_(True)
-        self.G.requires_grad_(False)
-        self.E.requires_grad_(False)
-        self.Sub_E.requires_grad_(False)
+        # self.D.requires_grad_(True)
+        # self.G.requires_grad_(False)
+        # self.E.requires_grad_(False)
+        # self.Sub_E.requires_grad_(False)
         self.D.zero_grad()
         d_loss = self.compute_d_loss(
             real_images_crop=real_images_crop,
@@ -100,10 +100,10 @@ class HAGAN(L.LightningModule):
         # d_opt.step()
 
         # G (G^A, G^H, G^L)
-        self.D.requires_grad_(False)
-        self.G.requires_grad_(True)
-        self.E.requires_grad_(False)
-        self.Sub_E.requires_grad_(False)
+        # self.D.requires_grad_(False)
+        # self.G.requires_grad_(True)
+        # self.E.requires_grad_(False)
+        # self.Sub_E.requires_grad_(False)
         self.G.zero_grad()
         g_loss = self.compute_g_loss(
             noise=noise,
@@ -113,20 +113,20 @@ class HAGAN(L.LightningModule):
         # g_opt.step()
 
         # E (E^H)
-        self.G.requires_grad_(False)
-        self.D.requires_grad_(False)
-        self.E.requires_grad_(True)
-        self.Sub_E.requires_grad_(False)
+        # self.G.requires_grad_(False)
+        # self.D.requires_grad_(False)
+        # self.E.requires_grad_(True)
+        # self.Sub_E.requires_grad_(False)
         self.E.zero_grad()
         e_loss = self.compute_e_loss(real_images_crop=real_images_crop)
         self.manual_backward(e_loss)
         # e_opt.step()
 
         # Sub_E (E^G)
-        self.G.requires_grad_(False)
-        self.D.requires_grad_(False)
-        self.E.requires_grad_(False)
-        self.Sub_E.requires_grad_(True)
+        # self.G.requires_grad_(False)
+        # self.D.requires_grad_(False)
+        # self.E.requires_grad_(False)
+        # self.Sub_E.requires_grad_(True)
         self.Sub_E.zero_grad()
         sub_e_loss = self.compute_sub_e_loss(
             real_images=real_images,
