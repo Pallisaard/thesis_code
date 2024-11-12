@@ -84,6 +84,11 @@ class HAGAN(L.LightningModule):
 
         d_opt, g_opt, e_opt, sub_e_opt = self.optimizers()  # type: ignore
 
+        self.untoggle_optimizer(d_opt)
+        self.untoggle_optimizer(g_opt)
+        self.untoggle_optimizer(e_opt)
+        self.untoggle_optimizer(sub_e_opt)
+
         # D (D^H, D^L)
         self.toggle_optimizer(d_opt)
         self.D.zero_grad()
@@ -207,7 +212,7 @@ class HAGAN(L.LightningModule):
         """
         y_real_pred = self.D(real_images_crop, real_images_small, crop_idx)
         d_real_loss = self.loss_bce(y_real_pred, self.real_labels)
-        fake_images, fake_images_small = self.G(noise, crop_idx=crop_idx)
+        fake_images, fake_images_small = self.G(noise, crop_idx=crop_idx).detach()
         y_fake_pred = self.D(fake_images, fake_images_small, crop_idx)
         d_fake_loss = self.loss_bce(y_fake_pred, self.fake_labels)
         d_loss = d_real_loss + d_fake_loss
