@@ -112,7 +112,7 @@ class HAGAN(L.LightningModule):
         # E (E^H)
         self.G.requires_grad_(False)
         self.D.requires_grad_(False)
-        self.e.requires_grad_(True)
+        self.E.requires_grad_(True)
         self.Sub_E.requires_grad_(False)
         self.E.zero_grad()
         e_loss = self.compute_e_loss(real_images_crop=real_images_crop)
@@ -277,12 +277,12 @@ class HAGAN(L.LightningModule):
         return out
 
     def encode(self, x: torch.Tensor) -> torch.Tensor:
-        # with torch.no_grad():
-        encoded_crop_i_list = []
-        for crop_idx_i in range(0, 256, 256 // 8):
-            real_images_crop_i = S_H(x, crop_idx_i)
-            encoded_crop_i = self.E(real_images_crop_i)
-            encoded_crop_i_list.append(encoded_crop_i)
-        encoded_crops = torch.cat(encoded_crop_i_list, dim=2).detach()
+        with torch.no_grad():
+            encoded_crop_i_list = []
+            for crop_idx_i in range(0, 256, 256 // 8):
+                real_images_crop_i = S_H(x, crop_idx_i)
+                encoded_crop_i = self.E(real_images_crop_i)
+                encoded_crop_i_list.append(encoded_crop_i)
+            encoded_crops = torch.cat(encoded_crop_i_list, dim=2).detach()
         z_hat = self.Sub_E(encoded_crops)
         return z_hat
