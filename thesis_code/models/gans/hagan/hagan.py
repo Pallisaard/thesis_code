@@ -84,13 +84,7 @@ class HAGAN(L.LightningModule):
 
         d_opt, g_opt, e_opt, sub_e_opt = self.optimizers()  # type: ignore
 
-        # self.untoggle_optimizer(d_opt)
-        # self.untoggle_optimizer(g_opt)
-        # self.untoggle_optimizer(e_opt)
-        # self.untoggle_optimizer(sub_e_opt)
-
         # D (D^H, D^L)
-        # self.toggle_optimizer(d_opt)
         d_opt.zero_grad()
         d_loss = self.compute_d_loss(
             real_images_crop=real_images_crop,
@@ -99,26 +93,22 @@ class HAGAN(L.LightningModule):
             noise=noise,
         )
         self.manual_backward(d_loss)
-
-        # self.untoggle_optimizer(d_opt)
+        d_opt.step()
 
         # G (G^A, G^H, G^L)
-        # self.toggle_optimizer(g_opt)
         g_opt.zero_grad()
         g_loss = self.compute_g_loss(
             noise=noise,
             crop_idx=crop_idx,
         )
         self.manual_backward(g_loss)
-        # self.untoggle_optimizer(g_opt)
+        g_opt.step()
 
         # E (E^H)
-        # self.toggle_optimizer(e_opt)
         e_opt.zero_grad()
         e_loss = self.compute_e_loss(real_images_crop=real_images_crop)
         self.manual_backward(e_loss)
-
-        # self.untoggle_optimizer(e_opt)
+        e_opt.step()
 
         # Sub_E (E^G)
         self.Sub_E.zero_grad()
@@ -129,11 +119,7 @@ class HAGAN(L.LightningModule):
             crop_idx=crop_idx,
         )
         self.manual_backward(sub_e_loss)
-
         sub_e_opt.step()
-        e_opt.step()
-        g_opt.step()
-        d_opt.step()
 
         self.log("d_loss", d_loss, logger=True, sync_dist=True)
         self.log("g_loss", g_loss, logger=True, sync_dist=True)
@@ -291,15 +277,9 @@ class HAGAN(L.LightningModule):
         z_hat = self.Sub_E(encoded_crops)
         return z_hat
 
-    def on_train_epoch_start(self):
-        print("Checking for None grads")
-        optimizers = self.optimizers()
-        for optimizer in optimizers:  # type: ignore
-            optimizer.zero_grad()
-
-    def on_after_backward(self):
-        print("Checking for None grads")
-        for name, param in self.named_parameters():
-            if param.grad is None:
-                print(name)
-        print()
+    # def on_after_backward(self):
+    #     print("Checking for None grads")
+    #     for name, param in self.named_parameters():
+    #         if param.grad is None:
+    #             print(name)
+    #     print()
