@@ -133,7 +133,8 @@ class HAGAN(L.LightningModule):
         crop_idx = np.random.randint(0, 256 * 7 // 8 + 1)
         real_images_crop = S_H(real_images, crop_idx)
         noise = torch.randn((batch_size, self.latent_dim), device=real_images.device)
-        fake_images = self.generate_from_noise(noise)
+        with torch.no_grad():
+            fake_images = self.generate_from_noise(noise)
 
         self.real_labels = torch.ones((batch_size, 1), device=real_images.device)
         self.fake_labels = torch.zeros((batch_size, 1), device=real_images.device)
@@ -252,14 +253,12 @@ class HAGAN(L.LightningModule):
         return sub_e_loss
 
     def generate_from_noise(self, noise: torch.Tensor) -> torch.Tensor:
-        with torch.no_grad():
-            out = self.G.generate(noise)
+        out = self.G.generate(noise)
         return out
 
     def sample(self, num_samples: int) -> torch.Tensor:
-        noise = torch.randn((num_samples, self.latent_dim), device=self.device)
-        with torch.no_grad():
-            out = self.generate_from_noise(noise)
+        noise = torch.rand((num_samples, self.latent_dim), device=self.device)
+        out = self.generate_from_noise(noise)
         return out
 
     def encode_to_small(self, x: torch.Tensor) -> torch.Tensor:
