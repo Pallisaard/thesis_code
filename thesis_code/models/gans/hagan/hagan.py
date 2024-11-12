@@ -32,8 +32,8 @@ class HAGAN(L.LightningModule):
     ):
         super().__init__()
         self.latent_dim = latent_dim
-        # self.D = Discriminator()
-        self.G = Generator(latent_dim=self.latent_dim)
+        self.D = Discriminator()
+        # self.G = Generator(latent_dim=self.latent_dim)
         # self.E = Encoder()
         # self.Sub_E = Sub_Encoder(latent_dim=self.latent_dim)
         self.lr_g = lr_g
@@ -84,9 +84,9 @@ class HAGAN(L.LightningModule):
 
         # D (D^H, D^L)
         self.D.requires_grad_(True)
-        self.G.requires_grad_(False)
-        self.E.requires_grad_(False)
-        self.Sub_E.requires_grad_(False)
+        # self.G.requires_grad_(False)
+        # self.E.requires_grad_(False)
+        # self.Sub_E.requires_grad_(False)
         self.D.zero_grad()
         d_loss = self.compute_d_loss(
             real_images_crop=real_images_crop,
