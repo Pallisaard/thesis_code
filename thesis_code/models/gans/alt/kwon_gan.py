@@ -300,8 +300,3 @@ class LitKwonGan(L.LightningModule):
         )[0]
 
         return gradient
-
-    def on_after_backward(self):
-        for name, param in self.named_parameters():
-            if param.grad is None:
-                print(name)

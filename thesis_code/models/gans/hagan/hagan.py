@@ -288,3 +288,8 @@ class HAGAN(L.LightningModule):
         encoded_crops = self.encode_to_small(x)
         z_hat = self.Sub_E(encoded_crops)
         return z_hat
+
+    def on_after_backward(self):
+        for name, param in self.named_parameters():
+            if param.grad is None:
+                print(name)
