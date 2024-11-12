@@ -45,6 +45,8 @@ class HAGAN(L.LightningModule):
         self.loss_bce = nn.BCEWithLogitsLoss()
         self.loss_l1 = nn.L1Loss()
 
+        self.automatic_optimization = False
+
     def configure_optimizers(self):
         g_optimizer = optim.Adam(
             self.G.parameters(), lr=self.lr_g, betas=(0.0, 0.999), eps=1e-8
@@ -65,7 +67,7 @@ class HAGAN(L.LightningModule):
             sub_e_optimizer,
         ]
 
-    def training_step(self, batch: MRISample, batch_idx, optimizer_idx):
+    def training_step(self, batch: MRISample, batch_idx):
         real_images = batch["image"]
         batch_size = real_images.size(0)
         real_images = real_images.float()
@@ -77,89 +79,65 @@ class HAGAN(L.LightningModule):
         self.real_labels = torch.ones((batch_size, 1), device=real_images.device)
         self.fake_labels = torch.zeros((batch_size, 1), device=real_images.device)
 
-        if optimizer_idx == 0:  # D (D^H, D^L)
-            self.D.zero_grad()
-            self.G.requires_grad_(False)
-            self.E.requires_grad_(False)
-            self.Sub_E.requires_grad_(False)
+        d_opt, g_opt, e_opt, sub_e_opt = self.optimizers()  # type: ignore
 
-            d_loss = self.compute_d_loss(
-                real_images_crop=real_images_crop,
-                real_images_small=real_images_small,
-                crop_idx=crop_idx,
-                noise=noise,
-            )
+        # D (D^H, D^L)
+        self.D.requires_grad_(True)
+        self.G.requires_grad_(False)
+        self.E.requires_grad_(False)
+        self.Sub_E.requires_grad_(False)
+        self.D.zero_grad()
+        d_loss = self.compute_d_loss(
+            real_images_crop=real_images_crop,
+            real_images_small=real_images_small,
+            crop_idx=crop_idx,
+            noise=noise,
+        )
+        self.manual_backward(d_loss)
+        d_opt.step()
 
-            self.log(
-                "d_loss",
-                d_loss,
-                on_step=True,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-            )
-            return d_loss
+        # G (G^A, G^H, G^L)
+        self.D.requires_grad_(False)
+        self.G.requires_grad_(True)
+        self.E.requires_grad_(False)
+        self.Sub_E.requires_grad_(False)
+        self.G.zero_grad()
+        g_loss = self.compute_g_loss(
+            noise=noise,
+            crop_idx=crop_idx,
+        )
+        self.manual_backward(g_loss)
+        g_opt.step()
 
-        elif optimizer_idx == 1:  # G (G^A, G^H, G^L)
-            self.G.zero_grad()
-            self.D.requires_grad_(False)
-            self.E.requires_grad_(False)
-            self.Sub_E.requires_grad_(False)
+        # E (E^H)
+        self.G.requires_grad_(False)
+        self.D.requires_grad_(False)
+        self.e.requires_grad_(True)
+        self.Sub_E.requires_grad_(False)
+        self.E.zero_grad()
+        e_loss = self.compute_e_loss(real_images_crop=real_images_crop)
+        self.manual_backward(e_loss)
+        e_opt.step()
 
-            g_loss = self.compute_g_loss(
-                noise=noise,
-                crop_idx=crop_idx,
-            )
+        # Sub_E (E^G)
+        self.G.requires_grad_(False)
+        self.D.requires_grad_(False)
+        self.E.requires_grad_(False)
+        self.Sub_E.requires_grad_(True)
+        self.Sub_E.zero_grad()
+        sub_e_loss = self.compute_sub_e_loss(
+            real_images=real_images,
+            real_images_crop=real_images_crop,
+            real_images_small=real_images_small,
+            crop_idx=crop_idx,
+        )
+        self.manual_backward(sub_e_loss)
+        sub_e_opt.step()
 
-            self.log(
-                "g_loss",
-                g_loss,
-                on_step=True,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-            )
-            return g_loss
-
-        elif optimizer_idx == 2:  # E (E^H)
-            self.E.zero_grad()
-            self.G.requires_grad_(False)
-            self.D.requires_grad_(False)
-            self.Sub_E.requires_grad_(False)
-
-            e_loss = self.compute_e_loss(real_images_crop=real_images_crop)
-
-            self.log(
-                "e_loss",
-                e_loss,
-                on_step=True,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-            )
-            return e_loss
-
-        elif optimizer_idx == 3:  # Sub_E (E^G)
-            self.Sub_E.zero_grad()
-            self.G.requires_grad_(False)
-            self.D.requires_grad_(False)
-            self.E.requires_grad_(False)
-
-            sub_e_loss = self.compute_sub_e_loss(
-                real_images=real_images,
-                real_images_crop=real_images_crop,
-                real_images_small=real_images_small,
-                crop_idx=crop_idx,
-            )
-            self.log(
-                "sub_e_loss",
-                sub_e_loss,
-                on_step=True,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-            )
-            return sub_e_loss
+        self.log("d_loss", d_loss, on_step=True, on_epoch=True, logger=True)
+        self.log("g_loss", g_loss, on_step=True, on_epoch=True, logger=True)
+        self.log("e_loss", e_loss, on_step=True, on_epoch=True, logger=True)
+        self.log("sub_e_loss", sub_e_loss, on_step=True, on_epoch=True, logger=True)
 
     def validation_step(self, batch: MRISample, batch_idx):
         real_images = batch["image"]
@@ -198,15 +176,13 @@ class HAGAN(L.LightningModule):
 
         # Compute SSIM scores
         ssim_score = batch_ssi_3d(real_images, fake_images)
-        ssim_score_small = batch_ssi_3d(real_images_small, fake_images_small)
 
         # Log losses and SSIM scores
-        self.log("val_d_loss", d_loss, prog_bar=True, logger=True)
-        self.log("val_g_loss", g_loss, prog_bar=True, logger=True)
-        self.log("val_e_loss", e_loss, prog_bar=True, logger=True)
-        self.log("val_sub_e_loss", sub_e_loss, prog_bar=True, logger=True)
-        self.log("val_ssim_score", ssim_score, prog_bar=True, logger=True)
-        self.log("val_ssim_score_small", ssim_score_small, prog_bar=True, logger=True)
+        self.log("val_d_loss", d_loss, logger=True)
+        self.log("val_g_loss", g_loss, logger=True)
+        self.log("val_e_loss", e_loss, logger=True)
+        self.log("val_sub_e_loss", sub_e_loss, logger=True)
+        self.log("val_ssim_score", ssim_score, logger=True)
 
         return {
             "val_d_loss": d_loss,
@@ -214,7 +190,6 @@ class HAGAN(L.LightningModule):
             "val_e_loss": e_loss,
             "val_sub_e_loss": sub_e_loss,
             "val_ssim_score": ssim_score,
-            "val_ssim_score_small": ssim_score_small,
         }
 
     def compute_d_loss(
