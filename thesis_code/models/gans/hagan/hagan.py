@@ -134,8 +134,8 @@ class HAGAN(L.LightningModule):
             real_images_small=real_images_small,
             crop_idx=crop_idx,
         )
-        self.manual_backward(sub_e_loss)
-        sub_e_opt.step()
+        # self.manual_backward(sub_e_loss)
+        # sub_e_opt.step()
 
         self.log("d_loss", d_loss, on_step=True, on_epoch=True, logger=True)
         self.log("g_loss", g_loss, on_step=True, on_epoch=True, logger=True)
