@@ -180,7 +180,7 @@ class Discriminator(nn.Module):
         h = F.leaky_relu(self.conv7(h), negative_slope=0.2)
         h = h.squeeze()
         h = torch.cat(
-            [h, (crop_idx / 224.0 * torch.ones((h.size(0), 1)))], 1
+            [h, (crop_idx / 224.0 * torch.ones((h.size(0), 1), device=h.device))], 1
         )  # 256*7/8
         h = F.leaky_relu(self.fc1(h), negative_slope=0.2)
         h_logit = self.fc2(h)
