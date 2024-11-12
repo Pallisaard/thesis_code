@@ -8,7 +8,8 @@ from torchsummary import summary
 
 # from models import VAE3DLightningModule
 from thesis_code.models.vaes import LitVAE3D
-from thesis_code.models.gans.kwon_gan import LitKwonGan
+from thesis_code.models.gans.alt.kwon_gan import LitKwonGan
+from thesis_code.models.gans.hagan.hagan import HAGAN
 from thesis_code.dataloading.mri_datamodule import MRIDataModule
 from thesis_code.dataloading.transforms import (
     MRITransform,
@@ -171,7 +172,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-MODEL_NAME = Literal["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan"]
+MODEL_NAME = Literal["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan", "hagan"]
 
 
 def get_specific_model(
@@ -223,6 +224,12 @@ def get_model(
                 n_critic_steps=5,
                 lambda_recon=1.0,
             ),
+        )
+    elif model_name == "hagan":
+        return get_specific_model(
+            HAGAN,
+            checkpoint_path=checkpoint_path,
+            model_kwargs=dict(latent_dim=latent_dim),
         )
     else:
         raise ValueError(f"Model name {model_name} not recognized")
