@@ -90,7 +90,7 @@ class HAGAN(L.LightningModule):
         self.untoggle_optimizer(sub_e_opt)
 
         # D (D^H, D^L)
-        self.toggle_optimizer(d_opt)
+        # self.toggle_optimizer(d_opt)
         d_opt.zero_grad()
         d_loss = self.compute_d_loss(
             real_images_crop=real_images_crop,
@@ -100,10 +100,10 @@ class HAGAN(L.LightningModule):
         )
         self.manual_backward(d_loss)
         d_opt.step()
-        self.untoggle_optimizer(d_opt)
+        # self.untoggle_optimizer(d_opt)
 
         # G (G^A, G^H, G^L)
-        self.toggle_optimizer(g_opt)
+        # self.toggle_optimizer(g_opt)
         g_opt.zero_grad()
         g_loss = self.compute_g_loss(
             noise=noise,
@@ -111,15 +111,15 @@ class HAGAN(L.LightningModule):
         )
         self.manual_backward(g_loss)
         g_opt.step()
-        self.untoggle_optimizer(g_opt)
+        # self.untoggle_optimizer(g_opt)
 
         # E (E^H)
-        self.toggle_optimizer(e_opt)
+        # self.toggle_optimizer(e_opt)
         e_opt.zero_grad()
         e_loss = self.compute_e_loss(real_images_crop=real_images_crop)
         self.manual_backward(e_loss)
         e_opt.step()
-        self.untoggle_optimizer(e_opt)
+        # self.untoggle_optimizer(e_opt)
 
         # Sub_E (E^G)
         # self.G.requires_grad_(False)
