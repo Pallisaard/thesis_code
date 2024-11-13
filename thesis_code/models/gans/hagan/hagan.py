@@ -134,8 +134,6 @@ class HAGAN(L.LightningModule):
         real_images_crop = S_H(real_images, crop_idx)
         noise = torch.randn((batch_size, self.latent_dim), device=real_images.device)
 
-        fake_images = self.safe_sample(batch_size)
-
         self.real_labels = torch.ones((batch_size, 1), device=real_images.device)
         self.fake_labels = torch.zeros((batch_size, 1), device=real_images.device)
 
@@ -162,21 +160,22 @@ class HAGAN(L.LightningModule):
         )
 
         # Compute SSIM scores
-        ssim_score = batch_ssi_3d(real_images, fake_images, reduction="mean")
+        # fake_images = self.safe_sample(batch_size)
+        # ssim_score = batch_ssi_3d(real_images, fake_images, reduction="mean")
 
         # Log losses and SSIM scores
         self.log("val_d_loss", d_loss, logger=True, sync_dist=True)
         self.log("val_g_loss", g_loss, logger=True, sync_dist=True)
         self.log("val_e_loss", e_loss, logger=True, sync_dist=True)
         self.log("val_sub_e_loss", sub_e_loss, logger=True, sync_dist=True)
-        self.log("val_ssim_score", ssim_score, logger=True, sync_dist=True)
+        # self.log("val_ssim_score", ssim_score, logger=True, sync_dist=True)
 
         return {
             "val_d_loss": d_loss,
             "val_g_loss": g_loss,
             "val_e_loss": e_loss,
             "val_sub_e_loss": sub_e_loss,
-            "val_ssim_score": ssim_score,
+            # "val_ssim_score": ssim_score,
         }
 
     def compute_d_loss(
