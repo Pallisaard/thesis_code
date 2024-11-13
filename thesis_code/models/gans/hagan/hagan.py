@@ -177,7 +177,7 @@ class HAGAN(L.LightningModule):
         nib.save(sample_nii, file_path)  # type: ignore
 
         # Save true data
-        true_nii = numpy_to_nifti(real_images[0].cpu().numpy())
+        true_nii = numpy_to_nifti(real_images[0, 0].cpu().numpy())
         file_path = log_dir / f"validation_data_true_batch_{batch_idx}.npz"
         nib.save(true_nii, file_path)  # type: ignore
 
