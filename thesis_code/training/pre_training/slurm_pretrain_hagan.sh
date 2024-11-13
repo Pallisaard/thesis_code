@@ -34,5 +34,5 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --callbacks checkpoint summary progress \
                 --save-top-k 3 \
                 --save-last \
-                --max-steps 100 \
+                --max-steps 500 \
                 # --fast-dev-run \

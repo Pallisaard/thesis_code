@@ -335,7 +335,7 @@ def main():
         max_time=args.max_time,
         # val_check_interval=50,
         callbacks=get_callbacks_from_args(args),
-        limit_train_batches=0.50,
+        limit_train_batches=0.05,
         # check_val_every_n_epoch=None,
     )
 
