@@ -31,7 +31,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --accelerator gpu \
                 --strategy ddp_find_unused_parameters_true \
                 --devices auto \
-                --max-epocs 2 \
+                --max-epochs 2 \
                 --callbacks checkpoint summary progress \
                 --save-top-k 3 \
                 --save-last \
