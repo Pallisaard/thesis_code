@@ -24,7 +24,7 @@ echo "start time: $(date)"
 python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
                 --data-path /home/gzj557/final_dataset \
-                --batch-size 8 \
+                --batch-size 2 \
                 --num-workers 5 \
                 --transforms resize range-normalize remove-percent-outliers \
                 --outlier-percentile 0.001 \

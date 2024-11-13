@@ -186,7 +186,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--log-every-n-steps",
         type=int,
-        default=50,
+        default=10,
         help="Log every n steps during training.",
     )
     return parser.parse_args()
