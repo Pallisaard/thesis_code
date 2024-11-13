@@ -47,14 +47,12 @@ class HAGAN(L.LightningModule):
         self.lr_e = lr_e
         self.lambda_1 = lambda_1
         self.lambda_2 = lambda_2
+        self.start_time = time.time()
 
         self.loss_bce = nn.BCEWithLogitsLoss()
         self.loss_l1 = nn.L1Loss()
 
         self.automatic_optimization = False
-
-    def on_training_start(self):
-        self.start_time = time.time()
 
     def configure_optimizers(self):
         g_optimizer = optim.Adam(
