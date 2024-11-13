@@ -10,6 +10,7 @@
 
 module load cuda/11.8
 module load cudnn/8.6.0
+module load gcc/13.2.0
 
 source ~/venv/bin/activate
 
