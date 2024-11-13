@@ -24,7 +24,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --batch-size 4 \
                 --num-workers 5 \
                 --transforms resize range-normalize remove-percent-outliers \
-                --outliers-percentile 0.001 \
+                --outlier-percentile 0.001 \
                 --resize-size 256 \
                 --normalize-min -1 \
                 --normalize-max 1 \
