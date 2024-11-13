@@ -333,9 +333,10 @@ def main():
         max_epochs=args.max_epochs,
         max_steps=args.max_steps,
         max_time=args.max_time,
-        val_check_interval=1000,
+        # val_check_interval=1000,
         callbacks=get_callbacks_from_args(args),
-        # limit_train_batches=0.05,
+        limit_train_batches=0.10,
+        # check_val_every_n_epoch=None,
     )
 
     print("Fitting model")
