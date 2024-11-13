@@ -160,15 +160,15 @@ class HAGAN(L.LightningModule):
         )
 
         # Compute SSIM scores
-        # fake_images = self.safe_sample(batch_size)
-        # ssim_score = batch_ssi_3d(real_images, fake_images, reduction="mean")
+        fake_images = self.safe_sample(batch_size)
+        ssim_score = batch_ssi_3d(real_images, fake_images, reduction="mean")
 
         # Log losses and SSIM scores
         self.log("val_d_loss", d_loss, logger=True, sync_dist=True)
         self.log("val_g_loss", g_loss, logger=True, sync_dist=True)
         self.log("val_e_loss", e_loss, logger=True, sync_dist=True)
         self.log("val_sub_e_loss", sub_e_loss, logger=True, sync_dist=True)
-        # self.log("val_ssim_score", ssim_score, logger=True, sync_dist=True)
+        self.log("val_ssim_score", ssim_score, logger=True, sync_dist=True)
 
         return {
             "val_d_loss": d_loss,
