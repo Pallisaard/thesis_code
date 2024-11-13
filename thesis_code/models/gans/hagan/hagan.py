@@ -22,9 +22,6 @@ from thesis_code.metrics.ssi_3d import batch_ssi_3d
 from thesis_code.dataloading import MRISample, MRIDataset, MRIDataModule
 
 
-# NOTE: THE SN IPLEMENTATION IS SO BROKEN THAT IT ISN'T ACTUALLY USED DURING THE TRAINING. IT IS LEFT HERE FOR COMPLETENESS.
-
-
 class HAGAN(L.LightningModule):
     def __init__(
         self,
