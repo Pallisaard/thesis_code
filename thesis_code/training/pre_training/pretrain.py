@@ -62,7 +62,7 @@ def parse_args() -> argparse.Namespace:
         nargs="+",
         default=[],
         help="List of transforms to apply to the data",
-        choices=["resize", "z-normalize", "range-normalize"],
+        choices=["resize", "z-normalize", "range-normalize", "remove-percent-outliers"],
     )
     # Resize transform arguments.
     parser.add_argument(
