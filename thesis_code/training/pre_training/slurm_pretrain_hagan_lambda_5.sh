@@ -18,6 +18,9 @@ cd ~/thesis_code
 # echo devices and nvidia-smi
 echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 
+# echo time at start
+echo "start time: $(date)"
+
 python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
                 --data-path /home/gzj557/final_dataset \
@@ -39,3 +42,6 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --lambda-1 5.0 \
                 --lambda-2 5.0 \
                 # --fast-dev-run \
+
+# echo time at end
+echo "end time: $(date)"
