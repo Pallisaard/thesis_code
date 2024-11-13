@@ -259,8 +259,8 @@ class HAGAN(L.LightningModule):
     def safe_sample(self, num_samples: int) -> torch.Tensor:
         noise = torch.randn((num_samples, self.latent_dim), device=self.device)
         out_list = []
-        for i in noise:
-            out = self.generate_from_noise(noise[i].unsqueeze(0))
+        for noise_slice in noise:
+            out = self.generate_from_noise(noise_slice.unsqueeze(0))
             out_list.append(out)
         out = torch.cat(out_list, dim=0)
         return out
