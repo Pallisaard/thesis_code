@@ -1,3 +1,5 @@
+from pathlib import Path
+import time
 from typing import Optional
 
 import numpy as np
@@ -6,6 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import lightning as L
+import nibabel as nib
 
 from thesis_code.models.gans.hagan.backbone.Model_HA_GAN_256 import (
     Generator,
@@ -126,6 +129,10 @@ class HAGAN(L.LightningModule):
         self.log("e_loss", e_loss, logger=True, sync_dist=True)
         self.log("sub_e_loss", sub_e_loss, logger=True, sync_dist=True)
 
+        # Log elapsed time
+        elapsed_time = time.time() - self.start_time
+        self.log("elapsed_time", elapsed_time, logger=True, sync_dist=True)
+
     def validation_step(self, batch: MRISample, batch_idx):
         real_images = batch["image"].float()
         batch_size = real_images.size(0)
@@ -159,8 +166,19 @@ class HAGAN(L.LightningModule):
             crop_idx=crop_idx,
         )
 
-        # Compute SSIM scores
+        # Save validation data
         fake_images = self.safe_sample(batch_size)
+        sample_nii = numpy_to_nifti(fake_images[0].cpu().numpy())
+        log_dir = Path(self.logger.log_dir)  # type: ignore
+        file_path = log_dir / f"validation_data_batch_{batch_idx}.npz"
+        nib.save(sample_nii, file_path)  # type: ignore
+
+        # Save true data
+        true_nii = numpy_to_nifti(real_images[0].cpu().numpy())
+        file_path = log_dir / f"validation_data_true_batch_{batch_idx}.npz"
+        nib.save(true_nii, file_path)  # type: ignore
+
+        # Compute SSIM scores
         ssim_score = batch_ssi_3d(real_images, fake_images, reduction="mean")
 
         # Log losses and SSIM scores
@@ -170,13 +188,9 @@ class HAGAN(L.LightningModule):
         self.log("val_sub_e_loss", sub_e_loss, logger=True, sync_dist=True)
         self.log("val_ssim_score", ssim_score, logger=True, sync_dist=True)
 
-        return {
-            "val_d_loss": d_loss,
-            "val_g_loss": g_loss,
-            "val_e_loss": e_loss,
-            "val_sub_e_loss": sub_e_loss,
-            # "val_ssim_score": ssim_score,
-        }
+        # Log elapsed time
+        elapsed_time = time.time() - self.start_time
+        self.log("elapsed_time", elapsed_time, logger=True, sync_dist=True)
 
     def compute_d_loss(
         self,
@@ -284,9 +298,28 @@ class HAGAN(L.LightningModule):
         z_hat = self.Sub_E(encoded_crops)
         return z_hat
 
-    # def on_after_backward(self):
-    #     print("Checking for None grads")
-    #     for name, param in self.named_parameters():
-    #         if param.grad is None:
-    #             print(name)
-    #     print()
+
+def numpy_to_nifti(array: np.ndarray) -> nib.Nifti1Image:  # type: ignore
+    """
+    Convert a 3D numpy array to a Nifti1Image with RAS orientation.
+
+    Parameters:
+    array (np.ndarray): 3D numpy array to convert.
+
+    Returns:
+    nib.Nifti1Image: Nifti image that can be saved as an .nii.gz file.
+    """
+    # Ensure the array is 3D
+    if array.ndim != 3:
+        raise ValueError("Input array must be 3D")
+
+    # Create an identity affine matrix
+    affine = np.eye(4)
+
+    # Create the Nifti1Image
+    nifti_img = nib.Nifti1Image(array, affine)  # type: ignore
+
+    # Set the orientation to RAS
+    nifti_img = nib.as_closest_canonical(nifti_img)  # type: ignore
+
+    return nifti_img

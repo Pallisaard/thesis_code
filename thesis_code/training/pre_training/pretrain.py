@@ -43,6 +43,14 @@ def parse_args() -> argparse.Namespace:
         "--data-path", type=str, required=True, help="Path to the data directory"
     )
 
+    # HAGAN arguments.
+    parser.add_argument(
+        "--lambda-1", type=float, default=1.0, help="Lambda 1 for HAGAN"
+    )
+    parser.add_argument(
+        "--lambda-2", type=float, default=1.0, help="Lambda 2 for HAGAN"
+    )
+
     # Data module arguments.
     parser.add_argument(
         "--batch-size", type=int, default=8, help="Batch size for training"
@@ -196,7 +204,10 @@ def get_specific_model(
 
 
 def get_model(
-    model_name: MODEL_NAME, latent_dim: int, checkpoint_path: str | None
+    model_name: MODEL_NAME,
+    latent_dim: int,
+    checkpoint_path: str | None,
+    args: argparse.Namespace,
 ) -> L.LightningModule:
     if model_name == "cicek_3d_vae_256":
         return get_specific_model(
@@ -241,7 +252,9 @@ def get_model(
         return get_specific_model(
             HAGAN,
             checkpoint_path=checkpoint_path,
-            model_kwargs=dict(latent_dim=latent_dim, lambda_1=1.0, lambda_2=1.0),
+            model_kwargs=dict(
+                latent_dim=latent_dim, lambda_1=args.lambda_1, lambda_2=args.lambda_2
+            ),
         )
     else:
         raise ValueError(f"Model name {model_name} not recognized")
@@ -318,7 +331,7 @@ def main():
     )
 
     print("Creating model")
-    model = get_model(args.model_name, args.latent_dim, args.load_from_checkpoint)
+    model = get_model(args.model_name, args.latent_dim, args.load_from_checkpoint, args)
 
     print("Creating datamodule")
     transform = get_transforms(args)
