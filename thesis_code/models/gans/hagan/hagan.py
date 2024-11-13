@@ -53,6 +53,9 @@ class HAGAN(L.LightningModule):
 
         self.automatic_optimization = False
 
+    def on_training_start(self):
+        self.start_time = time.time()
+
     def configure_optimizers(self):
         g_optimizer = optim.Adam(
             self.G.parameters(), lr=self.lr_g, betas=(0.0, 0.999), eps=1e-8
