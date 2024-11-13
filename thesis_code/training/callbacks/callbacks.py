@@ -16,7 +16,7 @@ def get_checkpoint_callback(
     save_top_k: int = 1,
 ) -> ModelCheckpoint:
     if filename is None:
-        filename = "{epoch}-{step}-{monitor:.4f}"
+        filename = "{epoch}-{step}-{" + monitor + ":.2f}"
 
     if isinstance(path, str):
         path = Path(path)
