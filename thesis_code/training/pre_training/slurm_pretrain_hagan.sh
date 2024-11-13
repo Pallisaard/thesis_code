@@ -5,8 +5,8 @@
 #SBATCH --gres=gpu:titanrtx:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=6  # Number of CPUs for each gpu
 #SBATCH --mem=16G        # Memory request
-# #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
-# #SBATCH --mail-user=rpa@di.ku.dk # Email
+#SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
+#SBATCH --mail-user=rpa@di.ku.dk # Email
 
 module load cuda/11.8
 module load cudnn/8.6.0
@@ -23,7 +23,9 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --data-path /home/gzj557/final_dataset \
                 --batch-size 4 \
                 --num-workers 5 \
-                --transforms resize range-normalize \
+                --transforms resize range-normalize remove-percent-outliers \
+                --outliers-percent 0.001 \
+                --outlier-end 'both' \
                 --resize-size 256 \
                 --normalize-min -1 \
                 --normalize-max 1 \
@@ -34,5 +36,6 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --callbacks checkpoint summary progress \
                 --save-top-k 3 \
                 --save-last \
-                --max-steps 500 \
+                --log-every-n-steps 50 \
+                --max-steps 10000 \
                 # --fast-dev-run \

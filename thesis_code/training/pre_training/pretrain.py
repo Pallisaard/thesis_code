@@ -17,6 +17,7 @@ from thesis_code.dataloading.transforms import (
     Resize,
     ZScoreNormalize,
     RangeNormalize,
+    RemovePercentOutliers,
 )
 from thesis_code.training.callbacks.callbacks import (
     get_checkpoint_callback,
@@ -90,7 +91,18 @@ def parse_args() -> argparse.Namespace:
         default=1,
         help="If using RangeNormalize transform, the maximum of the normalization range.",
     )
-
+    parser.add_argument(
+        "--outlier-percentile",
+        type=float,
+        default=0.01,
+        help="Percentile of outliers to remove from data",
+    )
+    parser.add_argument(
+        "--outlier-end",
+        type="str",
+        default="both",
+        help="Which end of the data to remove outliers from. 'both', 'lower', or 'upper'",
+    )
     # Lightning arguments.
     parser.add_argument(
         "--accelerator",
@@ -277,6 +289,10 @@ def get_transforms(args: argparse.Namespace) -> MRITransform:
         transforms.append(zscore_normalize)
     if "range-normalize" in args.transforms:
         transforms.append(RangeNormalize(args.normalize_min, args.normalize_max))
+    if "remove-percent-outliers" in args.transforms:
+        transforms.append(
+            RemovePercentOutliers(args.outlier_percentile, args.outlier_end)
+        )
     return Compose(transforms)
 
 
