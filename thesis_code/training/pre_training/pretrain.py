@@ -241,7 +241,7 @@ def get_model(
         return get_specific_model(
             HAGAN,
             checkpoint_path=checkpoint_path,
-            model_kwargs=dict(latent_dim=latent_dim),
+            model_kwargs=dict(latent_dim=latent_dim, lambda_1=1.0, lambda_2=1.0),
         )
     else:
         raise ValueError(f"Model name {model_name} not recognized")
