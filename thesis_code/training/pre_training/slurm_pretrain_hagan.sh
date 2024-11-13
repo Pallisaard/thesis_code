@@ -2,7 +2,7 @@
 #SBATCH --job-name=pretrain_vae_256
 #SBATCH --output=slurm_pretrain_hagan-%j.out # Name of output file
 #SBATCH --error=slurm_pretrain_hagan-%j.err # Name of error file
-#SBATCH --gres=gpu:titanrtx:1       # Request 4 GPU per job
+#SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=6  # Number of CPUs for each gpu
 #SBATCH --mem=16G        # Memory request
 # #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
@@ -21,7 +21,7 @@ echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
                 --data-path /home/gzj557/final_dataset \
-                --batch-size 2 \
+                --batch-size 4 \
                 --num-workers 5 \
                 --transforms resize range-normalize \
                 --resize-size 256 \
@@ -31,7 +31,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --accelerator gpu \
                 --strategy ddp_find_unused_parameters_true \
                 --devices auto \
-                --max-steps 100 \
+                --max-steps 1000 \
                 --callbacks checkpoint summary progress \
                 --save-top-k 3 \
                 --save-last \
