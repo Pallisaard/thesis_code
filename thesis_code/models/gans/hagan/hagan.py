@@ -167,20 +167,25 @@ class HAGAN(L.LightningModule):
             crop_idx=crop_idx,
         )
 
-        # Save validation data
         fake_images = self.safe_sample(batch_size)
-        sample_nii = numpy_to_nifti(fake_images[0, 0].cpu().numpy())
-        log_dir = Path(self.logger.log_dir)  # type: ignore
-        file_path = log_dir / f"validation_synthetic_example_{batch_idx}.nii.gz"
-        nib.save(sample_nii, file_path)  # type: ignore
-
-        # Save true data
-        true_nii = numpy_to_nifti(real_images[0, 0].cpu().numpy())
-        file_path = log_dir / f"validation_data_true_example_{batch_idx}.nii.gz"
-        nib.save(true_nii, file_path)  # type: ignore
-
         # Compute SSIM scores
         ssim_score = batch_ssi_3d(real_images, fake_images, reduction="mean")
+
+        if batch_idx == 0:
+            # Save validation data
+            sample_nii = numpy_to_nifti(fake_images[0, 0].cpu().numpy())
+            log_dir = Path(self.logger.log_dir)  # type: ignore
+            file_path = (
+                log_dir / f"validation_synthetic_example_{self.current_epoch}.nii.gz"
+            )
+            nib.save(sample_nii, file_path)  # type: ignore
+
+            # Save true data
+            true_nii = numpy_to_nifti(real_images[0, 0].cpu().numpy())
+            file_path = (
+                log_dir / f"validation_data_true_example_{self.current_epoch}.nii.gz"
+            )
+            nib.save(true_nii, file_path)  # type: ignore
 
         # Log losses and SSIM scores
         self.log("val_d_loss", d_loss, logger=True, sync_dist=True)
