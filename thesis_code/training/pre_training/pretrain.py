@@ -99,7 +99,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--outlier-end",
-        type="str",
+        type=str,
         default="both",
         help="Which end of the data to remove outliers from. 'both', 'lower', or 'upper'",
     )
