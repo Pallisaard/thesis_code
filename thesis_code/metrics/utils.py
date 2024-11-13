@@ -4,7 +4,6 @@ import torch
 
 def normalize_to_01(tensors: Sequence[torch.Tensor]) -> list[torch.Tensor]:
     """Normalizes a tensor to the range [0, 1]."""
-    _a = [print(t.size()) for t in tensors]
     max_val = torch.max(torch.stack([t.max() for t in tensors]))
     min_val = torch.min(torch.stack([t.min() for t in tensors]))
     # assert max_val != min_val, "Cannot normalize tensor with min == max"
