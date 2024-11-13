@@ -24,8 +24,8 @@ echo "start time: $(date)"
 python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
                 --data-path /home/gzj557/final_dataset/brain-masked \
-                --batch-size 8 \
-                --num-workers 5 \
+                --batch-size 4 \
+                --num-workers 4 \
                 --transforms resize range-normalize remove-percent-outliers \
                 --outlier-percentile 0.001 \
                 --resize-size 256 \
@@ -38,7 +38,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --save-top-k 3 \
                 --save-last \
                 --log-every-n-steps 10 \
-                --max-steps 40000 \
+                --max-steps 80000 \
                 --lambda-1 5.0 \
                 --lambda-2 5.0 \
                 # --fast-dev-run \

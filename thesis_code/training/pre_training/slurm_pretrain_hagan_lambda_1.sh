@@ -3,7 +3,7 @@
 #SBATCH --output=slurm_pretrain_hagan-%j.out # Name of output file
 #SBATCH --error=slurm_pretrain_hagan-%j.err # Name of error file
 #SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
-#SBATCH --cpus-per-task=5  # Number of CPUs for each gpu
+#SBATCH --cpus-per-task=6  # Number of CPUs for each gpu
 #SBATCH --mem=16G        # Memory request
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
