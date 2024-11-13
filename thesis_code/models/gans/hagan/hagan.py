@@ -129,6 +129,9 @@ class HAGAN(L.LightningModule):
         self.log("e_loss", e_loss, logger=True, sync_dist=True)
         self.log("sub_e_loss", sub_e_loss, logger=True, sync_dist=True)
 
+        total_loss = d_loss + g_loss + e_loss + sub_e_loss
+        self.log("total_loss", total_loss, logger=True, sync_dist=True)
+
         # Log elapsed time
         elapsed_time = time.time() - self.start_time
         self.log("elapsed_time", elapsed_time, logger=True, sync_dist=True)
@@ -186,6 +189,10 @@ class HAGAN(L.LightningModule):
         self.log("val_g_loss", g_loss, logger=True, sync_dist=True)
         self.log("val_e_loss", e_loss, logger=True, sync_dist=True)
         self.log("val_sub_e_loss", sub_e_loss, logger=True, sync_dist=True)
+
+        total_loss = d_loss + g_loss + e_loss + sub_e_loss
+        self.log("val_total_loss", total_loss, logger=True, sync_dist=True)
+
         self.log("val_ssim_score", ssim_score, logger=True, sync_dist=True)
 
         # Log elapsed time
