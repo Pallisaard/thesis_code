@@ -332,6 +332,7 @@ def main():
 
     print("Creating model")
     model = get_model(args.model_name, args.latent_dim, args.load_from_checkpoint, args)
+    print("compiling model")
     compiled_model = torch.compile(model)
 
     print("Creating datamodule")
@@ -361,7 +362,7 @@ def main():
     )
 
     print("Fitting model")
-    trainer.fit(model, datamodule=data_module)
+    trainer.fit(compiled_model, datamodule=data_module)  # type: ignore
     # trainer.print(torch.cuda.memory_summary())
 
     print("Testing model")
