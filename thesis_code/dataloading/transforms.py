@@ -123,31 +123,16 @@ class ZScoreNormalize(MRITransform):
 
 
 class RemovePercentOutliers(MRITransform):
-    def __init__(self, percent: float, use_ends: Literal["upper", "lower", "both"]):
+    def __init__(self, percent: float):
         self.percent = percent
-        self.use_ends = use_ends
 
     def __call__(self, sample: MRISample) -> MRISample:
         image = sample["image"]
-        if self.use_ends == "both":
-            lower_bound = np.percentile(image, self.percent)
-            upper_bound = np.percentile(image, 100 - self.percent)
-            image[image < lower_bound] = lower_bound  # type: ignore
-            image[image > upper_bound] = upper_bound  # type: ignore
-            sample["image"] = image
-            return sample
-        elif self.use_ends == "lower":
-            upper_bound = np.percentile(image, 100 - self.percent)
-            image[image > upper_bound] = upper_bound  # type: ignore
-            sample["image"] = image
-            return sample
-        elif self.use_ends == "upper":
-            lower_bound = np.percentile(image, self.percent)
-            image[image < lower_bound] = lower_bound  # type: ignore
-            sample["image"] = image
-            return sample
-        else:
-            raise ValueError("use_ends must be one of 'upper', 'lower', or 'both'.")
+        abs_image = np.abs(image)
+        bound = np.percentile(abs_image, self.percent)
+        image[abs_image < bound] = bound  # type: ignore
+        sample["image"] = image
+        return sample
 
 
 class RangeNormalize(MRITransform):

@@ -97,12 +97,6 @@ def parse_args() -> argparse.Namespace:
         default=0.01,
         help="Percentile of outliers to remove from data",
     )
-    parser.add_argument(
-        "--outlier-end",
-        type=str,
-        default="both",
-        help="Which end of the data to remove outliers from. 'both', 'lower', or 'upper'",
-    )
     # Lightning arguments.
     parser.add_argument(
         "--accelerator",
@@ -290,9 +284,7 @@ def get_transforms(args: argparse.Namespace) -> MRITransform:
     if "range-normalize" in args.transforms:
         transforms.append(RangeNormalize(args.normalize_min, args.normalize_max))
     if "remove-percent-outliers" in args.transforms:
-        transforms.append(
-            RemovePercentOutliers(args.outlier_percentile, args.outlier_end)
-        )
+        transforms.append(RemovePercentOutliers(args.outlier_percentile))
     return Compose(transforms)
 
 
