@@ -332,6 +332,7 @@ def main():
 
     print("Creating model")
     model = get_model(args.model_name, args.latent_dim, args.load_from_checkpoint, args)
+    compiled_model = torch.compile(model)
 
     print("Creating datamodule")
     transform = get_transforms(args)

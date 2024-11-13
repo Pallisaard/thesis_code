@@ -38,7 +38,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --save-top-k 3 \
                 --save-last \
                 --log-every-n-steps 10 \
-                --max-steps 80000 \
+                --max-steps 1000 \
                 --lambda-1 1.0 \
                 --lambda-2 1.0 \
                 # --fast-dev-run \
