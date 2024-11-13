@@ -357,6 +357,7 @@ def main():
         # val_check_interval=50,
         callbacks=get_callbacks_from_args(args),
         # check_val_every_n_epoch=None,
+        precision="bf16-mixed",
     )
 
     print("Fitting model")
