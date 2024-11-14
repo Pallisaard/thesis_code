@@ -292,12 +292,12 @@ def get_transforms(args: argparse.Namespace) -> MRITransform:
     for transform in args.transforms:
         if transform == "resize":
             transforms.append(Resize(size=args.resize_size))
-        if transform == "z-normalize":
+        elif transform == "z-normalize":
             zscore_normalize = ZScoreNormalize.load_from_disk(args.normalize_dir)
             transforms.append(zscore_normalize)
-        if transform == "range-normalize":
+        elif transform == "range-normalize":
             transforms.append(RangeNormalize(args.normalize_min, args.normalize_max))
-        if transform == "remove-percent-outliers":
+        elif transform == "remove-percent-outliers":
             transforms.append(RemovePercentOutliers(args.outlier_percentile))
         else:
             raise ValueError(f"Transform {transform} not recognized")
