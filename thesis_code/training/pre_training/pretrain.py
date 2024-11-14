@@ -359,7 +359,6 @@ def main():
         max_steps=args.max_steps,
         max_time=args.max_time,
         callbacks=callbacks,
-        limit_train_batches=0.1,
     )
 
     print("Fitting model")
