@@ -18,6 +18,7 @@ from thesis_code.models.gans.hagan.backbone.Model_HA_GAN_256 import (
     S_L,
     S_H,
 )
+from thesis_code.dataloading.transforms import normalize_to
 from thesis_code.metrics.ssi_3d import batch_ssi_3d
 from thesis_code.dataloading import MRISample, MRIDataset, MRIDataModule
 
@@ -173,7 +174,8 @@ class HAGAN(L.LightningModule):
 
         if batch_idx == 0:
             # Save validation data
-            sample_nii = numpy_to_nifti(fake_images[0, 0].cpu().numpy())
+            sample_array = normalize_to(fake_images[0, 0].cpu().numpy(), -1, 1)
+            sample_nii = numpy_to_nifti(sample_array)
             log_dir = Path(self.logger.log_dir)  # type: ignore
             file_path = (
                 log_dir / f"validation_synthetic_example_{self.current_epoch}.nii.gz"
@@ -181,10 +183,9 @@ class HAGAN(L.LightningModule):
             nib.save(sample_nii, file_path)  # type: ignore
 
             # Save true data
-            true_nii = numpy_to_nifti(real_images[0, 0].cpu().numpy())
-            file_path = (
-                log_dir / f"validation_data_true_example_{self.current_epoch}.nii.gz"
-            )
+            true_array = normalize_to(real_images[0, 0].cpu().numpy(), -1, 1)
+            true_nii = numpy_to_nifti(true_array)
+            file_path = log_dir / f"validation_true_example_{self.current_epoch}.nii.gz"
             nib.save(true_nii, file_path)  # type: ignore
 
         # Log losses and SSIM scores

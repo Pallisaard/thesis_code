@@ -136,18 +136,47 @@ class RemovePercentOutliers(MRITransform):
 
 
 class RangeNormalize(MRITransform):
-    def __init__(self, min_val: float, max_val: float):
-        self.min_val = min_val
-        self.max_val = max_val
+    def __init__(self, target_min: float = -1, target_max: float = 1):
+        self.target_min = target_min
+        self.target_max = target_max
 
     def __call__(self, sample: MRISample) -> MRISample:
         image = sample["image"]
-        normalized_image = (image - self.min_val) / (self.max_val - self.min_val)
+        # Dynamically calculate source range
+        source_min = image.min()
+        source_max = image.max()
+
+        # Avoid division by zero
+        if source_min == source_max:
+            raise ValueError("Input image has no intensity variation")
+
+        # Direct scaling to target range
+        normalized_image = (self.target_max - self.target_min) * (
+            image - source_min
+        ) / (source_max - source_min) + self.target_min
         sample["image"] = normalized_image
         return sample
 
-    def denormalize(self, sample: MRISample) -> MRISample:
-        image = sample["image"]
-        denormalized_image = (image * (self.max_val - self.min_val)) + self.min_val
-        sample["image"] = denormalized_image
-        return sample
+
+def normalize_to_0_1(array: np.ndarray) -> np.ndarray:
+    min_val = array.min()
+    max_val = array.max()
+
+    if min_val == max_val:
+        raise ValueError("Input array has no intensity variation")
+
+    array = (array - min_val) / (max_val - min_val)
+    return array
+
+
+def normalize_to(array: np.ndarray, target_min: float, target_max: float) -> np.ndarray:
+    min_val = array.min()
+    max_val = array.max()
+
+    if min_val == max_val:
+        raise ValueError("Input array has no intensity variation")
+
+    array = (target_max - target_min) * (array - min_val) / (
+        max_val - min_val
+    ) + target_min
+    return array
