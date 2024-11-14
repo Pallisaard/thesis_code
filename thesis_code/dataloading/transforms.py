@@ -21,7 +21,7 @@ class MRITransform(ABC):
         return (
             self.__class__.__name__
             + "("
-            + ", ".join([f"{k}={v}" for k, v in self.__dict__.items()])
+            + ", ".join([f"{k}={v}" for k, v in self.__dict__.items() if k != "indent"])
             + ")"
         )
 
