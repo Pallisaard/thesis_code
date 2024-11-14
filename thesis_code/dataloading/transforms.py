@@ -14,6 +14,14 @@ class MRITransform(ABC):
     @abstractmethod
     def __call__(self, sample: MRISample) -> MRISample: ...
 
+    def __repr__(self) -> str:
+        return (
+            self.__class__.__name__
+            + "("
+            + ", ".join([f"{k}={v}" for k, v in self.__dict__.items()])
+            + ")"
+        )
+
 
 class Compose(MRITransform):
     def __init__(self, transforms: Sequence[MRITransform]):
@@ -23,6 +31,14 @@ class Compose(MRITransform):
         for t in self.transforms:
             sample = t(sample)
         return sample
+
+    def __repr__(self) -> str:
+        return (
+            self.__class__.__name__
+            + "(\n    "
+            + ",\n    ".join([str(t) for t in self.transforms])
+            + "\n)"
+        )
 
 
 class Resize(MRITransform):
