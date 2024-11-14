@@ -344,6 +344,9 @@ def main():
         strip_skulls=args.strip_skulls,
     )
 
+    callbacks = get_callbacks_from_args(args)
+    print("callbacks:", callbacks)
+
     print("Creating trainer")
     trainer = Trainer(
         log_every_n_steps=args.log_every_n_steps,
@@ -354,9 +357,7 @@ def main():
         max_epochs=args.max_epochs,
         max_steps=args.max_steps,
         max_time=args.max_time,
-        # val_check_interval=50,
-        callbacks=get_callbacks_from_args(args),
-        # check_val_every_n_epoch=None,
+        callbacks=callbacks,
     )
 
     print("Fitting model")
