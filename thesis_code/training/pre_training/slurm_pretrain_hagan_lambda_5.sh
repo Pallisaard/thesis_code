@@ -34,7 +34,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --normalize-max 1 \
                 --accelerator gpu \
                 --devices auto \
-                # --callbacks 'checkpoint' \
+                --callbacks 'checkpoint' \
                 --save-top-k 3 \
                 --save-last \
                 --log-every-n-steps 25 \
