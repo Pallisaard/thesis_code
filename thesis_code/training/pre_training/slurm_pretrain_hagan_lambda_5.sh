@@ -33,9 +33,8 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --normalize-min -1 \
                 --normalize-max 1 \
                 --accelerator gpu \
-                # --strategy ddp_find_unused_parameters_true \
                 --devices auto \
-                --callbacks checkpoint summary progress \
+                --callbacks 'checkpoint' 'summary' 'progress' \
                 --save-top-k 3 \
                 --save-last \
                 --log-every-n-steps 25 \
