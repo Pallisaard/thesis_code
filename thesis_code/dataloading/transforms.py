@@ -11,6 +11,9 @@ from tqdm import tqdm
 
 
 class MRITransform(ABC):
+    def __init__(self):
+        self.indent = 0
+
     @abstractmethod
     def __call__(self, sample: MRISample) -> MRISample: ...
 
@@ -25,6 +28,8 @@ class MRITransform(ABC):
 
 class Compose(MRITransform):
     def __init__(self, transforms: Sequence[MRITransform]):
+        super().__init__()
+        self.indent += 4
         self.transforms = transforms
 
     def __call__(self, sample: MRISample) -> MRISample:
@@ -33,16 +38,19 @@ class Compose(MRITransform):
         return sample
 
     def __repr__(self) -> str:
+        indentation = " " * self.indent
         return (
             self.__class__.__name__
-            + "(\n    "
-            + ",\n    ".join([str(t) for t in self.transforms])
+            + "(\n"
+            + indentation
+            + (",\n" + indentation).join([str(t) for t in self.transforms])
             + "\n)"
         )
 
 
 class Resize(MRITransform):
     def __init__(self, size: int):
+        super().__init__()
         self.size = (size, size, size)
 
     def __call__(self, sample: MRISample) -> MRISample:
@@ -61,6 +69,7 @@ class Resize(MRITransform):
 
 class ZScoreNormalize(MRITransform):
     def __init__(self):
+        super().__init__()
         self.mean: float | None = None
         self.std: float | None = None
 
@@ -140,6 +149,7 @@ class ZScoreNormalize(MRITransform):
 
 class RemovePercentOutliers(MRITransform):
     def __init__(self, percent: float):
+        super().__init__()
         self.percent = percent
 
     def __call__(self, sample: MRISample) -> MRISample:
@@ -153,6 +163,7 @@ class RemovePercentOutliers(MRITransform):
 
 class RangeNormalize(MRITransform):
     def __init__(self, target_min: float = -1, target_max: float = 1):
+        super().__init__()
         self.target_min = target_min
         self.target_max = target_max
 
