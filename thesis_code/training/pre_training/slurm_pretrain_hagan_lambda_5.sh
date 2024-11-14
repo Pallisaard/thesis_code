@@ -22,12 +22,13 @@ echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 # echo time at start
 echo "start time: $(date)"
 
+# remove-percent-outliers
 python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
                 --data-path /home/gzj557/final_dataset/brain-masked \
                 --batch-size 4 \
                 --num-workers 4 \
-                --transforms resize remove-percent-outliers range-normalize \
+                --transforms resize range-normalize \
                 --outlier-percentile 0.001 \
                 --resize-size 256 \
                 --normalize-min -1 \
