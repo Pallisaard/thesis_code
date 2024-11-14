@@ -289,15 +289,18 @@ def check_args(args: argparse.Namespace):
 
 def get_transforms(args: argparse.Namespace) -> MRITransform:
     transforms = []
-    if "resize" in args.transforms:
-        transforms.append(Resize(size=args.resize_size))
-    if "z-normalize" in args.transforms:
-        zscore_normalize = ZScoreNormalize.load_from_disk(args.normalize_dir)
-        transforms.append(zscore_normalize)
-    if "range-normalize" in args.transforms:
-        transforms.append(RangeNormalize(args.normalize_min, args.normalize_max))
-    if "remove-percent-outliers" in args.transforms:
-        transforms.append(RemovePercentOutliers(args.outlier_percentile))
+    for transform in args.transforms:
+        if transform == "resize":
+            transforms.append(Resize(size=args.resize_size))
+        if transform == "z-normalize":
+            zscore_normalize = ZScoreNormalize.load_from_disk(args.normalize_dir)
+            transforms.append(zscore_normalize)
+        if transform == "range-normalize":
+            transforms.append(RangeNormalize(args.normalize_min, args.normalize_max))
+        if transform == "remove-percent-outliers":
+            transforms.append(RemovePercentOutliers(args.outlier_percentile))
+        else:
+            raise ValueError(f"Transform {transform} not recognized")
     return Compose(transforms)
 
 
