@@ -35,10 +35,12 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --accelerator gpu \
                 --devices auto \
                 --callbacks 'checkpoint' \
+                --load-from-checkpoint 'lightning/checkpoints/hagan_1/last.ckpt' \
+                --default-root-dir 'lightning_logs/version_1' \
                 --save-top-k 3 \
                 --save-last \
                 --log-every-n-steps 25 \
-                --max-steps 80000 \
+                --max-steps 320000 \
                 --lambda-1 5.0 \
                 --lambda-2 5.0 \
                 # --fast-dev-run \

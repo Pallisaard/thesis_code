@@ -184,6 +184,12 @@ def parse_args() -> argparse.Namespace:
         help="Path to load model from checkpoint. Default None will initialize a new model.",
     )
     parser.add_argument(
+        "--default-root-dir",
+        type=str,
+        default=None,
+        help="Path to save logs and checkpoints.",
+    )
+    parser.add_argument(
         "--log-every-n-steps",
         type=int,
         default=25,
@@ -334,7 +340,7 @@ def main():
     )
 
     print("Creating model")
-    model = get_model(args.model_name, args.latent_dim, args.load_from_checkpoint, args)
+    model = get_model(args.model_name, args.latent_dim, None, args)
 
     print("Creating datamodule")
     transform = get_transforms(args)
@@ -362,10 +368,11 @@ def main():
         max_steps=args.max_steps,
         max_time=args.max_time,
         callbacks=callbacks,
+        default_root_dir=args.default_root_dir,
     )
 
     print("Fitting model")
-    trainer.fit(model, datamodule=data_module)
+    trainer.fit(model, datamodule=data_module, ckpt_path=args.load_from_checkpoint)
     # trainer.print(torch.cuda.memory_summary())
 
     print("Testing model")

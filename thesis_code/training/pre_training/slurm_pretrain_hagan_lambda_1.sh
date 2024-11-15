@@ -35,10 +35,11 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --accelerator gpu \
                 --devices auto \
                 --callbacks 'checkpoint' \
+                --checkpoint-dir
                 --save-top-k 3 \
                 --save-last \
                 --log-every-n-steps 25 \
-                --max-steps 80000 \
+                --max-steps 320000 \
                 --lambda-1 1.0 \
                 --lambda-2 1.0 \
                 # --fast-dev-run \
