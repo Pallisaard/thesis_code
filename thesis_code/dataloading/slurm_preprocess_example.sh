@@ -29,9 +29,9 @@ else
     exit
 fi
 
-echo "dir: " $dir
+echo "dir: "$dir
 
-preprocess_dir = ../data/pre-training/brain-masked/$dir
+preprocess_dir = "../data/pre-training/brain-masked/"$dir
 
 echo "preprocess_dir: " $preprocess_dir
 
