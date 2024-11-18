@@ -39,7 +39,8 @@ if __name__ == "__main__":
 
     # Load the NIfTI file
     print("Loading NIfTI file...")
-    sample = torch.from_numpy(nib.load(args.nii_path).get_fdata()).unsqueeze(0)  # type: ignore
+    nii = nib.load(args.nii_path)  # type: ignore
+    sample = torch.from_numpy(nii.get_fdata()).unsqueeze(0)  # type: ignore
     sample = MRISample(image=sample)
 
     # Apply the transforms
@@ -48,5 +49,8 @@ if __name__ == "__main__":
 
     # Save the transformed NIfTI file
     print("Saving transformed NIfTI file...")
-    transformed_nii = nib.Nifti1Image(transformed_sample["image"].numpy(), affine=None)  # type: ignore
+    transformed_nii = nib.Nifti1Image(  # type: ignore
+        transformed_sample["image"].numpy(),
+        affine=nii.affine,  # type: ignore
+    )
     nib.save(transformed_nii, args.out_path)  # type: ignore
