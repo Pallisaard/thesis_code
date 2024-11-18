@@ -1,5 +1,5 @@
 import argparse
-from typing import Literal
+from typing import Literal, Optional
 
 import torch
 from lightning.pytorch.trainer import Trainer
@@ -18,6 +18,7 @@ from thesis_code.dataloading.transforms import (
     ZScoreNormalize,
     RangeNormalize,
     RemovePercentOutliers,
+    Identity,
 )
 from thesis_code.training.callbacks.callbacks import (
     get_checkpoint_callback,
@@ -270,8 +271,8 @@ def get_datamodule(
     data_path: str,
     batch_size: int,
     num_workers: int,
-    transform: MRITransform,
-    size_limit: int | None,
+    transform: Optional[MRITransform],
+    size_limit: Optional[int],
     strip_skulls: bool,
 ) -> MRIDataModule:
     return MRIDataModule(
@@ -293,8 +294,8 @@ def check_args(args: argparse.Namespace):
         )
 
 
-def get_transforms(args: argparse.Namespace) -> MRITransform:
-    transforms = []
+def get_transforms(args: argparse.Namespace) -> Optional[MRITransform]:
+    transforms: list[MRITransform] = []
     for transform in args.transforms:
         if transform == "resize":
             transforms.append(Resize(size=args.resize_size))
@@ -307,6 +308,8 @@ def get_transforms(args: argparse.Namespace) -> MRITransform:
             transforms.append(RemovePercentOutliers(args.outlier_percentile))
         else:
             raise ValueError(f"Transform {transform} not recognized")
+    if transforms == []:
+        return None
     return Compose(transforms)
 
 
