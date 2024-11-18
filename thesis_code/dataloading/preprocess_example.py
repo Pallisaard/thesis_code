@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # Save the transformed NIfTI file
     print("Saving transformed NIfTI file...")
     transformed_nii = nib.Nifti1Image(  # type: ignore
-        transformed_sample["image"].numpy(),
+        transformed_sample["image"].numpy().squeeze(0),
         affine=nii.affine,  # type: ignore
     )
     nib.save(transformed_nii, args.out_path)  # type: ignore
