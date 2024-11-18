@@ -1,3 +1,10 @@
+import os
+import pathlib
+
+from argparse import ArgumentParser
+import nibabel as nib
+import torch
+
 from thesis_code.dataloading.transforms import (
     Compose,
     RangeNormalize,
@@ -5,10 +12,7 @@ from thesis_code.dataloading.transforms import (
     RemovePercentOutliers,
     Identity,
 )
-from argparse import ArgumentParser
 from thesis_code.dataloading.mri_sample import MRISample
-import nibabel as nib
-import torch
 
 
 def parse_args():
@@ -21,6 +25,14 @@ def parse_args():
     )
     parser.add_argument("--size", type=int, default=256)
     parser.add_argument("--percent-outliers", type=float, default=0.001)
+    parser.add_argument(
+        "--preprocess-folder",
+        action="store_true",
+        help="Preprocess a folder of NIfTI files",
+    )
+    parser.add_argument(
+        "--test", action="store_true", help="Run the test suite for this script"
+    )
     return parser.parse_args()
 
 
@@ -39,20 +51,35 @@ if __name__ == "__main__":
     args = parse_args()
     transforms = get_transforms(args.size, args.percent_outliers)
 
-    # Load the NIfTI file
-    print("Loading NIfTI file...")
-    nii = nib.load(args.nii_path)  # type: ignore
-    sample = torch.from_numpy(nii.get_fdata()).unsqueeze(0)  # type: ignore
-    sample = MRISample(image=sample)
+    # all files ending with .nii.gz in the folder
+    if args.preprocess_folder:
+        nii_files = list(pathlib.Path(args.nii_path).glob("*.nii.gz"))
+    else:
+        nii_files = [pathlib.Path(args.nii_path)]
+    file_names = [f.name for f in nii_files]
 
-    # Apply the transforms
-    print("Applying transforms...")
-    transformed_sample = transforms(sample)
+    for nii_path, nii_name in zip(nii_files, file_names):
+        print(f"Processing {nii_name}...")
+        out_file = os.path.join(args.out_path, nii_name)
 
-    # Save the transformed NIfTI file
-    print("Saving transformed NIfTI file...")
-    transformed_nii = nib.Nifti1Image(  # type: ignore
-        transformed_sample["image"].numpy().squeeze(0),
-        affine=nii.affine,  # type: ignore
-    )
-    nib.save(transformed_nii, args.out_path)  # type: ignore
+        if args.test:
+            print(f"Test mode: not saving to {out_file}")
+
+        else:
+            # Load the NIfTI file
+            nii = nib.load(args.nii_path)  # type: ignore
+            sample = torch.from_numpy(nii.get_fdata()).unsqueeze(0)  # type: ignore
+            sample = MRISample(image=sample)
+
+            # Apply the transforms
+            print("Applying transforms...")
+            transformed_sample = transforms(sample)
+
+            # Save the transformed NIfTI file
+            print("Saving transformed NIfTI file...")
+            transformed_nii = nib.Nifti1Image(  # type: ignore
+                transformed_sample["image"].numpy().squeeze(0),
+                affine=nii.affine,  # type: ignore
+            )
+
+            nib.save(transformed_nii, args.out_path)  # type: ignore
