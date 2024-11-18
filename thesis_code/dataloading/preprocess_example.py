@@ -3,6 +3,7 @@ from thesis_code.dataloading.transforms import (
     RangeNormalize,
     Resize,
     RemovePercentOutliers,
+    Identity,
 )
 from argparse import ArgumentParser
 from thesis_code.dataloading.mri_sample import MRISample
@@ -26,9 +27,10 @@ def parse_args():
 def get_transforms(size: int, percent_outliers: float) -> Compose:
     return Compose(
         [
-            Resize(size),
-            RemovePercentOutliers(percent_outliers),
-            RangeNormalize(target_min=-1, target_max=1),
+            Identity()
+            # Resize(size),
+            # RemovePercentOutliers(percent_outliers),
+            # RangeNormalize(target_min=-1, target_max=1),
         ]
     )
 

@@ -48,6 +48,14 @@ class Compose(MRITransform):
         )
 
 
+class Identity(MRITransform):
+    def __init__(self):
+        super().__init__()
+
+    def __call__(self, sample: MRISample) -> MRISample:
+        return sample
+
+
 class Resize(MRITransform):
     def __init__(self, size: int):
         super().__init__()
