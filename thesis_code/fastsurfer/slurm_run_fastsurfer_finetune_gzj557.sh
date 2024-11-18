@@ -29,5 +29,7 @@ cp ~/fastsurfer-output/${SUBJECT_ID}/mri/orig_nu.mgz ~/finetune_dataset/fs_scans
 # Reorient the NIfTI file
 python ~/thesis_code/thesis_code/data_collection/reorient_nii.py ~/finetune_dataset/fs_scans/${SUBJECT_ID}.mgz
 
+python ~/thesis_code/thesis_code/data_collection/preprocess.py ~/finetune_dataset/fs_scans/${SUBJECT_ID}.nii.gz ~/finetune_dataset/fs_scans/${SUBJECT_ID}.nii.gz
+
 # Remove the FastSurfer output
 rm -r ~/finetune_dataset/fs_scans/${SUBJECT_ID}.mgz
