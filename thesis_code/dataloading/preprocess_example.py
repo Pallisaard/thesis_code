@@ -27,10 +27,10 @@ def parse_args():
 def get_transforms(size: int, percent_outliers: float) -> Compose:
     return Compose(
         [
-            Identity()
-            # Resize(size),
-            # RemovePercentOutliers(percent_outliers),
-            # RangeNormalize(target_min=-1, target_max=1),
+            # Identity(),
+            Resize(size),
+            RemovePercentOutliers(percent_outliers),
+            RangeNormalize(target_min=-1, target_max=1),
         ]
     )
 
