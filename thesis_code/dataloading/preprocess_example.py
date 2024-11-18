@@ -13,6 +13,7 @@ from thesis_code.dataloading.transforms import (
     Identity,
 )
 from thesis_code.dataloading.mri_sample import MRISample
+from tqdm import tqdm
 
 
 def parse_args():
@@ -58,7 +59,7 @@ if __name__ == "__main__":
         nii_files = [pathlib.Path(args.nii_path)]
     file_names = [f.name for f in nii_files]
 
-    for nii_path, nii_name in zip(nii_files, file_names):
+    for nii_path, nii_name in tqdm(zip(nii_files, file_names), total=len(nii_files)):
         print(f"Processing {nii_name}...")
         out_file = os.path.join(args.out_path, nii_name)
 
@@ -67,7 +68,7 @@ if __name__ == "__main__":
 
         else:
             # Load the NIfTI file
-            nii = nib.load(args.nii_path)  # type: ignore
+            nii = nib.load(nii_path)  # type: ignore
             sample = torch.from_numpy(nii.get_fdata()).unsqueeze(0)  # type: ignore
             sample = MRISample(image=sample)
 
@@ -82,4 +83,4 @@ if __name__ == "__main__":
                 affine=nii.affine,  # type: ignore
             )
 
-            nib.save(transformed_nii, args.out_path)  # type: ignore
+            nib.save(transformed_nii, out_file)  # type: ignore
