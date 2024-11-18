@@ -22,7 +22,7 @@ echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 # echo time at start
 echo "start time: $(date)"
 
-python -m thesis_code.training.pre_training.pretrain --model-name "hagan_l5" \
+python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
                 --data-path ../data/pre-training/brain-masked \
                 --batch-size 4 \
