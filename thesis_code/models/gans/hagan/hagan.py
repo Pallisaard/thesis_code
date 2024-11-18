@@ -19,8 +19,8 @@ from thesis_code.models.gans.hagan.backbone.Model_HA_GAN_256 import (
     S_H,
 )
 from thesis_code.dataloading.transforms import normalize_to
-from thesis_code.metrics.ssi_3d import batch_ssi_3d
-from thesis_code.dataloading import MRISample, MRIDataset, MRIDataModule
+from thesis_code.dataloading import MRISample  # , MRIDataset, MRIDataModule
+# from thesis_code.metrics.ssi_3d import batch_ssi_3d
 
 
 class HAGAN(L.LightningModule):
@@ -168,12 +168,12 @@ class HAGAN(L.LightningModule):
             crop_idx=crop_idx,
         )
 
-        fake_images = self.safe_sample(batch_size)
         # Compute SSIM scores
-        ssim_score = batch_ssi_3d(real_images, fake_images, reduction="mean")
+        # ssim_score = batch_ssi_3d(real_images, fake_images, reduction="mean")
 
         if batch_idx == 0:
             # Save validation data
+            fake_images = self.safe_sample(batch_size)
             sample_array = normalize_to(fake_images[0, 0].cpu().numpy(), -1, 1)
             sample_nii = numpy_to_nifti(sample_array)
             log_dir = Path(self.logger.log_dir)  # type: ignore
@@ -197,7 +197,7 @@ class HAGAN(L.LightningModule):
         total_loss = d_loss + g_loss + e_loss + sub_e_loss
         self.log("val_total_loss", total_loss, logger=True, sync_dist=True)
 
-        self.log("val_ssim_score", ssim_score, logger=True, sync_dist=True)
+        # self.log("val_ssim_score", ssim_score, logger=True, sync_dist=True)
 
         # Log elapsed time
         elapsed_time = time.time() - self.start_time
