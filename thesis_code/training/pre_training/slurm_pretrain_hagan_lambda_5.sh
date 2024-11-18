@@ -13,7 +13,7 @@ module load cudnn/8.6.0
 module load gcc/13.2.0
 
 cd ~/projects/thesis/thesis-code
-source ~/venv/bin/activate
+source .venv/bin/activate
 
 
 # echo devices and nvidia-smi
@@ -30,7 +30,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan_l5" \
                 --accelerator gpu \
                 --devices auto \
                 --callbacks 'checkpoint' \
-                --checkpoint-dir
+                --checkpoint-dir \
                 --save-top-k 3 \
                 --save-last \
                 --log-every-n-steps 25 \
