@@ -9,7 +9,7 @@
 module load cuda/11.8
 module load cudnn/8.6.0
 
-source ~/venv/bin/activate
+source ~/projects/thesis/thesis-code/.venv/bin/activate
 
 # Get the MRI file based on the SLURM array task ID
 MRI_FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" ~/projects/thesis/data/finetune/nii_gz_files.txt)
