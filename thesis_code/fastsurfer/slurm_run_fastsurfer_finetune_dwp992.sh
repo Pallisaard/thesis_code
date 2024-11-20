@@ -21,7 +21,7 @@ echo "mri file" $MRI_FILE
 echo "subject id" $SUBJECT_ID
 
 # Call your existing run_fastsurfer.sh script
-bash ~projects/thesis/thesis-code/thesis_code/fastsurfer/run_fastsurfer_finetune_dwp992.sh $MRI_FILE $SUBJECT_ID
+bash ~/projects/thesis/thesis-code/thesis_code/fastsurfer/run_fastsurfer_finetune_dwp992.sh $MRI_FILE $SUBJECT_ID
 
 # Copy the output to the final directory
 cp ~/projects/thesis/fastsurfer-output/${SUBJECT_ID}/mri/orig_nu.mgz ~/projects/thesis/data/finetune/fs_scans/${SUBJECT_ID}.mgz
