@@ -26,7 +26,7 @@ run_fastsurfer() {
                     -B ~/fs_license:/fs_license \
                     ~/singularity/fastsurfer-gpu.sif \
                     /FastSurfer/run_fastsurfer.sh \
-                    --fs_license/license.txt \
+                    --fs_license fs_license/license.txt \
                     --t1 $input_file --sid $subject_id --sd /output \
                     --seg_only --no_cereb --no_hypothal
 }
