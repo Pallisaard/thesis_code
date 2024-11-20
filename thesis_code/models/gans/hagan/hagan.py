@@ -1,6 +1,6 @@
 from pathlib import Path
 import time
-from typing import Optional
+from typing import Dict, Optional, TypedDict
 
 import numpy as np
 import torch
@@ -47,8 +47,8 @@ class HAGAN(L.LightningModule):
         self.lambda_2 = lambda_2
         self.start_time = time.time()
 
-        self.loss_bce = nn.BCEWithLogitsLoss()
-        self.loss_l1 = nn.L1Loss()
+        self.bce_loss = nn.BCEWithLogitsLoss()
+        self.l1_loss = nn.L1Loss()
 
         self.automatic_optimization = False
 
@@ -73,52 +73,70 @@ class HAGAN(L.LightningModule):
         ]
 
     def training_step(self, batch: MRISample, batch_idx):
-        real_images = batch["image"]
-        batch_size = real_images.size(0)
-        real_images = real_images.float()
-        real_images_small = F.interpolate(real_images, scale_factor=0.25)
-        crop_idx = np.random.randint(0, 256 * 7 // 8 + 1)
-        real_images_crop = S_H(real_images, crop_idx)
-        noise = torch.randn((batch_size, self.latent_dim), device=real_images.device)
-
-        self.real_labels = torch.ones((batch_size, 1), device=real_images.device)
-        self.fake_labels = torch.zeros((batch_size, 1), device=real_images.device)
+        data_dict = prepare_data(batch=batch, latent_dim=self.latent_dim)
+        real_images = data_dict["real_images"]
+        batch_size = data_dict["batch_size"]
+        real_images_small = data_dict["real_images_small"]
+        crop_idx = data_dict["crop_idx"]
+        real_images_crop = data_dict["real_images_crop"]
+        noise = data_dict["noise"]
+        real_labels = data_dict["real_labels"]
+        fake_labels = data_dict["fake_labels"]
 
         d_opt, g_opt, e_opt, sub_e_opt = self.optimizers()  # type: ignore
 
         # D (D^H, D^L)
         d_opt.zero_grad()
-        d_loss = self.compute_d_loss(
+        d_loss = compute_d_loss(
+            D=self.D,
+            G=self.G,
+            bce_loss=self.bce_loss,
             real_images_crop=real_images_crop,
             real_images_small=real_images_small,
             crop_idx=crop_idx,
             noise=noise,
+            real_labels=real_labels,
+            fake_labels=fake_labels,
         )
         self.manual_backward(d_loss)
         d_opt.step()
 
         # G (G^A, G^H, G^L)
         g_opt.zero_grad()
-        g_loss = self.compute_g_loss(
+        g_loss = compute_g_loss(
+            G=self.G,
+            D=self.D,
+            bce_loss=self.bce_loss,
             noise=noise,
             crop_idx=crop_idx,
+            real_labels=real_images,
         )
         self.manual_backward(g_loss)
         g_opt.step()
 
         # E (E^H)
         e_opt.zero_grad()
-        e_loss = self.compute_e_loss(real_images_crop=real_images_crop)
+        e_loss = compute_e_loss(
+            E=self.E,
+            G=self.G,
+            l1_loss=self.l1_loss,
+            real_images_crop=real_images_crop,
+            lambda_1=self.lambda_1,
+        )
         self.manual_backward(e_loss)
         e_opt.step()
 
         # Sub_E (E^G)
         self.Sub_E.zero_grad()
-        sub_e_loss = self.compute_sub_e_loss(
+        sub_e_loss = compute_sub_e_loss(
+            Sub_E=self.Sub_E,
+            G=self.G,
+            l1_loss=self.l1_loss,
             real_images=real_images,
             real_images_crop=real_images_crop,
             real_images_small=real_images_small,
             crop_idx=crop_idx,
+            lambda_2=self.lambda_2,
         )
         self.manual_backward(sub_e_loss)
         sub_e_opt.step()
@@ -136,36 +154,58 @@ class HAGAN(L.LightningModule):
         self.log("elapsed_time", elapsed_time, logger=True, sync_dist=True)
 
     def validation_step(self, batch: MRISample, batch_idx):
-        real_images = batch["image"].float()
-        batch_size = real_images.size(0)
-        real_images_small = F.interpolate(real_images, scale_factor=0.25)
-        crop_idx = np.random.randint(0, 256 * 7 // 8 + 1)
-        real_images_crop = S_H(real_images, crop_idx)
-        noise = torch.randn((batch_size, self.latent_dim), device=real_images.device)
-
-        self.real_labels = torch.ones((batch_size, 1), device=real_images.device)
-        self.fake_labels = torch.zeros((batch_size, 1), device=real_images.device)
+        data_dict = prepare_data(batch=batch, latent_dim=self.latent_dim)
+        real_images = data_dict["real_images"]
+        batch_size = data_dict["batch_size"]
+        real_images_small = data_dict["real_images_small"]
+        crop_idx = data_dict["crop_idx"]
+        real_images_crop = data_dict["real_images_crop"]
+        noise = data_dict["noise"]
+        real_labels = data_dict["real_labels"]
+        fake_labels = data_dict["fake_labels"]
 
         # Compute D loss
-        d_loss = self.compute_d_loss(
+        d_loss = compute_d_loss(
+            D=self.D,
+            G=self.G,
+            bce_loss=self.bce_loss,
             real_images_crop=real_images_crop,
             real_images_small=real_images_small,
             crop_idx=crop_idx,
             noise=noise,
+            real_labels=real_labels,
+            fake_labels=fake_labels,
         )
 
         # Compute G loss
-        g_loss = self.compute_g_loss(noise=noise, crop_idx=crop_idx)
+        g_loss = compute_g_loss(
+            G=self.G,
+            D=self.D,
+            bce_loss=self.bce_loss,
+            noise=noise,
+            crop_idx=crop_idx,
+            real_labels=real_images,
+        )
 
         # Compute E loss
-        e_loss = self.compute_e_loss(real_images_crop=real_images_crop)
+        e_loss = compute_e_loss(
+            E=self.E,
+            G=self.G,
+            l1_loss=self.l1_loss,
+            real_images_crop=real_images_crop,
+            lambda_1=self.lambda_1,
+        )
 
         # Compute Sub_E loss
-        sub_e_loss = self.compute_sub_e_loss(
+        sub_e_loss = compute_sub_e_loss(
+            Sub_E=self.Sub_E,
+            G=self.G,
+            l1_loss=self.l1_loss,
             real_images=real_images,
             real_images_crop=real_images_crop,
             real_images_small=real_images_small,
             crop_idx=crop_idx,
+            lambda_2=self.lambda_2,
         )
 
         # Compute SSIM scores
@@ -203,79 +243,6 @@ class HAGAN(L.LightningModule):
         elapsed_time = time.time() - self.start_time
         self.log("elapsed_time", elapsed_time, logger=True, sync_dist=True)
 
-    def compute_d_loss(
-        self,
-        real_images_crop: torch.Tensor,
-        real_images_small: torch.Tensor,
-        crop_idx: Optional[int],
-        noise: torch.Tensor,
-    ) -> torch.Tensor:
-        """Compute the discriminator loss.
-        Computes
-            Max_{D^H} [log(D^H(S^H(x^H,r),r)) + log(1 - D^H(G^H(z, r)))]$
-        and
-            Max_{D^L} [log(D^L(x^L)) + log(1 - D^L(G^L(z)))]
-        simultaneously.
-
-        """
-        y_real_pred = self.D(real_images_crop, real_images_small, crop_idx)
-        d_real_loss = self.loss_bce(y_real_pred, self.real_labels)
-        fake_images, fake_images_small = self.G(noise, crop_idx=crop_idx)
-        y_fake_pred = self.D(fake_images.detach(), fake_images_small.detach(), crop_idx)
-        d_fake_loss = self.loss_bce(y_fake_pred, self.fake_labels)
-        d_loss = d_real_loss + d_fake_loss
-        return d_loss
-
-    def compute_g_loss(
-        self,
-        noise: torch.Tensor,
-        crop_idx: Optional[int],
-    ) -> torch.Tensor:
-        """Compute the generator loss.
-
-        Computes
-            Min_{G^H} Min_{G^A} [log(D^H(G^H(S^L(G^A(z), r))))]
-        and
-            Min_{G^L} Min_{G^A}[log(D^L(G^L(G^A(z))))]
-        simultaneously.
-        """
-        fake_images, fake_images_small = self.G(noise, crop_idx=crop_idx)
-        y_fake_pred = self.D(fake_images, fake_images_small, crop_idx)
-        g_loss = self.loss_bce(y_fake_pred, self.real_labels)
-        return g_loss
-
-    def compute_e_loss(self, real_images_crop):
-        """Compute the encoder loss.
-
-        computes
-            Min_{E^H} lambda_1 L1(X^H - G^H(E^H(x)))
-        """
-        encoded_crop = self.E(real_images_crop)
-        x_hat = self.G.G_H(encoded_crop)
-        e_loss = self.lambda_1 * self.loss_l1(x_hat, real_images_crop)
-        return e_loss
-
-    def compute_sub_e_loss(
-        self, real_images, real_images_crop, real_images_small, crop_idx
-    ):
-        """Compute the sub-encoder loss.
-
-        computes
-            Min_{E^G} lambda_2 [L1(X^L - G^L(G^A(z))) + L1(S^H(X^H, r) - G^H(S^L(G^A(z), r)))] / 2.0
-        note that in the original code, the L1 loss is divided by 2.0, which wasn't mentioned in the paper. Likewise, lambda_2 = 5 was mentioned in the paper but wasn't implemented.
-        """
-        z_hat = self.encode(real_images)
-        sub_x_hat_rec, sub_x_hat_rec_small = self.G(z_hat, crop_idx=crop_idx)
-        sub_e_loss = (
-            self.lambda_2
-            * (
-                self.loss_l1(sub_x_hat_rec, real_images_crop)
-                + self.loss_l1(sub_x_hat_rec_small, real_images_small)
-            )
-            / 2.0
-        )
-        return sub_e_loss
-
     def generate_from_noise(self, noise: torch.Tensor) -> torch.Tensor:
         out = self.G.generate(noise)
         return out
@@ -308,6 +275,110 @@ class HAGAN(L.LightningModule):
         encoded_crops = self.encode_to_small(x)
         z_hat = self.Sub_E(encoded_crops)
         return z_hat
+
+
+# Loss Functions
+def compute_d_loss(
+    D: nn.Module,
+    G: nn.Module,
+    bce_loss: nn.Module,
+    real_images_crop: torch.Tensor,
+    real_images_small: torch.Tensor,
+    crop_idx: int,
+    noise: torch.Tensor,
+    real_labels: torch.Tensor,
+    fake_labels: torch.Tensor,
+) -> torch.Tensor:
+    y_real_pred = D(real_images_crop, real_images_small, crop_idx)
+    d_real_loss = bce_loss(y_real_pred, real_labels)
+    fake_images, fake_images_small = G(noise, crop_idx=crop_idx)
+    y_fake_pred = D(fake_images.detach(), fake_images_small.detach(), crop_idx)
+    d_fake_loss = bce_loss(y_fake_pred, fake_labels)
+    d_loss = d_real_loss + d_fake_loss
+    return d_loss
+
+
+def compute_g_loss(
+    G: nn.Module,
+    D: nn.Module,
+    bce_loss: nn.Module,
+    noise: torch.Tensor,
+    crop_idx: int,
+    real_labels: torch.Tensor,
+) -> torch.Tensor:
+    fake_images, fake_images_small = G(noise, crop_idx=crop_idx)
+    y_fake_pred = D(fake_images, fake_images_small, crop_idx)
+    g_loss = bce_loss(y_fake_pred, real_labels)
+    return g_loss
+
+
+def compute_e_loss(
+    E: nn.Module,
+    G: nn.Module,
+    l1_loss: nn.Module,
+    real_images_crop: torch.Tensor,
+    lambda_1: float,
+):
+    encoded_crop = E(real_images_crop)
+    x_hat = G.G_H(encoded_crop)
+    e_loss = lambda_1 * l1_loss(x_hat, real_images_crop)
+    return e_loss
+
+
+def compute_sub_e_loss(
+    Sub_E: nn.Module,
+    G: nn.Module,
+    l1_loss: nn.Module,
+    real_images: torch.Tensor,
+    real_images_crop: torch.Tensor,
+    real_images_small: torch.Tensor,
+    crop_idx: int,
+    lambda_2: float,
+):
+    z_hat = Sub_E.encode(real_images)
+    sub_x_hat_rec, sub_x_hat_rec_small = G(z_hat, crop_idx=crop_idx)
+    sub_e_loss = (
+        lambda_2
+        * (
+            l1_loss(sub_x_hat_rec, real_images_crop)
+            + l1_loss(sub_x_hat_rec_small, real_images_small)
+        )
+        / 2.0
+    )
+    return sub_e_loss
+
+
+class DataDict(TypedDict):
+    real_images: torch.Tensor
+    batch_size: int
+    real_images_small: torch.Tensor
+    real_images_crop: torch.Tensor
+    noise: torch.Tensor
+    real_labels: torch.Tensor
+    fake_labels: torch.Tensor
+    crop_idx: int
+
+
+# Data Preparation Function
+def prepare_data(batch: MRISample, latent_dim: int) -> DataDict:
+    real_images = batch["image"].float()
+    batch_size = real_images.size(0)
+    real_images_small = F.interpolate(real_images, scale_factor=0.25)
+    crop_idx = np.random.randint(0, 256 * 7 // 8 + 1)
+    real_images_crop = S_H(real_images, crop_idx)
+    noise = torch.randn((batch_size, latent_dim), device=real_images.device)
+    real_labels = torch.ones((batch_size, 1), device=real_images.device)
+    fake_labels = torch.zeros((batch_size, 1), device=real_images.device)
+    return {
+        "real_images": real_images,
+        "batch_size": batch_size,
+        "real_images_small": real_images_small,
+        "real_images_crop": real_images_crop,
+        "noise": noise,
+        "real_labels": real_labels,
+        "fake_labels": fake_labels,
+        "crop_idx": crop_idx,
+    }
 
 
 def numpy_to_nifti(array: np.ndarray) -> nib.Nifti1Image:  # type: ignore
