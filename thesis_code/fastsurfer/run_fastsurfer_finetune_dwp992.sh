@@ -23,7 +23,7 @@ run_fastsurfer() {
                     -B ~/projects/thesis/data/finetune:/data \
                     -B ~/projects/thesis/fastsurfer-output:/output \
                     -B ~/projects/thesis/FastSurfer:/FastSurfer \
-                    -B ~/fs_lisence/fs_license:/fs_license \
+                    -B ~/fs_license:/fs_license \
                     ~/singularity/fastsurfer-gpu.sif \
                     projects/thesis/FastSurfer/run_fastsurfer.sh \
                     --fs_license/license.txt \
