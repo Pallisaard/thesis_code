@@ -30,4 +30,4 @@ cp ~/projects/thesis/fastsurfer-output/${SUBJECT_ID}/mri/orig_nu.mgz ~/projects/
 python ~/project/thesis/thesis-code/thesis_code/data_collection/reorient_nii.py ~/projects/thesis/data/finetune/fs_scans/${SUBJECT_ID}.mgz
 
 # Remove the FastSurfer output
-rm -r ~projects/thesis/data/finetune/fs_scans/${SUBJECT_ID}.mgz
+rm -r ~/projects/thesis/data/finetune/fs_scans/${SUBJECT_ID}.mgz
