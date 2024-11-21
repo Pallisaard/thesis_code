@@ -2,8 +2,8 @@
 #SBATCH --job-name=pretrain_vae_256_lambda_1
 #SBATCH --output=slurm_pretrain_hagan_l1-%j.out # Name of output file
 #SBATCH --error=slurm_pretrain_hagan_l1-%j.err # Name of error file
-#SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
-#SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
+#SBATCH --gres=gpu:titanrtx:1       # Request 4 GPU per job
+#SBATCH --cpus-per-task=4  # Number of CPUs for each gpu
 #SBATCH --mem=16G        # Memory request
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
@@ -26,7 +26,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
                 --data-path ../data/pre-training/brain-masked \
                 --batch-size 4 \
-                --num-workers 8 \
+                --num-workers 2 \
                 --accelerator gpu \
                 --devices auto \
                 --callbacks 'checkpoint' \
