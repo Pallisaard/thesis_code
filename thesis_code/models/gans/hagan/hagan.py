@@ -109,7 +109,7 @@ class HAGAN(L.LightningModule):
             bce_loss=self.bce_loss,
             noise=noise,
             crop_idx=crop_idx,
-            real_labels=real_images,
+            real_labels=real_labels,
         )
         self.manual_backward(g_loss)
         g_opt.step()
@@ -184,7 +184,7 @@ class HAGAN(L.LightningModule):
             bce_loss=self.bce_loss,
             noise=noise,
             crop_idx=crop_idx,
-            real_labels=real_images,
+            real_labels=real_labels,
         )
 
         # Compute E loss
