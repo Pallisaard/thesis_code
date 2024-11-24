@@ -129,6 +129,7 @@ class HAGAN(L.LightningModule):
         # Sub_E (E^G)
         self.Sub_E.zero_grad()
         sub_e_loss = compute_sub_e_loss(
+            E=self.E,
             Sub_E=self.Sub_E,
             G=self.G,
             l1_loss=self.l1_loss,
@@ -198,6 +199,7 @@ class HAGAN(L.LightningModule):
 
         # Compute Sub_E loss
         sub_e_loss = compute_sub_e_loss(
+            E=self.E,
             Sub_E=self.Sub_E,
             G=self.G,
             l1_loss=self.l1_loss,
