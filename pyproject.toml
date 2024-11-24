@@ -23,4 +23,12 @@ dependencies = [
     "einops>=0.8.0",
     "torchsummary>=1.5.1",
     "dicom2nifti>=2.5.0",
+    "scikit-learn>=1.5.2",
+    "jax>=0.4.35",
+    "jaxlib>=0.4.35",
+    "flax>=0.10.2",
+    "optax>=0.2.4",
+    "clu>=0.0.12",
+    "orbax>=0.1.9",
+    "torch-fidelity>=0.3.0",
 ]
