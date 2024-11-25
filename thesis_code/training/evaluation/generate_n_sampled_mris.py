@@ -17,7 +17,7 @@ def pars_args():
 
     parser.add_argument("output-dir", type=str, help="Output directory")
     parser.add_argument("n-samples", type=int, help="Number of samples to generate")
-    parser.add_argument("checkpoint-path", type=int, help="Checkpoint path")
+    parser.add_argument("checkpoint-path", type=str, help="Checkpoint path")
     parser.add_argument("device", type=str, help="Device to use", default="cpu")
     parser.add_argument(
         "lambdas", type=float, help="Value for lambda_1 and lambda_2", default=1.0
