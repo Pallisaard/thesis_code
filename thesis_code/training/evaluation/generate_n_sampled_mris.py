@@ -44,7 +44,9 @@ def main():
     mri_vectorizer = get_mri_vectorizer(10).eval().to(args.device)
     print("Loading model")
     model = (
-        HAGAN.load_from_checkpoint(checkpoint_path=args.checkpoint_path)
+        HAGAN.load_from_checkpoint(
+            checkpoint_path=args.checkpoint_path, latent_dim=1024
+        )
         .eval()
         .to(args.device)
     )
