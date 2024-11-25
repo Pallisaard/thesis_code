@@ -18,4 +18,4 @@ python -m thesis_code.training.evaluation.generate_n_sampled_mris --output-dir .
                 --checkpoint-path ../torch-output/pretraining/lightning/checkpoints/hagan_1/last.ckpt \
                 --device 'cuda' \
                 --lambdas 5 \
-                --batch-size 4 \
+                --batch-size 2 \
