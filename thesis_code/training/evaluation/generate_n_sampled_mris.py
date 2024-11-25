@@ -22,6 +22,7 @@ def pars_args():
     parser.add_argument(
         "lambdas", type=float, help="Value for lambda_1 and lambda_2", default=1.0
     )
+    parser.add_argument("batch-size", type=int, help="Batch size", default=4)
 
     return parser.parse_args()
 
@@ -32,14 +33,16 @@ def main():
     # Load model
     mri_vectorizer = get_mri_vectorizer(10).eval().to(args.device)
     model = (
-        HAGAN(1024, lambda_1=args.lambdas, lambda_2=args.lambdas).eval().to(args.device)
+        HAGAN.load_from_checkpoint(checkpoint_path=args.checkpoint_path)
+        .eval()
+        .to(args.device)
     )
 
     mri_vectorizer_out = torch.zeros((args.n_samples, 512))
 
     outer_bar = tqdm.tqdm(
-        batched(range(args.n_samples), 4),
-        total=args.n_samples // 4,
+        batched(range(args.n_samples), args.batch_size),
+        total=args.n_samples // args.batch_size,
         desc="Generating samples",
     )
 
