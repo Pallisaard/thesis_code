@@ -69,3 +69,7 @@ def main():
             )
 
     np.save(f"{args.output_dir}/mri_vectorizer_out.npy", mri_vectorizer_out)
+
+
+if __name__ == "__main__":
+    main()
