@@ -15,12 +15,19 @@ from thesis_code.training.utils import numpy_to_nifti
 def pars_args():
     parser = argparse.ArgumentParser(description="Generate n sampled MRIs")
 
-    parser.add_argument("output-dir", type=str, help="Output directory")
-    parser.add_argument("n-samples", type=int, help="Number of samples to generate")
-    parser.add_argument("checkpoint-path", type=str, help="Checkpoint path")
+    parser.add_argument("output-dir", required=True, type=str, help="Output directory")
+    parser.add_argument(
+        "n-samples", required=True, type=int, help="Number of samples to generate"
+    )
+    parser.add_argument(
+        "checkpoint-path", required=True, type=str, help="Checkpoint path"
+    )
     parser.add_argument("device", type=str, help="Device to use", default="cpu")
     parser.add_argument(
-        "lambdas", type=float, help="Value for lambda_1 and lambda_2", default=1.0
+        "lambdas",
+        type=float,
+        help="Value for lambda_1 and lambda_2",
+        default=1.0,
     )
     parser.add_argument("batch-size", type=int, help="Batch size", default=4)
 
@@ -31,7 +38,9 @@ def main():
     args = pars_args()
 
     # Load model
+    print("Loading MRI vectorizer")
     mri_vectorizer = get_mri_vectorizer(10).eval().to(args.device)
+    print("Loading model")
     model = (
         HAGAN.load_from_checkpoint(checkpoint_path=args.checkpoint_path)
         .eval()
