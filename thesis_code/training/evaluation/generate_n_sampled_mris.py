@@ -51,6 +51,7 @@ def main():
         .to(args.device)
     )
 
+    print("Generating vectorizer out array")
     mri_vectorizer_out = torch.zeros((args.n_samples, 512))
 
     outer_bar = tqdm.tqdm(
@@ -72,16 +73,18 @@ def main():
             position=1,
         )
 
+        print("Saving samples")
         for i, sample_id in inner_bar:
             # Save MRI NIfTI sample
             sample_i = normalize_to(sample[i, 0], -1, 1)
             sample[i, 0] = sample_i
             sample_mri = numpy_to_nifti(sample_i)
+            print(f"Saving sample {sample_id}")
             nib.save(sample_mri, f"{args.output_dir}/sample_{sample_id}.nii.gz")  # type: ignore
 
             # Get MRI vectorizer output
             mri_vectorizer_out[i] = mri_vectorizer(
-                torch.from_numpy(sample_i).unsqueeze(0).unsqueeze(0).to(args.device)
+                torch.from_numpy(sample_i).unsqueeze(0).unsqueeze(0)
             )
 
     np.save(f"{args.output_dir}/mri_vectorizer_out.npy", mri_vectorizer_out)
