@@ -1,7 +1,11 @@
 from typing import Literal
+
 import lightning as L
+import numpy as np
+import nibabel as nib
+
 from thesis_code.models.vaes import LitVAE3D
-from thesis_code.models.gans.kwon_gan import LitKwonGan
+from thesis_code.models.gans.alt.kwon_gan import LitKwonGan
 
 
 MODEL_NAME = Literal["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan"]
@@ -59,3 +63,29 @@ def get_model(
         )
     else:
         raise ValueError(f"Model name {model_name} not recognized")
+
+
+def numpy_to_nifti(array: np.ndarray) -> nib.Nifti1Image:  # type: ignore
+    """
+    Convert a 3D numpy array to a Nifti1Image with RAS orientation.
+
+    Parameters:
+    array (np.ndarray): 3D numpy array to convert.
+
+    Returns:
+    nib.Nifti1Image: Nifti image that can be saved as an .nii.gz file.
+    """
+    # Ensure the array is 3D
+    if array.ndim != 3:
+        raise ValueError("Input array must be 3D")
+
+    # Create an identity affine matrix
+    affine = np.eye(4)
+
+    # Create the Nifti1Image
+    nifti_img = nib.Nifti1Image(array, affine)  # type: ignore
+
+    # Set the orientation to RAS
+    nifti_img = nib.as_closest_canonical(nifti_img)  # type: ignore
+
+    return nifti_img
