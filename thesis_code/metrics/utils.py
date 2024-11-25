@@ -1,9 +1,21 @@
-from typing import Sequence
+from typing import Literal, Sequence
 import torch
+import torch.nn as nn
+from monai.networks.nets.resnet import resnet10, resnet50
+
+
+def get_mri_vectorizer(model_type: Literal[10, 50]) -> nn.Module:
+    """Get MRI vectorizer model."""
+    if model_type == 10:
+        return resnet10(n_input_channels=1, feed_forward=False)
+    elif model_type == 50:
+        return resnet50(n_input_channels=1, feed_forward=False)
+    else:
+        raise ValueError("Invalid model type.")
 
 
 def normalize_to_01(tensors: Sequence[torch.Tensor]) -> list[torch.Tensor]:
-    """Normalizes a tensor to the range [0, 1]."""
+    """Normalizes a sequence of tensors to the range [0, 1]."""
     max_val = torch.max(torch.stack([t.max() for t in tensors]))
     min_val = torch.min(torch.stack([t.min() for t in tensors]))
     # assert max_val != min_val, "Cannot normalize tensor with min == max"
