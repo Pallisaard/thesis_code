@@ -1,3 +1,5 @@
+#!/bin/bash
+
 source .venv/bin/activate
 
 python -m thesis_code.training.evaluation.generate_n_sampled_mris --output-dir ../torch-output/generated-examples \
