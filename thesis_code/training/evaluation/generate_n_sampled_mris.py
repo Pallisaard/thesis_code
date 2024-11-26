@@ -60,6 +60,8 @@ def main():
         desc="Generating samples",
     )
 
+    i = 0
+
     for batch_ids in outer_bar:
         print(f"Generating samples {batch_ids}")
         sample = model.safe_sample(len(batch_ids))
@@ -74,7 +76,7 @@ def main():
         )
 
         print("Saving samples")
-        for i, sample_id in inner_bar:
+        for sample_id in inner_bar:
             # Save MRI NIfTI sample
             sample_i = normalize_to(sample[i, 0], -1, 1)
             sample[i, 0] = sample_i
@@ -92,6 +94,8 @@ def main():
                 .squeeze(0)
                 .squeeze(0)
             )
+
+            i += 1
 
     np.save(f"{args.output_dir}/mri_vectorizer_out.npy", mri_vectorizer_out)
 
