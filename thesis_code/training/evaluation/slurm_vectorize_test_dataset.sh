@@ -13,6 +13,6 @@ module load gcc/13.2.0
 cd ~/projects/thesis/thesis-code
 source .venv/bin/activate
 
-python -m thesis_code.training.evaluation.generate_n_sampled_mris --data-dir ../data/pre-training/brain-masked/test \
+python -m thesis_code.training.evaluation.vectorize_test_dataset --data-dir ../data/pre-training/brain-masked/test \
                 --output-dir ../torch-output/'true-examples-pretrain' \
                 --device 'cuda' \
