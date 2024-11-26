@@ -66,7 +66,7 @@ def main():
         sample = sample.detach().cpu().numpy()
 
         inner_bar = tqdm.tqdm(
-            batch_ids,
+            enumerate(batch_ids),
             total=len(batch_ids),
             desc="Saving samples",
             leave=False,
@@ -74,10 +74,10 @@ def main():
         )
 
         print("Saving samples")
-        for sample_id in inner_bar:
+        for i, sample_id in inner_bar:
             # Save MRI NIfTI sample
-            sample_i = normalize_to(sample[sample_id, 0], -1, 1)
-            sample[sample_id, 0] = sample_i
+            sample_i = normalize_to(sample[i, 0], -1, 1)
+            sample[i, 0] = sample_i
             sample_mri = numpy_to_nifti(sample_i)
             print(f"Saving sample {sample_id}")
             nib.save(sample_mri, f"{args.output_dir}/sample_{sample_id}.nii.gz")  # type: ignore
