@@ -7,8 +7,8 @@
 #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
 
-source ~/venv/bin/activate
+cd ~/projects/thesis/thesis_code/
 
-cd ~/thesis_code/
+source .venv/bin/activate
 
-python -m thesis_code.data_collection.copy_masks_to_data_folder --data-dir ~/final_dataset --fastsurfer-output-dir ~/fastsurfer-output
+python -m thesis_code.data_collection.apply_mask_to_mris --data-dir ../data/pre-training/ --fastsurfer-output-dir ~/fastsurfer-output
