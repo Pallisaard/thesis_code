@@ -37,6 +37,12 @@ def main():
     print("Generating vectorizer out array")
     mri_vectorizer_out = torch.zeros((args.test_size, 512))
 
+    if not Path(args.output_dir).exists():
+        Path(args.output_dir).mkdir(parents=True)
+
+    if not Path(args.data_dir).exists():
+        raise ValueError(f"Data directory {args.data_dir} does not exist")
+
     all_niis = list(Path(args.data_dir).glob("*.nii.gz"))
 
     inner_bar = tqdm.tqdm(enumerate(all_niis), desc="Generating vectors for true data")
