@@ -73,13 +73,11 @@ def main():
             position=1,
         )
 
-        print("Saving samples")
         for i, sample_id in inner_bar:
             # Save MRI NIfTI sample
             sample_i = normalize_to(sample[i, 0], -1, 1)
             sample[i, 0] = sample_i
             sample_mri = numpy_to_nifti(sample_i)
-            print(f"Saving sample {sample_id}")
             nib.save(sample_mri, f"{args.output_dir}/sample_{sample_id}.nii.gz")  # type: ignore
 
             # Get MRI vectorizer output
