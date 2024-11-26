@@ -16,4 +16,4 @@ source .venv/bin/activate
 python -m thesis_code.training.evaluation.vectorize_test_dataset --data-dir ../data/finetune/brain-masked/test \
                 --output-dir ../torch-output/pretrain-eval/'ft-true-examples' \
                 --device 'cuda' \
-                --test-size 200 \
+                --test-size 100 \
