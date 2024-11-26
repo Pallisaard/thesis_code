@@ -14,7 +14,7 @@ cd ~/projects/thesis/thesis-code
 source .venv/bin/activate
 
 python -m thesis_code.training.evaluation.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-1 \
-                --n-samples 200 \
+                --n-samples 512 \
                 --checkpoint-path ../checkpoints/pretrain/HAGAN_lambda_1.ckpt \
                 --device 'cuda' \
                 --lambdas 5 \
