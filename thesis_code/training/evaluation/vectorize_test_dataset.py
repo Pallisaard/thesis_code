@@ -10,13 +10,19 @@ from thesis_code.metrics.utils import get_mri_vectorizer
 
 
 def pars_args():
-    parser = argparse.ArgumentParser(description="Generate n sampled MRIs")
+    parser = argparse.ArgumentParser(description="Vectorize test dataset. Assumes test")
 
     parser.add_argument("--data-dir", required=True, type=str, help="Data directory")
     parser.add_argument(
         "--output-dir", required=True, type=str, help="Output directory"
     )
     parser.add_argument("--device", type=str, help="Device to use", default="cpu")
+    parser.add_argument(
+        "--test-size",
+        type=int,
+        help="Number of samples in the test dataset.",
+        default=200,
+    )
 
     return parser.parse_args()
 
@@ -29,7 +35,7 @@ def main():
     mri_vectorizer = get_mri_vectorizer(10).eval().to(args.device)
 
     print("Generating vectorizer out array")
-    mri_vectorizer_out = torch.zeros((args.n_samples, 512))
+    mri_vectorizer_out = torch.zeros((args.test_size, 512))
 
     all_niis = list(Path(args.data_dir).glob("*.nii.gz"))
 
