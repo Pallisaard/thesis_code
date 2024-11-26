@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=vectorize_test_dataset
-#SBATCH --output=slurm_generate_n_sampled_mris-%j.out # Name of output file
-#SBATCH --error=slurm_generate_n_sampled_mris-%j.err # Name of error file
+#SBATCH --output=vectorize_test_dataset-%j.out # Name of output file
+#SBATCH --error=vectorize_test_dataset-%j.err # Name of error file
 #SBATCH --gres=gpu:titanrtx:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=4  # Number of CPUs for each gpu
 #SBATCH --mem=32G        # Memory request
