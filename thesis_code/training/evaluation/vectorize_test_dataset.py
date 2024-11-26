@@ -47,15 +47,10 @@ def main():
         data_i = mri_i.get_fdata()  # type: ignore
 
         # Get MRI vectorizer output
-        mri_vectorizer_out[i] = (
-            mri_vectorizer(
-                torch.from_numpy(data_i).unsqueeze(0).unsqueeze(0).to(args.device)
-            )
-            .detach()
-            .cpu()
-            .squeeze(0)
-            .squeeze(0)
-        )
+        inp = torch.from_numpy(data_i).unsqueeze(0).unsqueeze(0).to(args.device)
+        x = mri_vectorizer(inp)
+        x = x.detach().cpu().squeeze(0).squeeze(0)
+        mri_vectorizer_out[i] = x
 
     np.save(f"{args.output_dir}/mri_vectorizer_out.npy", mri_vectorizer_out)
 
