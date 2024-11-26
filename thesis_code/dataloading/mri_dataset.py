@@ -22,8 +22,8 @@ class MRIDataset(Dataset):
         self.size_limit = size_limit
         self.strip_skulls = strip_skulls
 
-        self.mri_path = (
-            self.data_path / "brain-masked" if self.strip_skulls else self.data_path
+        self.mri_path = self.data_path / (
+            "brain-masked" if self.strip_skulls else "non-brain_masked"
         )
         self.samples: list[Path] = self._load_dataset(self.mri_path)
 
@@ -40,7 +40,7 @@ class MRIDataset(Dataset):
         if not scans_dir.exists():
             raise ValueError(f"Scans directory not found in {data_path}")
 
-        samples: list[Path] = list(scans_dir.glob("*.nii.gz"))
+        samples: list[Path] = list(scans_dir.rglob("*.nii.gz"))
         if self.size_limit is not None:
             samples = samples[: self.size_limit]
 
