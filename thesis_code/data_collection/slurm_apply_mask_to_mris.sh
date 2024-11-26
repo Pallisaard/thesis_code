@@ -11,4 +11,4 @@ cd ~/projects/thesis/thesis_code/
 
 source .venv/bin/activate
 
-python -m thesis_code.data_collection.apply_mask_to_mris --data-dir ../data/pre-training/ --fastsurfer-output-dir ~/fastsurfer-output
+python -m thesis_code.data_collection.apply_mask_to_mris --data-dir ../data/pre-training/brain-masked --fastsurfer-output-dir ~/fastsurfer-output
