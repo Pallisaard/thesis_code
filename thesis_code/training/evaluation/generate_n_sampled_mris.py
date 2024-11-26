@@ -61,7 +61,6 @@ def main():
     )
 
     for batch_ids in outer_bar:
-        print(f"Generating samples {batch_ids}")
         sample = model.safe_sample(len(batch_ids))
         sample = sample.detach().cpu().numpy()
 
