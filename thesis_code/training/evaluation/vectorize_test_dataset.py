@@ -47,7 +47,11 @@ def main():
     if len(all_niis) > args.test_size:
         all_niis = all_niis[: args.test_size]
 
-    inner_bar = tqdm.tqdm(enumerate(all_niis), desc="Generating vectors for true data")
+    inner_bar = tqdm.tqdm(
+        enumerate(all_niis),
+        total=len(all_niis),
+        desc="Generating vectors for true data",
+    )
 
     print("Saving samples")
     for i, nii_path in inner_bar:
