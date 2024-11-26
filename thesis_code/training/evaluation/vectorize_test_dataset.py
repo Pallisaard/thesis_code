@@ -44,6 +44,8 @@ def main():
         raise ValueError(f"Data directory {args.data_dir} does not exist")
 
     all_niis = list(Path(args.data_dir).glob("*.nii.gz"))
+    if len(all_niis) > args.test_size:
+        all_niis = all_niis[: args.test_size]
 
     inner_bar = tqdm.tqdm(enumerate(all_niis), desc="Generating vectors for true data")
 
