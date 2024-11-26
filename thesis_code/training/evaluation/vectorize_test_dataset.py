@@ -53,6 +53,7 @@ def main():
     for i, nii_path in inner_bar:
         mri_i = nib.load(nii_path)  # type: ignore
         data_i = mri_i.get_fdata()  # type: ignore
+        data_i = 0.5 * data_i + 0.5
 
         # Get MRI vectorizer output
         inputs = (
