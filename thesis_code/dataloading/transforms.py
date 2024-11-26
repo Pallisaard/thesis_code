@@ -66,7 +66,7 @@ class Resize(MRITransform):
         if image.shape[1:] == self.size:
             return sample
         resized_image = F.interpolate(
-            image.unsqueeze(0),  # Add batch and channel dimensions
+            image.unsqueeze(0),  # Add batch dimensions
             size=self.size,
             mode="trilinear",
             align_corners=True,
