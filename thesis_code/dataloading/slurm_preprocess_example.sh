@@ -32,4 +32,4 @@ preprocess_dir="../data/pre-training/brain-masked/"$dir
 
 echo "preprocess_dir: " $preprocess_dir
 
-python -m thesis_code.dataloading.preprocess_example --nii-path $preprocess_dir --out-path $preprocess_dir --preprocess-folder --percent-outliers 0.001
+python -m thesis_code.dataloading.preprocess_example --nii-path $preprocess_dir --out-path $preprocess_dir --preprocess-folder --percent-outliers 0.999
