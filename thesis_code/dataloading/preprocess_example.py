@@ -1,5 +1,5 @@
 import os
-import pathlib
+from pathlib import Path
 
 from argparse import ArgumentParser
 import nibabel as nib
@@ -52,11 +52,17 @@ if __name__ == "__main__":
     args = parse_args()
     transforms = get_transforms(args.size, args.percent_outliers)
 
+    if not Path(args.out_path).exists():
+        raise FileNotFoundError(f"Output path not found: {args.out_path}")
+
+    if not Path(args.nii_path).exists():
+        raise FileNotFoundError(f"NIfTI file not found: {args.nii_path}")
+
     # all files ending with .nii.gz in the folder
     if args.preprocess_folder:
-        nii_files = list(pathlib.Path(args.nii_path).glob("*.nii.gz"))
+        nii_files = list(Path(args.nii_path).glob("*.nii.gz"))
     else:
-        nii_files = [pathlib.Path(args.nii_path)]
+        nii_files = [Path(args.nii_path)]
     file_names = [f.name for f in nii_files]
 
     for nii_path, nii_name in tqdm(zip(nii_files, file_names), total=len(nii_files)):
