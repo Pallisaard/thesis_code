@@ -167,7 +167,7 @@ class RemovePercentOutliers(MRITransform):
 
     def __call__(self, sample: MRISample) -> MRISample:
         image = sample["image"]
-        abs_image = np.abs(image)
+        abs_image = np.abs(image) if np.min(image) < 0 else image
         bound = np.percentile(abs_image, self.percent)
         image[abs_image < bound] = bound  # type: ignore
         sample["image"] = image
