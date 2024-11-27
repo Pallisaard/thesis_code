@@ -158,9 +158,9 @@ class RemovePercentOutliers(MRITransform):
         self.percent = percent
 
     def __call__(self, sample: torch.Tensor) -> torch.Tensor:
-        abs_image = np.abs(sample) if np.min(sample) < 0 else sample
-        bound = np.percentile(abs_image, self.percent)
-        sample[abs_image < bound] = bound  # type: ignore
+        abs_sample = np.abs(sample)
+        bound = np.percentile(abs_sample, self.percent)
+        sample[abs_sample > bound] = bound  # type: ignore
         return sample
 
 
@@ -177,7 +177,7 @@ class RangeNormalize(MRITransform):
 
         # Avoid division by zero
         if source_min == source_max:
-            raise ValueError("Input image has no intensity variation")
+            raise ValueError("Input sample has no intensity variation")
 
         # Direct scaling to target range
         normalized_sample = (self.target_max - self.target_min) * (
