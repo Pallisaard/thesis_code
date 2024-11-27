@@ -26,9 +26,9 @@ class MRITransform(ABC):
         )
 
     def transform_np(self, sample: np.ndarray) -> np.ndarray:
-        mri_sample: MRISample = {"image": torch.from_numpy(sample)}
+        mri_sample: MRISample = {"image": torch.from_numpy(sample).unsqueeze(0)}
         transformed_sample = self(mri_sample)
-        return transformed_sample["image"].numpy()
+        return transformed_sample["image"].squeeze(0).numpy()
 
 
 class Compose(MRITransform):
