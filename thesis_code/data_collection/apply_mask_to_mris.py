@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
         # Get generator of all .nii files in the source directory
         mask_paths = source_dir.glob("*.nii.gz")
-        num_files = len(list(mask_paths))
+        num_files = sum(1 for _ in mask_paths)
 
         # Iterate through each file in the source directory
         for nii_file in tqdm(
