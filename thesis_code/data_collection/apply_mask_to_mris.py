@@ -31,8 +31,8 @@ def parse_args() -> argparse.Namespace:
         default="/fastsurfer-output",
         help="Path to the fastsurfer-output directory containing the masks.",
     )
-    parser.add_argument("--size", type=int, default=256)
-    parser.add_argument("--percent-outliers", type=float, default=0.001)
+    # parser.add_argument("--size", type=int, default=256)
+    # parser.add_argument("--percent-outliers", type=float, default=0.001)
     return parser.parse_args()
 
 
@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
             reoriented_mask_img = reorient_nii_to_ras(mask_img)
             masked_mri = apply_mask_to_mri(
-                reoriented_mask_img, original_mri, transforms=transforms
+                reoriented_mask_img, original_mri, transforms=None
             )
 
             # Save the loaded mask to the destination path in .nii.gz format
