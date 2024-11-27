@@ -11,6 +11,6 @@ cd ~/projects/thesis/thesis-code/
 
 source .venv/bin/activate
 
-python -m thesis_code.data_collection.apply_mask_to_mris --data-dir ../data/finetuned/not-brain-masked/ --fastsurfer-output-dir ../fastsurfer-output/finetune/
+python -m thesis_code.data_collection.apply_mask_to_mris --data-dir ../data/finetune/not-brain-masked/ --fastsurfer-output-dir ../fastsurfer-output/finetune/
 
 # --percent-outliers 0.005
