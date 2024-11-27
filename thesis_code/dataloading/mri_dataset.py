@@ -7,6 +7,27 @@ from torch.utils.data import Dataset
 from thesis_code.dataloading.utils import load_nifti
 
 
+class MRISingleExampleDataset(Dataset):
+    def __init__(
+        self,
+        mri: torch.Tensor,
+        transform: Callable[[torch.Tensor], torch.Tensor] | None = None,
+    ):
+        self.mri = mri
+        self.transform = transform
+
+    def __len__(self) -> int:
+        return 1
+
+    def __getitem__(self, idx: int) -> torch.Tensor:
+        sample = self.mri
+
+        if self.transform is not None:
+            sample = self.transform(sample)
+
+        return sample
+
+
 class MRIDataset(Dataset):
     def __init__(
         self,

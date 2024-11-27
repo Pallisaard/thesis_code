@@ -365,6 +365,7 @@ def main():
         transform=transform,
         size_limit=100 if args.fast_dev_run else None,
     )
+
     print("transforms:", transform)
 
     callbacks = get_callbacks_from_args(args)

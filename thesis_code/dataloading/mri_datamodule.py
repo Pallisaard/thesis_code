@@ -6,6 +6,7 @@ from thesis_code.dataloading.mri_dataloader import (
     get_train_dataset,
     get_test_dataset,
     get_mri_dataset,
+    get_single_example_dataset,
 )
 from thesis_code.dataloading.transforms import MRITransform
 
@@ -98,9 +99,14 @@ class MRIAllTrainDataModule(L.LightningDataModule):
 
     def setup(self, stage: str) -> None:
         if stage == "fit":
-            self.mri_ds = get_mri_dataset(
+            self.mri_train = get_mri_dataset(
                 path=self.data_path,
                 transform=self.transform,
+                size_limit=self.size_limit,
+            )
+            self.mri_val = get_val_dataset(
+                path=self.data_path,
+                transforms=self.transform,
                 size_limit=self.size_limit,
             )
         else:
@@ -110,7 +116,7 @@ class MRIAllTrainDataModule(L.LightningDataModule):
 
     def train_dataloader(self, shuffle: bool = True) -> DataLoader:
         return DataLoader(
-            self.mri_ds,
+            self.mri_train,
             batch_size=self.batch_size,
             shuffle=shuffle,
             num_workers=self.num_workers,

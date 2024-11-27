@@ -1,6 +1,8 @@
 from pathlib import Path
 
-from thesis_code.dataloading.mri_dataset import MRIDataset
+import torch
+
+from thesis_code.dataloading.mri_dataset import MRIDataset, MRISingleExampleDataset
 from thesis_code.dataloading.transforms import MRITransform
 
 
@@ -52,4 +54,14 @@ def get_mri_dataset(
         path,
         transform=transform,
         size_limit=size_limit,
+    )
+
+
+def get_single_example_dataset(
+    mri: torch.Tensor,
+    transform: MRITransform | None = None,
+) -> MRISingleExampleDataset:
+    return MRISingleExampleDataset(
+        mri=mri,
+        transform=transform,
     )
