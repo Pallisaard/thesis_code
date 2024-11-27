@@ -54,9 +54,13 @@ if __name__ == "__main__":
 
     if not Path(args.out_path).exists():
         raise FileNotFoundError(f"Output path not found: {args.out_path}")
+    else:
+        print(f"Saving transformed NIfTI files to {args.out_path}")
 
     if not Path(args.nii_path).exists():
         raise FileNotFoundError(f"NIfTI file not found: {args.nii_path}")
+    else:
+        print(f"Preprocessing NIfTI files from {args.nii_path}")
 
     # all files ending with .nii.gz in the folder
     if args.preprocess_folder:
