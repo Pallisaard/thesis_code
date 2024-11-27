@@ -8,7 +8,7 @@ from thesis_code.data_collection.reorient_nii import reorient_nii_to_ras
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Copy masks from fastsurfer-output to data folder."
+        description="Apply masks from fastsurfer-output to NIfTI files in data folder."
     )
     parser.add_argument(
         "--data-dir",
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
         # Get generator of all .nii files in the source directory
         mask_paths = source_dir.glob("*.nii.gz")
-        num_files = sum(1 for _ in source_dir.glob("*.nii.gz"))
+        num_files = len(list(mask_paths))
 
         # Iterate through each file in the source directory
         for nii_file in tqdm(
