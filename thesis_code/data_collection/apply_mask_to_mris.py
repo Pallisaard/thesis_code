@@ -1,9 +1,18 @@
 import os
 from pathlib import Path
+from typing import Optional
 import nibabel as nib
 import argparse
 from tqdm import tqdm
+
 from thesis_code.data_collection.reorient_nii import reorient_nii_to_ras
+from thesis_code.dataloading.transforms import (
+    MRITransform,
+    Compose,
+    RangeNormalize,
+    Resize,
+    RemovePercentOutliers,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -22,20 +31,34 @@ def parse_args() -> argparse.Namespace:
         default="/fastsurfer-output",
         help="Path to the fastsurfer-output directory containing the masks.",
     )
+    parser.add_argument("--size", type=int, default=256)
+    parser.add_argument("--percent-outliers", type=float, default=0.001)
     return parser.parse_args()
 
 
-def apply_mask_to_mri(mask_img, original_mri):
+def get_transforms(size: int, percent_outliers: float) -> Compose:
+    return Compose(
+        [
+            Resize(size),
+            RemovePercentOutliers(percent_outliers),
+            RangeNormalize(target_min=-1, target_max=1),
+        ]
+    )
+
+
+def apply_mask_to_mri(mask_img, original_mri, transforms: Optional[MRITransform]):
     reoriented_mask_img = reorient_nii_to_ras(mask_img)
     reoriented_mask_data = reoriented_mask_img.get_fdata()
     original_mri_data = original_mri.get_fdata()  # type: ignore
     masked_mri_data = original_mri_data * reoriented_mask_data
-    masked_mri = nib.Nifti1Image(masked_mri_data, original_mri.affine)  # type: ignore
-    return masked_mri
+    if transforms is not None:
+        masked_mri_data = transforms.transform_np(masked_mri_data)
+    return nib.Nifti1Image(masked_mri_data, original_mri.affine)  # type: ignore
 
 
 if __name__ == "__main__":
     args = parse_args()
+    transforms = get_transforms(args.size, args.percent_outliers)
 
     data_dir = Path(args.data_dir)
     if not data_dir.exists():
@@ -100,7 +123,9 @@ if __name__ == "__main__":
             original_mri = nib.load(nii_file)  # type: ignore
 
             reoriented_mask_img = reorient_nii_to_ras(mask_img)
-            masked_mri = apply_mask_to_mri(reoriented_mask_img, original_mri)
+            masked_mri = apply_mask_to_mri(
+                reoriented_mask_img, original_mri, transforms=transforms
+            )
 
             # Save the loaded mask to the destination path in .nii.gz format
             nib.save(masked_mri, str(dest_path))  # type: ignore

@@ -25,6 +25,11 @@ class MRITransform(ABC):
             + ")"
         )
 
+    def transform_np(self, sample: np.ndarray) -> np.ndarray:
+        mri_sample: MRISample = {"image": torch.from_numpy(sample)}
+        transformed_sample = self(mri_sample)
+        return transformed_sample["image"].numpy()
+
 
 class Compose(MRITransform):
     def __init__(self, transforms: Sequence[MRITransform]):
