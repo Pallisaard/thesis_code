@@ -3,11 +3,8 @@
 #SBATCH --output=fastsurfer_%A_%a.out
 #SBATCH --error=fastsurfer_%A_%a.err
 #SBATCH --array=1-3%3   # Array job for 2740 MRI files, limit to 5 jobs running at once
-# #SBATCH --gres=gpu:1       # Request 1 GPU per job
 #SBATCH --cpus-per-task=2  # Number of CPUs for each task
 #SBATCH --mem=4G
-# #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
-# #SBATCH --mail-user=rpa@di.ku.dk # Email
 
 cd ~/projects/thesis/thesis-code
 
@@ -35,4 +32,4 @@ preprocess_dir="../data/pre-training/brain-masked/"$dir
 
 echo "preprocess_dir: " $preprocess_dir
 
-python -m thesis_code.dataloading.preprocess_example --nii-path $preprocess_dir --out-path $preprocess_dir --preprocess-folder --percent-outliers 0.005
+python -m thesis_code.dataloading.preprocess_example --nii-path $preprocess_dir --out-path $preprocess_dir --preprocess-folder --percent-outliers 0.01
