@@ -12,7 +12,6 @@ from thesis_code.dataloading.transforms import (
     RemovePercentOutliers,
     Identity,
 )
-from thesis_code.dataloading.mri_sample import MRISample
 from tqdm import tqdm
 
 
@@ -80,7 +79,6 @@ if __name__ == "__main__":
             # Load the NIfTI file
             nii = nib.load(nii_path)  # type: ignore
             sample = torch.from_numpy(nii.get_fdata()).unsqueeze(0)  # type: ignore
-            sample = MRISample(image=sample)
 
             # Apply the transforms
             print("Applying transforms...")
@@ -89,7 +87,7 @@ if __name__ == "__main__":
             # Save the transformed NIfTI file
             print("Saving transformed NIfTI file...")
             transformed_nii = nib.Nifti1Image(  # type: ignore
-                transformed_sample["image"].numpy().squeeze(0),
+                transformed_sample.numpy().squeeze(0),
                 affine=nii.affine,  # type: ignore
             )
 
