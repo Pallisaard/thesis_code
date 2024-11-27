@@ -25,7 +25,7 @@ class MRIDataset(Dataset):
         self.samples: list[Path] = self._load_dataset(self.data_path)
 
     def get_brain_mask(self, brain_mask_path: Path) -> torch.Tensor:
-        return load_nifti(self.data_path / "masks" / brain_mask_path)
+        return load_nifti(self.data_path / brain_mask_path)
 
     def apply_brain_mask(
         self, mri: torch.Tensor, brain_mask: torch.Tensor
@@ -33,11 +33,10 @@ class MRIDataset(Dataset):
         return mri * brain_mask
 
     def _load_dataset(self, data_path: Path) -> list[Path]:
-        scans_dir = data_path
-        if not scans_dir.exists():
-            raise ValueError(f"Scans directory not found in {data_path}")
+        if not data_path.exists():
+            raise ValueError(f"directory doesn't exist: {data_path}")
 
-        samples: list[Path] = list(scans_dir.rglob("*.nii.gz"))
+        samples: list[Path] = list(data_path.rglob("*.nii.gz"))
         if self.size_limit is not None:
             samples = samples[: self.size_limit]
 
