@@ -280,7 +280,6 @@ def get_datamodule(
         num_workers=num_workers,
         transform=transform,
         size_limit=size_limit,
-        strip_skulls=strip_skulls,
     )
 
 

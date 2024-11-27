@@ -19,8 +19,6 @@ from thesis_code.models.gans.hagan.backbone.Model_HA_GAN_256 import (
     S_H,
 )
 from thesis_code.dataloading.transforms import normalize_to
-from thesis_code.dataloading import MRISample  # , MRIDataset, MRIDataModule
-# from thesis_code.metrics.ssi_3d import batch_ssi_3d
 
 
 class HAGAN(L.LightningModule):
@@ -72,7 +70,7 @@ class HAGAN(L.LightningModule):
             sub_e_optimizer,
         ]
 
-    def training_step(self, batch: MRISample, batch_idx):
+    def training_step(self, batch: torch.Tensor, batch_idx):
         data_dict = prepare_data(batch=batch, latent_dim=self.latent_dim)
         real_images = data_dict["real_images"]
         batch_size = data_dict["batch_size"]
@@ -154,7 +152,7 @@ class HAGAN(L.LightningModule):
         elapsed_time = time.time() - self.start_time
         self.log("elapsed_time", elapsed_time, logger=True, sync_dist=True)
 
-    def validation_step(self, batch: MRISample, batch_idx):
+    def validation_step(self, batch: torch.Tensor, batch_idx):
         data_dict = prepare_data(batch=batch, latent_dim=self.latent_dim)
         real_images = data_dict["real_images"]
         batch_size = data_dict["batch_size"]
@@ -363,8 +361,8 @@ class DataDict(TypedDict):
 
 
 # Data Preparation Function
-def prepare_data(batch: MRISample, latent_dim: int) -> DataDict:
-    real_images = batch["image"].float()
+def prepare_data(batch: torch.Tensor, latent_dim: int) -> DataDict:
+    real_images = batch.float()
     batch_size = real_images.size(0)
     real_images_small = F.interpolate(real_images, scale_factor=0.25)
     crop_idx = np.random.randint(0, 256 * 7 // 8 + 1)
