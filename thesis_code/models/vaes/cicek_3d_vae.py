@@ -10,8 +10,6 @@ from torchmetrics.image import (
     StructuralSimilarityIndexMeasure,
 )
 
-from thesis_code.dataloading.mri_sample import MRISample
-
 
 # class ResNetBlock3D(nn.Module):
 #     def __init__(self, in_channels, out_channels, stride=1, groups=32):
@@ -380,8 +378,8 @@ class LitVAE3D(L.LightningModule):
         samples = self.model.decode(z)
         return samples
 
-    def training_step(self, batch: MRISample, batch_idx: int):
-        x = batch["image"]  # Assuming your dataset returns (image, label)
+    def training_step(self, batch: torch.Tensor, batch_idx: int):
+        x = batch
         recon_x, mu, log_var = self(x)
 
         # Calculate loss
@@ -397,8 +395,8 @@ class LitVAE3D(L.LightningModule):
 
         return loss
 
-    def validation_step(self, batch: MRISample, batch_idx: int):
-        x = batch["image"]
+    def validation_step(self, batch: torch.Tensor, batch_idx: int):
+        x = batch
         recon_x, mu, log_var = self(x)
 
         loss, recon_loss, kld_loss, beta = self.model.calculate_loss(
@@ -413,8 +411,8 @@ class LitVAE3D(L.LightningModule):
         self.log("beta", beta, sync_dist=True)
         self.log("val_ssim", self.ssim, sync_dist=True)
 
-    def test_step(self, batch: MRISample, batch_idx: int):
-        x = batch["image"]
+    def test_step(self, batch: torch.Tensor, batch_idx: int):
+        x = batch
         recon_x, mu, log_var = self(x)
 
         loss, recon_loss, kld_loss, beta = self.model.calculate_loss(
