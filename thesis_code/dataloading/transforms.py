@@ -160,6 +160,7 @@ class RemovePercentOutliers(MRITransform):
     def __call__(self, sample: torch.Tensor) -> torch.Tensor:
         abs_sample = np.abs(sample)
         bound = np.percentile(abs_sample, self.percent)
+        print(f"bound: {bound}")
         sample[abs_sample > bound] = bound  # type: ignore
         return sample
 
