@@ -4,10 +4,10 @@
 #SBATCH --error=slurm_apply_mask_to_mris-%j.err # Name of error file
 #SBATCH --cpus-per-task=2  # Number of CPUs for each gpu
 #SBATCH --mem=8G          # Memory request
-#SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
-#SBATCH --mail-user=rpa@di.ku.dk # Email
+# #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
+# #SBATCH --mail-user=rpa@di.ku.dk # Email
 
-cd ~/projects/thesis/thesis_code/
+cd ~/projects/thesis/thesis-code/
 
 source .venv/bin/activate
 
