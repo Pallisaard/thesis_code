@@ -1,4 +1,4 @@
-from typing import Literal, Sequence
+from typing import Sequence
 from abc import ABC, abstractmethod
 
 import torch

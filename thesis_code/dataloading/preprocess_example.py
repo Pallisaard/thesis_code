@@ -10,7 +10,6 @@ from thesis_code.dataloading.transforms import (
     RangeNormalize,
     Resize,
     RemovePercentOutliers,
-    Identity,
 )
 from tqdm import tqdm
 
