@@ -66,6 +66,7 @@ if __name__ == "__main__":
 
     # Iterate through each source directory
     for category, source_dir in tqdm(source_dirs.items(), desc="Categories"):
+        print("Processing category:", category)
         # Create category subdirectory in destination
         category_dest_dir = dest_dir / category
         category_dest_dir.mkdir(parents=True, exist_ok=True)
@@ -73,6 +74,7 @@ if __name__ == "__main__":
         # Get generator of all .nii files in the source directory
         mask_paths = source_dir.glob("*.nii.gz")
         num_files = sum(1 for _ in mask_paths)
+        print("num_files:", num_files)
 
         # Iterate through each file in the source directory
         for nii_file in tqdm(
