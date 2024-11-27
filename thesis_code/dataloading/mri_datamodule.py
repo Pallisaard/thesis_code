@@ -5,6 +5,7 @@ from thesis_code.dataloading.mri_dataloader import (
     get_val_dataset,
     get_train_dataset,
     get_test_dataset,
+    get_mri_dataset,
 )
 from thesis_code.dataloading.transforms import MRITransform
 
@@ -72,5 +73,45 @@ class MRIDataModule(L.LightningDataModule):
             self.mri_test,
             batch_size=self.batch_size,
             shuffle=False,
+            num_workers=self.num_workers,
+        )
+
+
+class MRIAllTrainDataModule(L.LightningDataModule):
+    def __init__(
+        self,
+        data_path: str = "./data",
+        batch_size: int = 8,
+        num_workers: int = 0,
+        transform: MRITransform | None = None,
+        size_limit: int | None = None,
+    ):
+        super().__init__()
+        self.data_path = data_path
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.transform = transform
+        self.size_limit = size_limit
+
+    def prepare_data(self) -> None:
+        return super().prepare_data()
+
+    def setup(self, stage: str) -> None:
+        if stage == "fit":
+            self.mri_ds = get_mri_dataset(
+                path=self.data_path,
+                transform=self.transform,
+                size_limit=self.size_limit,
+            )
+        else:
+            raise ValueError(
+                "this dataset only supports the fit (train + validate) stages."
+            )
+
+    def train_dataloader(self, shuffle: bool = True) -> DataLoader:
+        return DataLoader(
+            self.mri_ds,
+            batch_size=self.batch_size,
+            shuffle=shuffle,
             num_workers=self.num_workers,
         )

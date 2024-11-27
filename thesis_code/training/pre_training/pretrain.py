@@ -10,7 +10,7 @@ from torchsummary import summary
 from thesis_code.models.vaes import LitVAE3D
 from thesis_code.models.gans.alt.kwon_gan import LitKwonGan
 from thesis_code.models.gans.hagan.hagan import HAGAN
-from thesis_code.dataloading.mri_datamodule import MRIDataModule
+from thesis_code.dataloading.mri_datamodule import MRIDataModule, MRIAllTrainDataModule
 from thesis_code.dataloading.transforms import (
     MRITransform,
     Compose,
@@ -41,6 +41,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--data-path", type=str, required=True, help="Path to the data directory"
+    )
+    parser.add_argument(
+        "--use-all-data-for-training",
+        action="store_true",
+        help="Use all data for training",
     )
 
     # HAGAN arguments.
@@ -272,8 +277,16 @@ def get_datamodule(
     num_workers: int,
     transform: Optional[MRITransform],
     size_limit: Optional[int],
-    strip_skulls: bool,
-) -> MRIDataModule:
+    use_all_data_for_training: bool = False,
+) -> MRIDataModule | MRIAllTrainDataModule:
+    if use_all_data_for_training:
+        return MRIAllTrainDataModule(
+            data_path=data_path,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            transform=transform,
+            size_limit=size_limit,
+        )
     return MRIDataModule(
         data_path=data_path,
         batch_size=batch_size,
@@ -351,7 +364,6 @@ def main():
         args.num_workers,
         transform=transform,
         size_limit=100 if args.fast_dev_run else None,
-        strip_skulls=args.strip_skulls,
     )
     print("transforms:", transform)
 

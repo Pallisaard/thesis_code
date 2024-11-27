@@ -1,4 +1,4 @@
-from .mri_datamodule import MRIDataModule
+from .mri_datamodule import MRIDataModule, MRIAllTrainDataModule
 from .transforms import MRITransform, Compose, Resize, ZScoreNormalize
 from .mri_dataset import MRIDataset
 from .mri_dataloader import (
@@ -10,6 +10,7 @@ from .mri_dataloader import (
 
 __all__ = [
     "MRIDataModule",
+    "MRIAllTrainDataModule",
     "MRIDataset",
     "MRITransform",
     "Compose",
