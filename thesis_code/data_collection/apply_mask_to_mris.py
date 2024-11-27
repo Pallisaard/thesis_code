@@ -58,7 +58,7 @@ def apply_mask_to_mri(mask_img, original_mri, transforms: Optional[MRITransform]
 
 if __name__ == "__main__":
     args = parse_args()
-    transforms = get_transforms(args.size, args.percent_outliers)
+    # transforms = get_transforms(args.size, args.percent_outliers)
 
     data_dir = Path(args.data_dir)
     if not data_dir.exists():
