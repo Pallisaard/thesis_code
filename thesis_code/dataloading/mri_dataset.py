@@ -4,7 +4,6 @@ from collections.abc import Callable
 import torch
 from torch.utils.data import Dataset
 
-from thesis_code.dataloading.mri_sample import MRISample
 from thesis_code.dataloading.utils import load_nifti
 
 
@@ -12,7 +11,7 @@ class MRIDataset(Dataset):
     def __init__(
         self,
         data_path: str | Path,
-        transform: Callable[[MRISample], MRISample] | None = None,
+        transform: Callable[[torch.Tensor], torch.Tensor] | None = None,
         size_limit: int | None = None,
         strip_skulls: bool = False,
     ):
@@ -45,10 +44,9 @@ class MRIDataset(Dataset):
     def __len__(self) -> int:
         return len(self.samples)
 
-    def __getitem__(self, idx: int) -> MRISample:
+    def __getitem__(self, idx: int) -> torch.Tensor:
         file_path = self.samples[idx]
-        mri = load_nifti(file_path).unsqueeze(0).float()
-        sample: MRISample = {"image": mri}
+        sample = load_nifti(file_path).unsqueeze(0).float()
 
         if self.transform is not None:
             sample = self.transform(sample)

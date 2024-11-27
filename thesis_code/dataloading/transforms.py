@@ -5,7 +5,6 @@ import torch
 from torch.nn import functional as F
 import numpy as np
 
-from thesis_code.dataloading.mri_sample import MRISample
 from thesis_code.dataloading.mri_dataset import MRIDataset
 from tqdm import tqdm
 
@@ -15,7 +14,7 @@ class MRITransform(ABC):
         self.indent = 0
 
     @abstractmethod
-    def __call__(self, sample: MRISample) -> MRISample: ...
+    def __call__(self, sample: torch.Tensor) -> torch.Tensor: ...
 
     def __repr__(self) -> str:
         return (
@@ -26,9 +25,9 @@ class MRITransform(ABC):
         )
 
     def transform_np(self, sample: np.ndarray) -> np.ndarray:
-        mri_sample: MRISample = {"image": torch.from_numpy(sample).unsqueeze(0)}
+        mri_sample = torch.from_numpy(sample).unsqueeze(0)
         transformed_sample = self(mri_sample)
-        return transformed_sample["image"].squeeze(0).numpy()
+        return transformed_sample.squeeze(0).numpy()
 
 
 class Compose(MRITransform):
@@ -37,7 +36,7 @@ class Compose(MRITransform):
         self.indent += 4
         self.transforms = transforms
 
-    def __call__(self, sample: MRISample) -> MRISample:
+    def __call__(self, sample: torch.Tensor) -> torch.Tensor:
         for t in self.transforms:
             sample = t(sample)
         return sample
@@ -57,7 +56,7 @@ class Identity(MRITransform):
     def __init__(self):
         super().__init__()
 
-    def __call__(self, sample: MRISample) -> MRISample:
+    def __call__(self, sample: torch.Tensor) -> torch.Tensor:
         return sample
 
 
@@ -66,18 +65,16 @@ class Resize(MRITransform):
         super().__init__()
         self.size = (size, size, size)
 
-    def __call__(self, sample: MRISample) -> MRISample:
-        image = sample["image"]
-        if image.shape[1:] == self.size:
+    def __call__(self, sample: torch.Tensor) -> torch.Tensor:
+        if sample.shape[1:] == self.size:
             return sample
-        resized_image = F.interpolate(
-            image.unsqueeze(0),  # Add batch dimensions
+        resized_sample = F.interpolate(
+            sample.unsqueeze(0),  # Add batch dimensions
             size=self.size,
             mode="trilinear",
             align_corners=True,
         ).squeeze(0)  # Remove batch dimension
-        sample["image"] = resized_image
-        return sample
+        return resized_sample
 
 
 class ZScoreNormalize(MRITransform):
@@ -97,8 +94,7 @@ class ZScoreNormalize(MRITransform):
             desc="Fitting ZScoreNormalize",
         ):
             batch_idx = range(i, min(i + batch_size, len(dataset)))
-            batch = [dataset[idx] for idx in batch_idx]
-            batch_mris = torch.stack([sample["image"] for sample in batch])
+            batch_mris = torch.stack([dataset[idx] for idx in batch_idx])
 
             mean_sum += (batch_mris).sum().item()
             sq_sum += (batch_mris**2).sum().item()
@@ -111,23 +107,19 @@ class ZScoreNormalize(MRITransform):
         self.std = std
         return self
 
-    def __call__(self, sample: MRISample) -> MRISample:
+    def __call__(self, sample: torch.Tensor) -> torch.Tensor:
         if self.mean is None or self.std is None:
             raise ValueError("ZScoreNormalize must be fit to a dataset first.")
 
-        image = sample["image"]
-        normalized_image = (image - self.mean) / self.std
-        sample["image"] = normalized_image
-        return sample
+        normalized_sample = (sample - self.mean) / self.std
+        return normalized_sample
 
-    def denormalize(self, sample: MRISample) -> MRISample:
+    def denormalize(self, sample: torch.Tensor) -> torch.Tensor:
         if self.mean is None or self.std is None:
             raise ValueError("ZScoreNormalize must be fit to a dataset first.")
 
-        image = sample["image"]
-        denormalized_image = (image * self.std) + self.mean
-        sample["image"] = denormalized_image
-        return sample
+        denormalized_sample = (sample * self.std) + self.mean
+        return denormalized_sample
 
     def save(self, path: str):
         if self.mean is None or self.std is None:
@@ -165,12 +157,10 @@ class RemovePercentOutliers(MRITransform):
         super().__init__()
         self.percent = percent
 
-    def __call__(self, sample: MRISample) -> MRISample:
-        image = sample["image"]
-        abs_image = np.abs(image) if np.min(image) < 0 else image
+    def __call__(self, sample: torch.Tensor) -> torch.Tensor:
+        abs_image = np.abs(sample) if np.min(sample) < 0 else sample
         bound = np.percentile(abs_image, self.percent)
-        image[abs_image < bound] = bound  # type: ignore
-        sample["image"] = image
+        sample[abs_image < bound] = bound  # type: ignore
         return sample
 
 
@@ -180,22 +170,20 @@ class RangeNormalize(MRITransform):
         self.target_min = target_min
         self.target_max = target_max
 
-    def __call__(self, sample: MRISample) -> MRISample:
-        image = sample["image"]
+    def __call__(self, sample: torch.Tensor) -> torch.Tensor:
         # Dynamically calculate source range
-        source_min = image.min()
-        source_max = image.max()
+        source_min = sample.min()
+        source_max = sample.max()
 
         # Avoid division by zero
         if source_min == source_max:
             raise ValueError("Input image has no intensity variation")
 
         # Direct scaling to target range
-        normalized_image = (self.target_max - self.target_min) * (
-            image - source_min
+        normalized_sample = (self.target_max - self.target_min) * (
+            sample - source_min
         ) / (source_max - source_min) + self.target_min
-        sample["image"] = normalized_image
-        return sample
+        return normalized_sample
 
 
 def normalize_to_0_1(array: np.ndarray) -> np.ndarray:
