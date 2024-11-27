@@ -37,11 +37,19 @@ def apply_mask_to_mri(mask_img, original_mri):
 if __name__ == "__main__":
     args = parse_args()
 
-    if not os.path.exists(args.data_dir):
-        raise FileNotFoundError(f"Data directory not found: {args.data_dir}")
-
     data_dir = Path(args.data_dir)
+    if not data_dir.exists():
+        raise FileNotFoundError(f"Data directory not found: {data_dir}")
+    else:
+        print(f"Data directory found: {data_dir}")
+
     fastsurfer_output_dir = Path(args.fastsurfer_output_dir)
+    if not fastsurfer_output_dir.exists():
+        raise FileNotFoundError(
+            f"FastSurfer output directory not found: {fastsurfer_output_dir}"
+        )
+    else:
+        print(f"FastSurfer output directory found: {fastsurfer_output_dir}")
 
     # Define source directories
     source_dirs = {
