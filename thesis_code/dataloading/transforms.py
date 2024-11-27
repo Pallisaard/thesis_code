@@ -155,13 +155,16 @@ class ZScoreNormalize(MRITransform):
 class RemovePercentOutliers(MRITransform):
     def __init__(self, percent: float):
         super().__init__()
-        self.percent = percent
+        if percent < 0 or percent > 1:
+            raise ValueError("percent must be between 0 and 1")
+
+        self.percent = percent * 100.0
 
     def __call__(self, sample: torch.Tensor) -> torch.Tensor:
-        abs_sample = np.abs(sample)
-        bound = np.percentile(abs_sample, self.percent)
+        # abs_sample = np.abs(sample)
+        bound = np.percentile(sample, self.percent)
         print(f"bound: {bound}")
-        sample[abs_sample > bound] = bound  # type: ignore
+        sample[sample > bound] = bound  # type: ignore
         return sample
 
 
