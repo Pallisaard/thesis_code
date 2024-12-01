@@ -68,12 +68,18 @@ def batch_ssi_3d(
     vols2: torch.Tensor,
     window_size: int = 11,
     size_average: bool = True,
+    reduction: str = "mean",
 ) -> torch.Tensor:
-    assert vols1.size() == vols2.size(), "Input volumes must have the same shape"
+    assert (
+        vols1.size() == vols2.size()
+    ), f"Input volumes must have the same shape, but got {vols1.size()} and {vols2.size()}"
     assert len(vols1.size()) == 5, "Input volumes must have shape (B, C, D, H, W)"
 
     _batch_ssi_3d = torch.vmap(
         partial(ssi_3d, window_size=window_size, size_average=size_average)
     )
 
-    return _batch_ssi_3d(vols1, vols2)
+    if reduction == "mean":
+        return _batch_ssi_3d(vols1, vols2).mean()
+
+    return _batch_ssi_3d(vols1, vols2).sum()

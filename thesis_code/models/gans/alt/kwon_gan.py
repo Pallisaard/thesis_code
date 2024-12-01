@@ -10,8 +10,6 @@ from thesis_code.training.callbacks.callbacks import (
     DEFAULT_CHECKPOINT_PATH,
 )
 
-from thesis_code.dataloading.mri_sample import MRISample
-
 
 class LitKwonGan(L.LightningModule):
     def __init__(
@@ -125,11 +123,11 @@ class LitKwonGan(L.LightningModule):
             * self.reconstruction_loss(real_data=real_data, recon_data=recon_data)
         )
 
-    def training_step(self, batch: MRISample, batch_idx: int):
+    def training_step(self, batch: torch.Tensor, batch_idx: int):
         # Optimizers
         opt_g, opt_d, opt_c, opt_e = self.optimizers()  # type: ignore
 
-        real_data = batch["image"]
+        real_data = batch
         batch_size = real_data.size(0)
         latent_dim = self.generator.latent_dim
 
@@ -198,8 +196,8 @@ class LitKwonGan(L.LightningModule):
             {"d_loss": d_loss, "g_loss": g_loss, "c_loss": c_loss, "e_loss": e_loss}
         )
 
-    def validation_step(self, batch: MRISample, batch_idx: int):
-        real_data = batch["image"]
+    def validation_step(self, batch: torch.Tensor, batch_idx: int):
+        real_data = batch
         batch_size = real_data.size(0)
         latent_dim = self.generator.latent_dim
 

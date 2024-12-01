@@ -3,8 +3,6 @@ import torch.nn as nn
 import torch.optim as optim
 import lightning as L
 
-from thesis_code.dataloading.mri_sample import MRISample
-
 
 class GANModule(nn.Module):
     def __init__(self, generator: nn.Module, discriminator: nn.Module):
@@ -41,8 +39,8 @@ class LitGAN(L.LightningModule):
     def sample_z(self, num_samples):
         return torch.randn(num_samples, self.latent_dim, device=self.device)
 
-    def training_step(self, batch: MRISample, batch_idx: int):
-        x_real = batch["image"]
+    def training_step(self, batch: torch.Tensor, batch_idx: int):
+        x_real = batch
 
         g_opt, d_opt = self.optimizers()  # type: ignore
 
