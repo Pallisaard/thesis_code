@@ -169,4 +169,3 @@ poetry.toml
 *.pt
 checkpoints/
 lightning/
-*.ipynb
