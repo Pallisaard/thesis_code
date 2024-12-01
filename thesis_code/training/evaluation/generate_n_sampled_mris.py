@@ -8,7 +8,7 @@ import tqdm
 
 from thesis_code.dataloading.transforms import normalize_to
 from thesis_code.metrics.utils import get_mri_vectorizer
-from thesis_code.models.gans.hagan import HAGAN
+from thesis_code.models.gans.hagan import LitHAGAN
 from thesis_code.training.utils import numpy_to_nifti
 
 
@@ -44,7 +44,7 @@ def main():
     mri_vectorizer = get_mri_vectorizer(10).eval().to(args.device)
     print("Loading model")
     model = (
-        HAGAN.load_from_checkpoint(
+        LitHAGAN.load_from_checkpoint(
             checkpoint_path=args.checkpoint_path, latent_dim=1024
         )
         .eval()
