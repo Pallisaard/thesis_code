@@ -4,7 +4,6 @@ from typing import Literal, Optional
 import torch
 from lightning.pytorch.trainer import Trainer
 import lightning as L
-from torchsummary import summary
 
 # from models import VAE3DLightningModule
 from thesis_code.models.vaes import LitVAE3D
@@ -15,7 +14,6 @@ from thesis_code.dataloading.transforms import (
     MRITransform,
     Compose,
     Resize,
-    ZScoreNormalize,
     RangeNormalize,
     RemovePercentOutliers,
 )
@@ -310,9 +308,6 @@ def get_transforms(args: argparse.Namespace) -> Optional[MRITransform]:
     for transform in args.transforms:
         if transform == "resize":
             transforms.append(Resize(size=args.resize_size))
-        elif transform == "z-normalize":
-            zscore_normalize = ZScoreNormalize.load_from_disk(args.normalize_dir)
-            transforms.append(zscore_normalize)
         elif transform == "range-normalize":
             transforms.append(RangeNormalize(args.normalize_min, args.normalize_max))
         elif transform == "remove-percent-outliers":
