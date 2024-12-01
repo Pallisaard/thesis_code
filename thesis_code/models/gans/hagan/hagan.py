@@ -261,16 +261,6 @@ class HAGAN(L.LightningModule):
         out = self.generate_from_noise(noise)
         return out
 
-    def encode_to_small(self, x: torch.Tensor) -> torch.Tensor:
-        with torch.no_grad():
-            encoded_crop_i_list = []
-            for crop_idx_i in range(0, 256, 256 // 8):
-                real_images_crop_i = S_H(x, crop_idx_i)
-                encoded_crop_i = self.E(real_images_crop_i)
-                encoded_crop_i_list.append(encoded_crop_i)
-            encoded_crops = torch.cat(encoded_crop_i_list, dim=2).detach()
-        return encoded_crops
-
     def encode(self, x: torch.Tensor) -> torch.Tensor:
         encoded_crops = self.encode_to_small(x)
         z_hat = self.Sub_E(encoded_crops)
@@ -336,7 +326,7 @@ def compute_sub_e_loss(
     crop_idx: int,
     lambda_2: float,
 ):
-    z_hat = Sub_E(E(real_images))
+    z_hat = Sub_E(encode_to_small(E, real_images_crop))
     sub_x_hat_rec, sub_x_hat_rec_small = G(z_hat, crop_idx=crop_idx)
     sub_e_loss = (
         lambda_2
@@ -380,6 +370,17 @@ def prepare_data(batch: torch.Tensor, latent_dim: int) -> DataDict:
         "fake_labels": fake_labels,
         "crop_idx": crop_idx,
     }
+
+
+def encode_to_small(encoder: nn.Module, x: torch.Tensor) -> torch.Tensor:
+    with torch.no_grad():
+        encoded_crop_i_list = []
+        for crop_idx_i in range(0, 256, 256 // 8):
+            real_images_crop_i = S_H(x, crop_idx_i)
+            encoded_crop_i = encoder(real_images_crop_i)
+            encoded_crop_i_list.append(encoded_crop_i)
+        encoded_crops = torch.cat(encoded_crop_i_list, dim=2).detach()
+    return encoded_crops
 
 
 def numpy_to_nifti(array: np.ndarray) -> nib.Nifti1Image:  # type: ignore
