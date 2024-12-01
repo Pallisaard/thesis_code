@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from thesis_code.models.gans.hagan.backbone.Model_HA_GAN_256 import (
+from thesis_code.models.gans.hagan import (
     Generator,
     Discriminator,
     Encoder,
