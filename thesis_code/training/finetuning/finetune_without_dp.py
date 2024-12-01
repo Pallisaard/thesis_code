@@ -11,7 +11,6 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 
 from thesis_code.dataloading.mri_dataset import MRIDataset
-from thesis_code.dataloading.mri_sample import MRISample
 from thesis_code.models.gans.hagan.hagan import (
     prepare_data,
     compute_d_loss,
@@ -164,7 +163,7 @@ def setup_dp_hagan_training(
 
     dpmodels = DPModels(G=generator, D=discriminator, E=encoder, Sub_E=sub_encoder)
 
-    sample_rate = len(train_dataset) / batch_size
+    sample_rate = batch_size / len(train_dataset)
     train_dataloader = DPDataLoader(
         train_dataset,
         sample_rate=sample_rate,
@@ -199,7 +198,7 @@ def training_step(
     dataloaders: DPDataLoaders,
     loss_fns: LossFNs,
     state: DPState,
-    batch: MRISample,
+    batch: torch.Tensor,
 ) -> DPState:
     generator = models.G
     discriminator = models.D
@@ -287,6 +286,7 @@ def training_step(
     sub_encoder.requires_grad_(True)
     sub_e_optimizer.zero_grad()
     sub_e_loss = compute_sub_e_loss(
+        E=encoder,
         Sub_E=sub_encoder,
         G=generator,
         l1_loss=l1_loss,
@@ -301,10 +301,6 @@ def training_step(
     state.metrics.sub_e_loss.append(sub_e_loss.detach().cpu().item())
 
     state.metrics.epsilon.append(state.privacy_accountant.get_epsilon(state.delta))
-
-    state.privacy_accountant.step(
-        noise_multiplier=state.noise_multiplier, sample_rate=state.sample_rate
-    )
 
     return state
 
@@ -367,6 +363,7 @@ def validation_step(
         state.metrics.val_e_loss.append(val_e_loss.detach().cpu().item())
 
         val_sub_e_loss = compute_sub_e_loss(
+            E=encoder,
             Sub_E=sub_encoder,
             G=generator,
             l1_loss=l1_loss,
@@ -439,17 +436,35 @@ def training_loop_until_epsilon(
     current_epsilon = state.privacy_accountant.get_epsilon(state.delta, alphas=alphas)
 
     while current_epsilon < max_epsilon:
-        state = training_loop(
-            models=models,
-            optimizers=optimizers,
-            dataloaders=dataloaders,
-            loss_fns=loss_fns,
-            state=state,
-            n_epochs=1,
-        )
-        current_epsilon = state.privacy_accountant.get_epsilon(
-            state.delta, alphas=alphas
-        )
+        # state = training_loop(
+        #     models=models,
+        #     optimizers=optimizers,
+        #     dataloaders=dataloaders,
+        #     loss_fns=loss_fns,
+        #     state=state,
+        #     n_epochs=1,
+        # )
+
+        for i, batch in enumerate(dataloaders.train):
+            state.step += 1
+            state = training_step(
+                models=models,
+                optimizers=optimizers,
+                dataloaders=dataloaders,
+                loss_fns=loss_fns,
+                state=state,
+                batch=batch,
+            )
+            state = validation_step(
+                models=models,
+                dataloaders=dataloaders,
+                loss_fns=loss_fns,
+                state=state,
+            )
+
+            current_epsilon = state.privacy_accountant.get_epsilon(
+                state.delta, alphas=alphas
+            )
 
     checkpoint_model(
         models.G,
