@@ -80,14 +80,15 @@ class RemovePercentOutliers(MRITransform):
         if percent < 0 or percent > 1:
             raise ValueError("percent must be between 0 and 1")
 
-        self.percent = percent * 100.0
+        self.percent = percent
 
     def __call__(self, sample: torch.Tensor) -> torch.Tensor:
-        # abs_sample = np.abs(sample)
-        bound = np.percentile(sample, self.percent)
-        print(f"bound: {bound}")
-        sample[sample > bound] = bound  # type: ignore
-        return sample
+        sample_copy = sample.clone()  # Create a copy of the sample tensor
+        bound = torch.quantile(sample_copy, self.percent, keepdim=True)
+        sample_copy[sample_copy > bound] = (
+            bound  # Modify the copy instead of the original
+        )
+        return sample_copy
 
 
 class RangeNormalize(MRITransform):

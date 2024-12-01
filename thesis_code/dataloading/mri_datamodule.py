@@ -1,12 +1,11 @@
 import lightning as L
 from torch.utils.data import DataLoader
 
-from thesis_code.dataloading.mri_dataloader import (
+from thesis_code.dataloading.mri_dataset import (
     get_val_dataset,
     get_train_dataset,
     get_test_dataset,
     get_mri_dataset,
-    get_single_example_dataset,
 )
 from thesis_code.dataloading.transforms import MRITransform
 
