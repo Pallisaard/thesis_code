@@ -5,9 +5,6 @@ import torch
 from torch.nn import functional as F
 import numpy as np
 
-from thesis_code.dataloading.mri_dataset import MRIDataset
-from tqdm import tqdm
-
 
 class MRITransform(ABC):
     def __init__(self):
@@ -77,95 +74,21 @@ class Resize(MRITransform):
         return resized_sample
 
 
-class ZScoreNormalize(MRITransform):
-    def __init__(self):
-        super().__init__()
-        self.mean: float | None = None
-        self.std: float | None = None
-
-    def fit(self, dataset: MRIDataset, batch_size: int = 32) -> "ZScoreNormalize":
-        mean_sum: float = 0.0
-        sq_sum: float = 0.0
-        num_samples: float = 0.0
-
-        for i in tqdm(
-            range(0, len(dataset), batch_size),
-            total=len(dataset) // batch_size,
-            desc="Fitting ZScoreNormalize",
-        ):
-            batch_idx = range(i, min(i + batch_size, len(dataset)))
-            batch_mris = torch.stack([dataset[idx] for idx in batch_idx])
-
-            mean_sum += (batch_mris).sum().item()
-            sq_sum += (batch_mris**2).sum().item()
-            num_samples += len(batch_mris)
-
-        mean: float = mean_sum / num_samples
-        std: float = np.sqrt(sq_sum / num_samples - mean**2)
-
-        self.mean = mean
-        self.std = std
-        return self
-
-    def __call__(self, sample: torch.Tensor) -> torch.Tensor:
-        if self.mean is None or self.std is None:
-            raise ValueError("ZScoreNormalize must be fit to a dataset first.")
-
-        normalized_sample = (sample - self.mean) / self.std
-        return normalized_sample
-
-    def denormalize(self, sample: torch.Tensor) -> torch.Tensor:
-        if self.mean is None or self.std is None:
-            raise ValueError("ZScoreNormalize must be fit to a dataset first.")
-
-        denormalized_sample = (sample * self.std) + self.mean
-        return denormalized_sample
-
-    def save(self, path: str):
-        if self.mean is None or self.std is None:
-            raise ValueError("ZScoreNormalize must be fit to a dataset first.")
-
-        with open(path, "w") as f:
-            f.write(f"{self.mean}\n")
-            f.write(f"{self.std}\n")
-
-    @classmethod
-    def load_from_disk(cls, path: str) -> "ZScoreNormalize":
-        try:
-            with open(path, "r") as f:
-                mean = float(f.readline())
-                std = float(f.readline())
-        except FileNotFoundError:
-            # This error is thrown if the file cannot be found
-            raise FileNotFoundError(f"The file at path {path} was not found.")
-        except ValueError:
-            # This error is thrown if the file contents cannot be converted to float
-            raise ValueError(f"The file at path {path} contains invalid data.")
-
-        return cls.from_parameters(mean, std)
-
-    @classmethod
-    def from_parameters(cls, mean: float, std: float) -> "ZScoreNormalize":
-        norm = cls()
-        norm.mean = mean
-        norm.std = std
-        return norm
-
-
 class RemovePercentOutliers(MRITransform):
     def __init__(self, percent: float):
         super().__init__()
         if percent < 0 or percent > 1:
             raise ValueError("percent must be between 0 and 1")
 
-        self.percent = percent * 100.0
+        self.percent = percent
 
     def __call__(self, sample: torch.Tensor) -> torch.Tensor:
-        # abs_sample = np.abs(sample)
-        bound = np.percentile(sample, self.percent)
-        print(f"bound: {bound}")
-        sample[sample > bound] = bound  # type: ignore
-        return sample
+        sample_copy = sample.clone()  # Create a copy of the sample tensor
+        bound = torch.quantile(sample_copy, self.percent, keepdim=True)
+        sample_copy[sample_copy > bound] = (
+            bound  # Modify the copy instead of the original
+        )
+        return sample_copy
 
 
 class RangeNormalize(MRITransform):

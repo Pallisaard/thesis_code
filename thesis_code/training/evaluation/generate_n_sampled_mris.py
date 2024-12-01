@@ -1,5 +1,6 @@
 import argparse
 from itertools import batched
+from pathlib import Path
 
 import nibabel as nib
 import torch
@@ -53,6 +54,9 @@ def main():
 
     print("Generating vectorizer out array")
     mri_vectorizer_out = torch.zeros((args.n_samples, 512))
+
+    if not Path(args.output_dir).exists():
+        Path(args.output_dir).mkdir(parents=True)
 
     outer_bar = tqdm.tqdm(
         batched(range(args.n_samples), args.batch_size),

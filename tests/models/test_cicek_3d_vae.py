@@ -9,7 +9,6 @@ from thesis_code.models.vaes.cicek_3d_vae import (
     ConvDecoderBlock,
     VAE3DDecoder,
     VAE3D,
-    ResNetBlock3D,
 )
 
 
@@ -157,7 +156,7 @@ def test_full_vae_3d(base_shape, device):
     assert not torch.isnan(log_var).any()
 
     # Test loss calculation
-    loss, recon_loss, kld_loss = model.calculate_loss(x, recon_x, mu, log_var, 1)
+    loss, recon_loss, kld_loss, _beta = model.calculate_loss(x, recon_x, mu, log_var, 1)
     assert not torch.isnan(loss).item()
     assert not torch.isnan(recon_loss).item()
     assert not torch.isnan(kld_loss).item()
