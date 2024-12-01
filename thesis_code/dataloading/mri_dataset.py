@@ -5,6 +5,7 @@ import torch
 from torch.utils.data import Dataset
 
 from thesis_code.dataloading.utils import load_nifti
+from thesis_code.dataloading.transforms import MRITransform
 
 
 class MRISingleExampleDataset(Dataset):
@@ -76,3 +77,64 @@ class MRIDataset(Dataset):
 
     def __repr__(self) -> str:
         return f"MRIDataset({self.name}, {self.data_path})"
+
+
+def get_val_dataset(
+    path: str,
+    transforms: MRITransform | None = None,
+    size_limit: int | None = None,
+) -> MRIDataset:
+    test_path = Path(path) / "val"
+    return MRIDataset(
+        test_path,
+        transform=transforms,
+        size_limit=size_limit,
+    )
+
+
+def get_train_dataset(
+    path: str,
+    transform: MRITransform | None = None,
+    size_limit: int | None = None,
+) -> MRIDataset:
+    train_path = Path(path) / "train"
+    return MRIDataset(
+        train_path,
+        transform=transform,
+        size_limit=size_limit,
+    )
+
+
+def get_test_dataset(
+    path: str,
+    transform: MRITransform | None = None,
+    size_limit: int | None = None,
+) -> MRIDataset:
+    train_path = Path(path) / "test"
+    return MRIDataset(
+        train_path,
+        transform=transform,
+        size_limit=size_limit,
+    )
+
+
+def get_mri_dataset(
+    path: str,
+    transform: MRITransform | None = None,
+    size_limit: int | None = None,
+) -> MRIDataset:
+    return MRIDataset(
+        path,
+        transform=transform,
+        size_limit=size_limit,
+    )
+
+
+def get_single_example_dataset(
+    mri: torch.Tensor,
+    transform: MRITransform | None = None,
+) -> MRISingleExampleDataset:
+    return MRISingleExampleDataset(
+        mri=mri,
+        transform=transform,
+    )
