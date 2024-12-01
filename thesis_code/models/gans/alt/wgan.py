@@ -2,8 +2,6 @@ import torch
 import torch.nn as nn
 import pytorch_lightning as L
 
-from thesis_code.dataloading.mri_sample import MRISample
-
 
 class LitWGAN(L.LightningModule):
     """WGAN without gradient policy."""
@@ -45,8 +43,8 @@ class LitWGAN(L.LightningModule):
         # We want to maximize the critic loss on fake data, so we minimize the negative of it
         return -self.critic(fake_data).mean()
 
-    def training_step(self, batch: MRISample, batch_idx):
-        real_data = batch["image"]
+    def training_step(self, batch: torch.Tensor, batch_idx):
+        real_data = batch
         batch_size = real_data.size(0)
 
         critic_loss = None

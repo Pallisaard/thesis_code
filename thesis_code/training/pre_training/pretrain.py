@@ -1,5 +1,5 @@
 import argparse
-from typing import Literal
+from typing import Literal, Optional
 
 import torch
 from lightning.pytorch.trainer import Trainer
@@ -8,89 +8,22 @@ from torchsummary import summary
 
 # from models import VAE3DLightningModule
 from thesis_code.models.vaes import LitVAE3D
-from thesis_code.models.gans.kwon_gan import LitKwonGan
-from thesis_code.dataloading.mri_datamodule import MRIDataModule
+from thesis_code.models.gans.alt.kwon_gan import LitKwonGan
+from thesis_code.models.gans.hagan.hagan import HAGAN
+from thesis_code.dataloading.mri_datamodule import MRIDataModule, MRIAllTrainDataModule
 from thesis_code.dataloading.transforms import (
     MRITransform,
     Compose,
     Resize,
     ZScoreNormalize,
     RangeNormalize,
+    RemovePercentOutliers,
 )
 from thesis_code.training.callbacks.callbacks import (
     get_checkpoint_callback,
     get_summary_callback,
     get_progress_bar_callback,
 )
-
-MODEL_NAME = Literal["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan"]
-
-
-def get_specific_model(
-    model_class, checkpoint_path: str | None = None, model_kwargs={}
-) -> L.LightningModule:
-    if checkpoint_path is not None:
-        return model_class.load_from_checkpoint(checkpoint_path)
-    return model_class(**model_kwargs)
-
-
-def get_model(
-    model_name: MODEL_NAME, latent_dim: int, checkpoint_path: str | None
-) -> L.LightningModule:
-    if model_name == "cicek_3d_vae_256":
-        return get_specific_model(
-            LitVAE3D,
-            checkpoint_path=checkpoint_path,
-            model_kwargs=dict(
-                in_shape=(1, 256, 256, 256),
-                encoder_out_channels_per_block=[8, 16, 32, 64],
-                decoder_out_channels_per_block=[64, 64, 16, 8, 1],
-                latent_dim=latent_dim,
-            ),
-        )
-    elif model_name == "cicek_3d_vae_64":
-        return get_specific_model(
-            LitVAE3D,
-            checkpoint_path=checkpoint_path,
-            model_kwargs=dict(
-                in_shape=(1, 64, 64, 64),
-                encoder_out_channels_per_block=[16, 32, 64],
-                decoder_out_channels_per_block=[64, 32, 16, 1],
-                latent_dim=latent_dim,
-            ),
-        )
-    elif model_name == "kwon_gan":
-        return get_specific_model(
-            LitKwonGan,
-            checkpoint_path=checkpoint_path,
-            model_kwargs=dict(
-                generator=None,
-                critic=None,
-                code_critic=None,
-                encoder=None,
-                lambda_grad_policy=10.0,
-                n_critic_steps=5,
-                lambda_recon=1.0,
-            ),
-        )
-    else:
-        raise ValueError(f"Model name {model_name} not recognized")
-
-
-def get_datamodule(
-    data_path: str,
-    batch_size: int,
-    num_workers: int,
-    transform: MRITransform,
-    size_limit: int | None,
-) -> MRIDataModule:
-    return MRIDataModule(
-        data_path=data_path,
-        batch_size=batch_size,
-        num_workers=num_workers,
-        transform=transform,
-        size_limit=size_limit,
-    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -100,7 +33,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model-name",
         required=True,
-        choices=["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan"],
+        choices=["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan", "hagan"],
         help="Name of the model to train",
     )
     parser.add_argument(
@@ -109,10 +42,28 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--data-path", type=str, required=True, help="Path to the data directory"
     )
+    parser.add_argument(
+        "--use-all-data-for-training",
+        action="store_true",
+        help="Use all data for training",
+    )
+
+    # HAGAN arguments.
+    parser.add_argument(
+        "--lambda-1", type=float, default=1.0, help="Lambda 1 for HAGAN"
+    )
+    parser.add_argument(
+        "--lambda-2", type=float, default=1.0, help="Lambda 2 for HAGAN"
+    )
 
     # Data module arguments.
     parser.add_argument(
         "--batch-size", type=int, default=8, help="Batch size for training"
+    )
+    parser.add_argument(
+        "--strip-skulls",
+        action="store_true",
+        help="Whether to strip skulls from MRI images during preprocessing",
     )
     parser.add_argument(
         "--num-workers", type=int, default=0, help="Number of workers for data loader"
@@ -124,7 +75,7 @@ def parse_args() -> argparse.Namespace:
         nargs="+",
         default=[],
         help="List of transforms to apply to the data",
-        choices=["resize", "z-normalize", "range-normalize"],
+        choices=["resize", "z-normalize", "range-normalize", "remove-percent-outliers"],
     )
     # Resize transform arguments.
     parser.add_argument(
@@ -153,7 +104,12 @@ def parse_args() -> argparse.Namespace:
         default=1,
         help="If using RangeNormalize transform, the maximum of the normalization range.",
     )
-
+    parser.add_argument(
+        "--outlier-percentile",
+        type=float,
+        default=0.01,
+        help="Percentile of outliers to remove from data",
+    )
     # Lightning arguments.
     parser.add_argument(
         "--accelerator",
@@ -180,8 +136,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-epochs",
         type=int,
-        default=100,
+        default=-1,
         help="Maximum number of epochs to train for.",
+    )
+    parser.add_argument(
+        "--max-steps",
+        type=int,
+        default=-1,
+        help="Maximum number of steps to train for.",
     )
     parser.add_argument(
         "--max-time",
@@ -227,12 +189,111 @@ def parse_args() -> argparse.Namespace:
         help="Path to load model from checkpoint. Default None will initialize a new model.",
     )
     parser.add_argument(
+        "--default-root-dir",
+        type=str,
+        default=None,
+        help="Path to save logs and checkpoints.",
+    )
+    parser.add_argument(
         "--log-every-n-steps",
         type=int,
-        default=50,
+        default=25,
         help="Log every n steps during training.",
     )
     return parser.parse_args()
+
+
+MODEL_NAME = Literal["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan", "hagan"]
+
+
+def get_specific_model(
+    model_class, checkpoint_path: str | None = None, model_kwargs={}
+) -> L.LightningModule:
+    if checkpoint_path is not None:
+        return model_class.load_from_checkpoint(checkpoint_path)
+    return model_class(**model_kwargs)
+
+
+def get_model(
+    model_name: MODEL_NAME,
+    latent_dim: int,
+    checkpoint_path: str | None,
+    args: argparse.Namespace,
+) -> L.LightningModule:
+    if model_name == "cicek_3d_vae_256":
+        return get_specific_model(
+            LitVAE3D,
+            checkpoint_path=checkpoint_path,
+            model_kwargs=dict(
+                in_shape=(1, 256, 256, 256),
+                encoder_out_channels_per_block=[8, 16, 32, 64],
+                decoder_out_channels_per_block=[64, 64, 16, 8, 1],
+                latent_dim=latent_dim,
+                beta_annealing=["monotonic"],
+                max_beta=4.0,
+                warmup_epochs=25,
+            ),
+        )
+    elif model_name == "cicek_3d_vae_64":
+        return get_specific_model(
+            LitVAE3D,
+            checkpoint_path=checkpoint_path,
+            model_kwargs=dict(
+                in_shape=(1, 64, 64, 64),
+                encoder_out_channels_per_block=[16, 32, 64],
+                decoder_out_channels_per_block=[64, 32, 16, 1],
+                latent_dim=latent_dim,
+            ),
+        )
+    elif model_name == "kwon_gan":
+        return get_specific_model(
+            LitKwonGan,
+            checkpoint_path=checkpoint_path,
+            model_kwargs=dict(
+                generator=None,
+                critic=None,
+                code_critic=None,
+                encoder=None,
+                lambda_grad_policy=10.0,
+                n_critic_steps=5,
+                lambda_recon=1.0,
+            ),
+        )
+    elif model_name == "hagan":
+        return get_specific_model(
+            HAGAN,
+            checkpoint_path=checkpoint_path,
+            model_kwargs=dict(
+                latent_dim=latent_dim, lambda_1=args.lambda_1, lambda_2=args.lambda_2
+            ),
+        )
+    else:
+        raise ValueError(f"Model name {model_name} not recognized")
+
+
+def get_datamodule(
+    data_path: str,
+    batch_size: int,
+    num_workers: int,
+    transform: Optional[MRITransform],
+    size_limit: Optional[int],
+    use_all_data_for_training: bool = False,
+) -> MRIDataModule | MRIAllTrainDataModule:
+    if use_all_data_for_training:
+        return MRIAllTrainDataModule(
+            data_path=data_path,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            transform=transform,
+            size_limit=size_limit,
+        )
+    return MRIDataModule(
+        data_path=data_path,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        transform=transform,
+        size_limit=size_limit,
+    )
 
 
 def check_args(args: argparse.Namespace):
@@ -244,15 +305,22 @@ def check_args(args: argparse.Namespace):
         )
 
 
-def get_transforms(args: argparse.Namespace) -> MRITransform:
-    transforms = []
-    if "resize" in args.transforms:
-        transforms.append(Resize(size=args.resize_size))
-    if "z-normalize" in args.transforms:
-        zscore_normalize = ZScoreNormalize.load_from_disk(args.normalize_dir)
-        transforms.append(zscore_normalize)
-    if "range-normalize" in args.transforms:
-        transforms.append(RangeNormalize(args.normalize_min, args.normalize_max))
+def get_transforms(args: argparse.Namespace) -> Optional[MRITransform]:
+    transforms: list[MRITransform] = []
+    for transform in args.transforms:
+        if transform == "resize":
+            transforms.append(Resize(size=args.resize_size))
+        elif transform == "z-normalize":
+            zscore_normalize = ZScoreNormalize.load_from_disk(args.normalize_dir)
+            transforms.append(zscore_normalize)
+        elif transform == "range-normalize":
+            transforms.append(RangeNormalize(args.normalize_min, args.normalize_max))
+        elif transform == "remove-percent-outliers":
+            transforms.append(RemovePercentOutliers(args.outlier_percentile))
+        else:
+            raise ValueError(f"Transform {transform} not recognized")
+    if transforms == []:
+        return None
     return Compose(transforms)
 
 
@@ -286,7 +354,7 @@ def main():
     )
 
     print("Creating model")
-    model = get_model(args.model_name, args.latent_dim, args.load_from_checkpoint)
+    model = get_model(args.model_name, args.latent_dim, None, args)
 
     print("Creating datamodule")
     transform = get_transforms(args)
@@ -298,6 +366,11 @@ def main():
         size_limit=100 if args.fast_dev_run else None,
     )
 
+    print("transforms:", transform)
+
+    callbacks = get_callbacks_from_args(args)
+    print("callbacks:", callbacks)
+
     print("Creating trainer")
     trainer = Trainer(
         log_every_n_steps=args.log_every_n_steps,
@@ -306,13 +379,14 @@ def main():
         devices=args.devices,
         fast_dev_run=args.fast_dev_run,
         max_epochs=args.max_epochs,
+        max_steps=args.max_steps,
         max_time=args.max_time,
-        callbacks=get_callbacks_from_args(args),
-        limit_train_batches=0.05,
+        callbacks=callbacks,
+        default_root_dir=args.default_root_dir,
     )
 
     print("Fitting model")
-    trainer.fit(model, datamodule=data_module)
+    trainer.fit(model, datamodule=data_module, ckpt_path=args.load_from_checkpoint)
     # trainer.print(torch.cuda.memory_summary())
 
     print("Testing model")
