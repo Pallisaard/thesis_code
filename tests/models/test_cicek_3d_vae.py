@@ -2,13 +2,14 @@ from functools import reduce
 import pytest
 import torch
 
-from models.cicek_3d_vae import (
+from thesis_code.models.vaes.cicek_3d_vae import (
     ConvUnit,
     ConvEncoderBlock,
     VAE3DEncoder,
     ConvDecoderBlock,
     VAE3DDecoder,
     VAE3D,
+    ResNetBlock3D,
 )
 
 
@@ -156,7 +157,29 @@ def test_full_vae_3d(base_shape, device):
     assert not torch.isnan(log_var).any()
 
     # Test loss calculation
-    loss, recon_loss, kld_loss = model.calculate_loss(x, recon_x, mu, log_var)
+    loss, recon_loss, kld_loss = model.calculate_loss(x, recon_x, mu, log_var, 1)
     assert not torch.isnan(loss).item()
     assert not torch.isnan(recon_loss).item()
     assert not torch.isnan(kld_loss).item()
+
+
+# @pytest.fixture
+# def resnet_block_input_shape():
+#     # Batch size of 2, 16 channels, 32x32x32 volume
+#     return (2, 16, 32, 32, 32)
+
+
+# def test_resnet_block_3d(resnet_block_input_shape, device):
+#     in_channels = 16
+#     out_channels = 32
+#     stride = 1
+
+#     model = ResNetBlock3D(in_channels, out_channels, stride=stride).to(device)
+#     x = torch.randn(*resnet_block_input_shape).to(device)
+
+#     output = model(x)
+#     expected_shape = (2, out_channels, 32, 32, 32)
+
+#     assert isinstance(output, torch.Tensor)
+#     assert output.shape == expected_shape
+#     assert not torch.isnan(output).any()
