@@ -326,7 +326,8 @@ def compute_sub_e_loss(
     crop_idx: int,
     lambda_2: float,
 ):
-    z_hat = Sub_E(encode_to_small(E, real_images_crop))
+    h_sub = encode_to_small(E, real_images)
+    z_hat = Sub_E(h_sub)
     sub_x_hat_rec, sub_x_hat_rec_small = G(z_hat, crop_idx=crop_idx)
     sub_e_loss = (
         lambda_2
