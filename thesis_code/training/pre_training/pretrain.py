@@ -9,7 +9,7 @@ from torchsummary import summary
 # from models import VAE3DLightningModule
 from thesis_code.models.vaes import LitVAE3D
 from thesis_code.models.gans.alt.kwon_gan import LitKwonGan
-from thesis_code.models.gans.hagan.hagan import HAGAN
+from thesis_code.models.gans import LitHAGAN
 from thesis_code.dataloading.mri_datamodule import MRIDataModule, MRIAllTrainDataModule
 from thesis_code.dataloading.transforms import (
     MRITransform,
@@ -261,7 +261,7 @@ def get_model(
         )
     elif model_name == "hagan":
         return get_specific_model(
-            HAGAN,
+            LitHAGAN,
             checkpoint_path=checkpoint_path,
             model_kwargs=dict(
                 latent_dim=latent_dim, lambda_1=args.lambda_1, lambda_2=args.lambda_2
