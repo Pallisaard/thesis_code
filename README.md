@@ -28,31 +28,31 @@ This assumes that at least 1 A100 is available on the slurm cluster. If this is 
 
 inside the `thesis_code` folder, the following subfolders are present:
 
-### `thesis_code/dataloading`
+### [thesis_code/dataloading](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/dataloading)
 
 Contains scripts and modules for loading and preprocessing MRI datasets.
 
-### `thesis_code/fastsurfer`
+### [thesis_code/fastsurfer](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/fastsurfer)
 
 Includes scripts for running FastSurfer, a tool for processing MRI scans.
 
-### `thesis_code/metrics`
+### [thesis_code/metrics](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/metrics)
 
 Contains modules for calculating various metrics used in model evaluation.
 
-### `thesis_code/models`
+### [thesis_code/models](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/models)
 
 Includes the implementation of different deep learning models used in the project.
 
-### `thesis_code/scripts`
+### [thesis_code/scripts](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/scripts)
 
 Contains various utility scripts for data processing and other tasks.
 
-### `thesis_code/training`
+### [thesis_code/training](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/training)
 
 Includes scripts and modules for training and fine-tuning the models
 
-## `thesis_code/evaluation`
+## [thesis_code/evaluation](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/evalutation)
 
 Includes scripts and notebooks for evaluating the models.
 
