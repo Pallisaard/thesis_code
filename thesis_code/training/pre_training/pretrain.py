@@ -7,7 +7,7 @@ import lightning as L
 
 # from models import VAE3DLightningModule
 from thesis_code.models.vaes import LitVAE3D
-from thesis_code.models.gans.alt.kwon_gan import LitKwonGan
+from thesis_code.models.unused_models.alt.kwon_gan import LitKwonGan
 from thesis_code.models.gans import LitHAGAN
 from thesis_code.dataloading.mri_datamodule import MRIDataModule, MRIAllTrainDataModule
 from thesis_code.dataloading.transforms import (
