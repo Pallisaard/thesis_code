@@ -52,7 +52,7 @@ Contains various utility scripts for data processing and other tasks.
 
 Includes scripts and modules for training and fine-tuning the models. Pre-training is done and fine-tuning using DP will we written in the next week or so.
 
-## [thesis_code/evaluation](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/evalutation)
+### [thesis_code/evaluation](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/evalutation)
 
 Includes scripts and notebooks for evaluating the models.
 
