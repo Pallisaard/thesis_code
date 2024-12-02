@@ -13,7 +13,7 @@ module load gcc/13.2.0
 cd ~/projects/thesis/thesis-code
 source .venv/bin/activate
 
-python -m thesis_code.training.evaluation.vectorize_test_dataset --data-dir ../data/pre-training/brain-masked/train \
+python -m thesis_code.evaluation.vectorize_test_dataset --data-dir ../data/pre-training/brain-masked/train \
                 --output-dir ../torch-output/pretrain-eval/'true-examples' \
                 --device 'cuda' \
                 --test-size 512 \

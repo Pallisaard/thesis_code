@@ -13,7 +13,7 @@ module load gcc/13.2.0
 cd ~/projects/thesis/thesis-code
 source .venv/bin/activate
 
-python -m thesis_code.training.evaluation.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-5 \
+python -m thesis_code.evaluation.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-5 \
                 --n-samples 512 \
                 --checkpoint-path ../checkpoints/pretrain/HAGAN_lambda_5.ckpt \
                 --device 'cuda' \
