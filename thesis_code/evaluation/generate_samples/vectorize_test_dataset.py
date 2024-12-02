@@ -57,7 +57,7 @@ def main():
         all_niis = all_niis[:test_size]
 
     print("Generating vectorizer out array")
-    mri_vectorizer_out = torch.zeros((test_size, 512))
+    mri_vectorizer_out = torch.zeros((test_size, 2048))
 
     inner_bar = tqdm.tqdm(
         enumerate(all_niis),
@@ -80,7 +80,7 @@ def main():
                 mri_vectorizer(inputs).detach().cpu().squeeze(0).squeeze(0)
             )
 
-    np.save(f"{args.output_dir}/mri_vectorizer_out.npy", mri_vectorizer_out)
+    np.save(f"{args.output_dir}/mri_vectorizer_2048_out.npy", mri_vectorizer_out)
 
 
 if __name__ == "__main__":
