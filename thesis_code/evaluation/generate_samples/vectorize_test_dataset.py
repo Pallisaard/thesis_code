@@ -21,7 +21,12 @@ def pars_args():
         "--test-size",
         type=int,
         help="Number of samples in the test dataset.",
-        default=200,
+        default=None,
+    )
+    parser.add_argument(
+        "--make-filename-file",
+        action="store_true",
+        help="Make a file with the filenames of the samples",
     )
 
     return parser.parse_args()
@@ -32,10 +37,7 @@ def main():
 
     # Load model
     print("Loading MRI vectorizer")
-    mri_vectorizer = get_mri_vectorizer(10).eval().to(args.device)
-
-    print("Generating vectorizer out array")
-    mri_vectorizer_out = torch.zeros((args.test_size, 512))
+    mri_vectorizer = get_mri_vectorizer(50).eval().to(args.device)
 
     if not Path(args.output_dir).exists():
         Path(args.output_dir).mkdir(parents=True)
@@ -43,9 +45,19 @@ def main():
     if not Path(args.data_dir).exists():
         raise ValueError(f"Data directory {args.data_dir} does not exist")
 
-    all_niis = list(Path(args.data_dir).glob("*.nii.gz"))
-    if len(all_niis) > args.test_size:
-        all_niis = all_niis[: args.test_size]
+    all_niis = list(Path(args.data_dir).rglob("*.nii.gz"))
+    test_size = len(all_niis) if args.test_size is None else args.test_size
+
+    if args.make_filename_file:
+        with open(f"{args.output_dir}/filenames.txt", "w") as f:
+            for nii_path in all_niis:
+                f.write(f"{nii_path}\n")
+
+    if len(all_niis) > test_size:
+        all_niis = all_niis[:test_size]
+
+    print("Generating vectorizer out array")
+    mri_vectorizer_out = torch.zeros((test_size, 512))
 
     inner_bar = tqdm.tqdm(
         enumerate(all_niis),
