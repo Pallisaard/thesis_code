@@ -9,6 +9,12 @@ from thesis_code.dataloading.transforms import MRITransform
 
 
 class MRISingleExampleDataset(Dataset):
+    """
+    A dataset that contains a single MRI example. Used for validation when only
+    a single example is needed, such as when using it to generate end of epoch
+    examples.
+    """
+
     def __init__(
         self,
         mri: torch.Tensor,
@@ -20,7 +26,7 @@ class MRISingleExampleDataset(Dataset):
     def __len__(self) -> int:
         return 1
 
-    def __getitem__(self, idx: int) -> torch.Tensor:
+    def __getitem__(self, _idx: int) -> torch.Tensor:
         sample = self.mri
 
         if self.transform is not None:
@@ -35,23 +41,13 @@ class MRIDataset(Dataset):
         data_path: str | Path,
         transform: Callable[[torch.Tensor], torch.Tensor] | None = None,
         size_limit: int | None = None,
-        strip_skulls: bool = False,
     ):
         self.data_path: Path = Path(data_path)
         self.name: str = self.data_path.name
         self.transform = transform
         self.size_limit = size_limit
-        self.strip_skulls = strip_skulls
 
         self.samples: list[Path] = self._load_dataset(self.data_path)
-
-    def get_brain_mask(self, brain_mask_path: Path) -> torch.Tensor:
-        return load_nifti(self.data_path / brain_mask_path)
-
-    def apply_brain_mask(
-        self, mri: torch.Tensor, brain_mask: torch.Tensor
-    ) -> torch.Tensor:
-        return mri * brain_mask
 
     def _load_dataset(self, data_path: Path) -> list[Path]:
         if not data_path.exists():
@@ -84,6 +80,9 @@ def get_val_dataset(
     transforms: MRITransform | None = None,
     size_limit: int | None = None,
 ) -> MRIDataset:
+    """
+    Returns the dataset at path/val
+    """
     test_path = Path(path) / "val"
     return MRIDataset(
         test_path,
@@ -97,6 +96,9 @@ def get_train_dataset(
     transform: MRITransform | None = None,
     size_limit: int | None = None,
 ) -> MRIDataset:
+    """
+    Returns the dataset at path/train
+    """
     train_path = Path(path) / "train"
     return MRIDataset(
         train_path,
@@ -110,6 +112,9 @@ def get_test_dataset(
     transform: MRITransform | None = None,
     size_limit: int | None = None,
 ) -> MRIDataset:
+    """
+    Returns the dataset at path/test
+    """
     train_path = Path(path) / "test"
     return MRIDataset(
         train_path,
@@ -123,6 +128,9 @@ def get_mri_dataset(
     transform: MRITransform | None = None,
     size_limit: int | None = None,
 ) -> MRIDataset:
+    """
+    Returns the dataset at path
+    """
     return MRIDataset(
         path,
         transform=transform,
