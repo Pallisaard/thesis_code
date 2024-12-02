@@ -5,7 +5,7 @@ import numpy as np
 import nibabel as nib
 
 from thesis_code.models.vaes import LitVAE3D
-from thesis_code.models.gans.alt.kwon_gan import LitKwonGan
+from thesis_code.models.unused_models.alt.kwon_gan import LitKwonGan
 
 
 MODEL_NAME = Literal["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan"]
