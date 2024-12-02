@@ -18,7 +18,7 @@ class MRISingleExampleDataset(Dataset):
     def __init__(
         self,
         mri: torch.Tensor,
-        transform: Callable[[torch.Tensor], torch.Tensor] | None = None,
+        transform: MRITransform | None = None,
     ):
         self.mri = mri
         self.transform = transform
@@ -39,7 +39,7 @@ class MRIDataset(Dataset):
     def __init__(
         self,
         data_path: str | Path,
-        transform: Callable[[torch.Tensor], torch.Tensor] | None = None,
+        transform: MRITransform | None = None,
         size_limit: int | None = None,
     ):
         self.data_path: Path = Path(data_path)
