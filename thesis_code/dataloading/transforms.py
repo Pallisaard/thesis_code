@@ -11,9 +11,18 @@ class MRITransform(ABC):
         self.indent = 0
 
     @abstractmethod
-    def __call__(self, sample: torch.Tensor) -> torch.Tensor: ...
+    def __call__(self, sample: torch.Tensor) -> torch.Tensor:
+        """
+        Sample should be of shape (C, D, H, W)
+        """
+        ...
 
     def __repr__(self) -> str:
+        """
+        Defines a standard way to represent the transform as a string.
+
+        Usually in the form of MRITransformName(arg1=val1, arg2=val2, ...)
+        """
         return (
             self.__class__.__name__
             + "("
@@ -39,6 +48,9 @@ class Compose(MRITransform):
         return sample
 
     def __repr__(self) -> str:
+        """
+        Overwrites the default repr to print a composition of transforms.
+        """
         indentation = " " * self.indent
         return (
             self.__class__.__name__

@@ -11,6 +11,10 @@ from thesis_code.dataloading.transforms import MRITransform
 
 
 class MRIDataModule(L.LightningDataModule):
+    """
+    Data Module that uses the standard train/val/test split defined using the data collection script.
+    """
+
     def __init__(
         self,
         data_path: str = "./data",
@@ -78,6 +82,10 @@ class MRIDataModule(L.LightningDataModule):
 
 
 class MRIAllTrainDataModule(L.LightningDataModule):
+    """
+    Data Module for training on all data. Uses validation data for validation.
+    """
+
     def __init__(
         self,
         data_path: str = "./data",

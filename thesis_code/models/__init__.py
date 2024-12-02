@@ -1,5 +1,23 @@
 from .vaes import LitVAE3D
-from .gans import LitKwonGan
-from .medical_net import ResNet, resnet50
+from .unused_models import (
+    ResNet,
+    resnet50,
+    LitKwonGan,
+    LitAlphaGAN,
+    LitWGANGP,
+    LitWGAN,
+    LitGAN,
+)
 
-__all__ = ["LitVAE3D", "LitKwonGan", "ResNet", "resnet50"]
+
+__all__ = [
+    "LitVAE3D",
+    "LitKwonGan",
+    "ResNet",
+    "resnet50",
+    "LitAlphaGAN",
+    "LitWGANGP",
+    "LitWGAN",
+    "LitGAN",
+    "LitKwonGan",
+]
