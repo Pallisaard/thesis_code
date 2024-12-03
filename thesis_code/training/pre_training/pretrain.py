@@ -47,13 +47,7 @@ def parse_args() -> argparse.Namespace:
     )
 
     # HAGAN arguments.
-    parser.add_argument(
-        "--lambda-1", type=float, default=1.0, help="Lambda 1 for HAGAN"
-    )
-    parser.add_argument(
-        "--lambda-2", type=float, default=1.0, help="Lambda 2 for HAGAN"
-    )
-
+    parser.add_argument("--lambdas", type=float, default=1.0, help="Lambdas for HAGAN")
     # Data module arguments.
     parser.add_argument(
         "--batch-size", type=int, default=8, help="Batch size for training"
@@ -262,7 +256,7 @@ def get_model(
             LitHAGAN,
             checkpoint_path=checkpoint_path,
             model_kwargs=dict(
-                latent_dim=latent_dim, lambda_1=args.lambda_1, lambda_2=args.lambda_2
+                latent_dim=latent_dim, lambda_1=args.lambdas, lambda_2=args.lambdas
             ),
         )
     else:

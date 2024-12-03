@@ -36,8 +36,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --save-last \
                 --log-every-n-steps 25 \
                 --max-steps 640000 \
-                --lambda-1 5.0 \
-                --lambda-2 5.0 \
+                --lambdas 5.0 \
                 # --fast-dev-run \
 
 # echo time at end
