@@ -64,7 +64,8 @@ def main():
         all_niis = all_niis[:test_size]
 
     print("Generating vectorizer out array")
-    mri_vectorizer_out = torch.zeros((test_size, 2048))
+    vectorizer_dim_size = 2048 if args.vectorizer_size == 50 else 512
+    mri_vectorizer_out = torch.zeros((test_size, vectorizer_dim_size))
 
     inner_bar = tqdm.tqdm(
         enumerate(all_niis),
