@@ -17,5 +17,5 @@ python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --outp
                 --n-samples 512 \
                 --checkpoint-path ../checkpoints/pretrain/HAGAN_lambda_1.ckpt \
                 --device 'cuda' \
-                --lambdas 5 \
+                --lambdas 1 \
                 --batch-size 2 \
