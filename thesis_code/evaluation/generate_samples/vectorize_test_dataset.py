@@ -28,6 +28,13 @@ def pars_args():
         action="store_true",
         help="Make a file with the filenames of the samples",
     )
+    parser.add_argument(
+        "--out-vectorizer-name",
+        type=str,
+        help="Name of the output vectorizer file",
+        default="mri_vectorizer_out.npy",
+    )
+    parser.add_argument("--vectorizer-size", choices=[10, 50], default=50, type=int)
 
     return parser.parse_args()
 
@@ -37,7 +44,7 @@ def main():
 
     # Load model
     print("Loading MRI vectorizer")
-    mri_vectorizer = get_mri_vectorizer(50).eval().to(args.device)
+    mri_vectorizer = get_mri_vectorizer(args.vectorizer_size).eval().to(args.device)
 
     if not Path(args.output_dir).exists():
         Path(args.output_dir).mkdir(parents=True)
@@ -80,7 +87,13 @@ def main():
                 mri_vectorizer(inputs).detach().cpu().squeeze(0).squeeze(0)
             )
 
-    np.save(f"{args.output_dir}/mri_vectorizer_2048_out.npy", mri_vectorizer_out)
+    out_vectorizer_name = (
+        args.out_vectorizer_name + ".npy"
+        if not args.out_vectorizer_name.endswith(".npy")
+        else ""
+    )
+
+    np.save(str(Path(args.output_dir) / out_vectorizer_name), mri_vectorizer_out)
 
 
 if __name__ == "__main__":

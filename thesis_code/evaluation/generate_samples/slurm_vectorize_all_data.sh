@@ -17,3 +17,5 @@ python -m thesis_code.evaluation.generate_samples.vectorize_test_dataset --data-
                 --output-dir ../torch-output/pretrain-eval/'true-examples-all' \
                 --make-filename-file \
                 --device 'cuda' \
+                --out-vectorizer-name mri_vectorizer_all_512_out.npy \
+                --vectorizer-size 10 \
