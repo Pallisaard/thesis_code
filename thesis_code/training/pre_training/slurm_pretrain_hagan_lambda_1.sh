@@ -33,7 +33,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --callbacks 'checkpoint' \
                 --save-top-k 3 \
                 --save-last \
-                --log-every-n-steps 25 \
+                --log-every-n-steps 50 \
                 --max-steps 320000 \
                 --lambdas 1.0 \
                 # --fast-dev-run \
