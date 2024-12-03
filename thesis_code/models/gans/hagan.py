@@ -237,6 +237,15 @@ class LitHAGAN(L.LightningModule):
         total_loss = d_loss + g_loss + e_loss + sub_e_loss
         self.log("val_total_loss", total_loss, logger=True, sync_dist=True)
 
+        # Logging accuracy of discriminator with respect to cropped and small images simultaneously
+        d_true_labels = self.D(real_images_crop, real_images_small, crop_idx)
+        fake_crop, fake_small = self.G(noise, crop_idx=crop_idx)
+        d_fake_labels = self.D(fake_crop, fake_small, crop_idx)
+        d_true_accuracy = torch.mean(d_true_labels)
+        d_fake_accuracy = 1 - torch.mean(d_fake_labels)
+        d_accuracy = (d_true_accuracy + d_fake_accuracy) / 2.0
+        self.log("val_d_accuracy", d_accuracy, logger=True, sync_dist=True)
+
         # self.log("val_ssim_score", ssim_score, logger=True, sync_dist=True)
 
         # Log elapsed time

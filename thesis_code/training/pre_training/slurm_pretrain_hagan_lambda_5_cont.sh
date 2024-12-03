@@ -25,6 +25,7 @@ echo "start time: $(date)"
 python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
                 --data-path ../data/pre-training/brain-masked \
+                --load-from-checkpoint lightning/checkpoints/hagan_1/last.ckpt \
                 --use-all-data-for-training \
                 --batch-size 4 \
                 --num-workers 8 \
@@ -34,7 +35,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --save-top-k 3 \
                 --save-last \
                 --log-every-n-steps 25 \
-                --max-steps 320000 \
+                --max-steps 640000 \
                 --lambda-1 5.0 \
                 --lambda-2 5.0 \
                 # --fast-dev-run \

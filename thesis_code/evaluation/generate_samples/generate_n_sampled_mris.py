@@ -42,7 +42,7 @@ def main():
 
     # Load model
     print("Loading MRI vectorizer")
-    mri_vectorizer = get_mri_vectorizer(10).eval().to(args.device)
+    mri_vectorizer = get_mri_vectorizer(50).eval().to(args.device)
     print("Loading model")
     model = (
         LitHAGAN.load_from_checkpoint(
