@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=pretrain_lambda_5
+#SBATCH --job-name=pretrain_hagan_lambda_5
 #SBATCH --output=slurm_pretrain_hagan_l5-%j.out # Name of output file
 #SBATCH --error=slurm_pretrain_hagan_l5-%j.err # Name of error file
 #SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
