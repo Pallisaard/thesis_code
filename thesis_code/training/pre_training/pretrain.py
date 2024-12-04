@@ -353,6 +353,7 @@ def main():
         args.num_workers,
         transform=transform,
         size_limit=100 if args.fast_dev_run else None,
+        use_all_data_for_training=args.use_all_data_for_training,
     )
 
     print("transforms:", transform)
