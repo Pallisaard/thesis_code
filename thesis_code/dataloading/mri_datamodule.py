@@ -128,3 +128,11 @@ class MRIAllTrainDataModule(L.LightningDataModule):
             shuffle=shuffle,
             num_workers=self.num_workers,
         )
+
+    def val_dataloader(self) -> DataLoader:
+        return DataLoader(
+            self.mri_val,
+            batch_size=self.batch_size,
+            shuffle=False,
+            num_workers=self.num_workers,
+        )
