@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=pretrain_lambda_5
-#SBATCH --output=slurm_pretrain_hagan_l5-%j.out # Name of output file
-#SBATCH --error=slurm_pretrain_hagan_l5-%j.err # Name of error file
+#SBATCH --job-name=cont_pretrain_lambda_5_320k
+#SBATCH --output=slurm_cont_pretrain_lambda_5_320k-%j.out # Name of output file
+#SBATCH --error=slurm_cont_pretrain_lambda_5_320k-%j.err # Name of error file
 #SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
 #SBATCH --mem=16G        # Memory request
@@ -25,7 +25,7 @@ echo "start time: $(date)"
 python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
                 --data-path ../data/pre-training/brain-masked \
-                --load-from-checkpoint ../checkpoints/pretrained/lambda-5/hagan_l5_640k.ckpt \
+                --load-from-checkpoint ../checkpoints/pretrained/hagan_l5_320k.ckpt \
                 --use-all-data-for-training \
                 --batch-size 4 \
                 --num-workers 8 \
@@ -35,7 +35,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --save-top-k 3 \
                 --save-last \
                 --log-every-n-steps 50 \
-                --max-steps 1280000 \
+                --max-steps 640000 \
                 --lambdas 5.0 \
                 # --fast-dev-run \
 
