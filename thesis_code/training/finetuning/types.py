@@ -24,6 +24,7 @@ class TrainMetrics:
     g_loss: list[float] = []
     e_loss: list[float] = []
     sub_e_loss: list[float] = []
+    total_loss: list[float] = []
     epsilon: list[float] = []
 
     def to_dict(self) -> dict[str, list[float]]:
@@ -32,6 +33,7 @@ class TrainMetrics:
             "g_loss": self.g_loss,
             "e_loss": self.e_loss,
             "sub_e_loss": self.sub_e_loss,
+            "total_loss": self.total_loss,
             "epsilon": self.epsilon,
         }
 
