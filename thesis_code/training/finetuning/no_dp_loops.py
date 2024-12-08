@@ -297,6 +297,16 @@ def no_dp_training_loop_for_n_steps(
     n_steps: int,
     checkpoint_path: str = "dp_training/checkpoints",
 ) -> NoDPState:
+    """
+    use the following n_steps for convertions to some epsilon:
+
+    ```
+    e=1.0 => n_steps=1
+    e=2.0 => n_steps=3950,
+    e=5.0 => n_steps=20573,
+    e=1.0 => n_steps=74368
+    ```
+    """
     data_iter = iter(dataloaders.train)
     while state.training_stats.step < n_steps:
         state.training_stats.step += 1
