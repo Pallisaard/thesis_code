@@ -3,6 +3,7 @@
 #SBATCH --output=slurm_cont_pretrain_lambda_5_320k-%j.out # Name of output file
 #SBATCH --error=slurm_cont_pretrain_lambda_5_320k-%j.err # Name of error file
 #SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
+#SBATCH --time=1-12:00:00    # limit to 36 hours
 #SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
 #SBATCH --mem=16G        # Memory request
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)

@@ -4,6 +4,7 @@
 #SBATCH --error=slurm_cont_pretrain_hagan_lambda_1_320k-%j.err # Name of error file
 #SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
+#SBATCH --time=1-12:00:00    # Limit to 36 hours.
 #SBATCH --mem=16G        # Memory request
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
