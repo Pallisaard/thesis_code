@@ -35,14 +35,14 @@ def pars_args():
     parser.add_argument(
         "--filename-file", required=True, type=str, help="Filename file"
     )
-    parser.add_argument("--device", type=str, help="Device to use", default="cpu")
     parser.add_argument(
-        "--lambdas",
-        type=float,
-        help="Value for lambda_1 and lambda_2",
-        default=1.0,
+        "--vector-dim", required=True, type=int, help="Vector dim", choices=[512, 2048]
     )
-    parser.add_argument("--batch-size", type=int, help="Batch size", default=4)
+    parser.add_argument("--device", required=True, type=str, help="Device to use")
+    parser.add_argument(
+        "--lambdas", required=True, type=float, help="Value for lambda_1 and lambda_2"
+    )
+    parser.add_argument("--batch-size", type=int, help="Batch size", default=2)
 
     return parser.parse_args()
 
@@ -62,9 +62,13 @@ def main():
     ## Generate n sampled MRIs, then find from the vectorized file and vectors the most similar MRI to each of the n sampled MRIs via cosine similarity, and compute SSIM. Average this across all n sampled MRIs.
 
     args = pars_args()
+    model_id = 10 if args.vector_dim == 512 else 50
 
     # Make metric
     ssim = SSIMMetric(spatial_dims=3)
+
+    # Load vectorizer
+    mri_vectorizer = get_mri_vectorizer(model_id).eval().to(args.device)
 
     # Load model
     print("Loading model")
@@ -78,6 +82,8 @@ def main():
 
     print("Getting vectorizer array")
     mri_vectorizer_arr = torch.load(args.vectorizer_file)
+
+    print("Loading filenames")
     with open(args.filename_file, "r") as f:
         filenames = f.readlines()
     filenames = [f.strip() for f in filenames]
@@ -97,7 +103,6 @@ def main():
     for batch_ids in outer_bar:
         sample = model.safe_sample(len(batch_ids))
         sample = sample.detach().cpu().numpy()
-        sample = 0.5 * sample + 0.5
 
         inner_bar = tqdm.tqdm(
             enumerate(batch_ids),
@@ -110,28 +115,32 @@ def main():
         for i, sample_id in inner_bar:
             # Save MRI NIfTI sample
             sample_i = normalize_to(sample[i, 0], -1, 1)
-            sample[i, 0] = sample_i
+            # sample_i = sample[i, 0]
+
+            mri_vector = (
+                mri_vectorizer(
+                    torch.from_numpy(sample_i).unsqueeze(0).unsqueeze(0).to(args.device)
+                )
+                .detach()
+                .cpu()
+                .squeeze(0)
+                .squeeze(0)
+            )
 
             # Find most similar vector and the corresponding filename
             most_similar_idx = find_most_similar_vector(
-                torch.from_numpy(sample_i).unsqueeze(0).unsqueeze(0).to(args.device),
+                mri_vector,
                 mri_vectorizer_arr,
             )
             most_similar_filename = filenames[most_similar_idx]
 
             # Compute SSIM
             most_similar_mri = nib.load(most_similar_filename).get_fdata()  # type: ignore
-            most_similar_mri = 0.5 * most_similar_mri + 0.5
-            y_pred = (
-                torch.from_numpy(sample_i).unsqueeze(0).unsqueeze(0).to(args.device)
-            )
-            y = (
-                torch.from_numpy(most_similar_mri)
-                .unsqueeze(0)
-                .unsqueeze(0)
-                .to(args.device)
-            )
+            most_similar_mri = normalize_to(most_similar_mri, -1, 1)
+            y_pred = torch.from_numpy(sample_i).to(args.device)
+            y = torch.from_numpy(most_similar_mri).to(args.device)
             ssim_val = ssim(y_pred, y)
+
             assert isinstance(ssim_val, torch.Tensor)
             ssims.append(ssim_val.detach().cpu())
 
