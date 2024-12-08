@@ -1,6 +1,6 @@
 from pathlib import Path
 import time
-from typing import Dict, Optional, TypedDict
+from typing import TypedDict
 
 import numpy as np
 import torch
@@ -73,7 +73,7 @@ class LitHAGAN(L.LightningModule):
     def training_step(self, batch: torch.Tensor, batch_idx):
         data_dict = prepare_data(batch=batch, latent_dim=self.latent_dim)
         real_images = data_dict["real_images"]
-        batch_size = data_dict["batch_size"]
+        _batch_size = data_dict["batch_size"]
         real_images_small = data_dict["real_images_small"]
         crop_idx = data_dict["crop_idx"]
         real_images_crop = data_dict["real_images_crop"]
@@ -208,25 +208,21 @@ class LitHAGAN(L.LightningModule):
             lambda_2=self.lambda_2,
         )
 
-        # Compute SSIM scores
-        # ssim_score = batch_ssi_3d(real_images, fake_images, reduction="mean")
-
         if batch_idx == 0:
             # Save validation data
-            fake_images = self.safe_sample(batch_size)
-            sample_array = normalize_to(fake_images[0, 0].cpu().numpy(), -1, 1)
-            sample_nii = numpy_to_nifti(sample_array)
             log_dir = Path(self.logger.log_dir)  # type: ignore
-            file_path = (
-                log_dir / f"validation_synthetic_example_{self.current_epoch}.nii.gz"
+
+            fake_images = self.safe_sample(batch_size)
+            synthetic_example_save_path = (
+                log_dir / f"synthetic_example_{self.current_epoch}.nii.gz"
             )
-            nib.save(sample_nii, file_path)  # type: ignore
+            save_mri(fake_images, synthetic_example_save_path)
 
             # Save true data
-            true_array = normalize_to(real_images[0, 0].cpu().numpy(), -1, 1)
-            true_nii = numpy_to_nifti(true_array)
-            file_path = log_dir / f"validation_true_example_{self.current_epoch}.nii.gz"
-            nib.save(true_nii, file_path)  # type: ignore
+            true_example_save_path = (
+                log_dir / f"true_example_{self.current_epoch}.nii.gz"
+            )
+            save_mri(real_images, true_example_save_path)
 
         # Log losses and SSIM scores
         self.log("val_d_loss", d_loss, logger=True, sync_dist=True)
@@ -270,10 +266,30 @@ class LitHAGAN(L.LightningModule):
         out = self.generate_from_noise(noise)
         return out
 
+    def encode_to_small(self, x: torch.Tensor) -> torch.Tensor:
+        with torch.no_grad():
+            encoded_crop_i_list = []
+            for crop_idx_i in range(0, 256, 256 // 8):
+                real_images_crop_i = S_H(x, crop_idx_i)
+                encoded_crop_i = self.E(real_images_crop_i)
+                encoded_crop_i_list.append(encoded_crop_i)
+            encoded_crops = torch.cat(encoded_crop_i_list, dim=2).detach()
+        return encoded_crops
+
     def encode(self, x: torch.Tensor) -> torch.Tensor:
         encoded_crops = self.encode_to_small(x)
         z_hat = self.Sub_E(encoded_crops)
         return z_hat
+
+
+def safe_sample(num_samples: int, G: nn.Module, latent_dim: int, device: str):
+    noise = torch.randn((num_samples, latent_dim), device=device)
+    out_list = []
+    for noise_slice in noise:
+        out = G.generate(noise_slice.unsqueeze(0))
+        out_list.append(out)
+    out = torch.cat(out_list, dim=0)
+    return out
 
 
 # Loss Functions
@@ -417,3 +433,9 @@ def numpy_to_nifti(array: np.ndarray) -> nib.Nifti1Image:  # type: ignore
     nifti_img = nib.as_closest_canonical(nifti_img)  # type: ignore
 
     return nifti_img
+
+
+def save_mri(images: torch.Tensor, file_path: Path) -> None:
+    true_array = normalize_to(images[0, 0].cpu().numpy(), -1, 1)
+    true_nii = numpy_to_nifti(true_array)
+    nib.save(true_nii, file_path)  # type: ignore
