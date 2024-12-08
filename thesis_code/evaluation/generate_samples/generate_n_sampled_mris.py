@@ -67,7 +67,6 @@ def main():
     for batch_ids in outer_bar:
         sample = model.safe_sample(len(batch_ids))
         sample = sample.detach().cpu().numpy()
-        sample = 0.5 * sample + 0.5
 
         inner_bar = tqdm.tqdm(
             enumerate(batch_ids),
