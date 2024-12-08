@@ -142,7 +142,7 @@ def dp_training_step(
     real_labels = data_dict["real_labels"]
     fake_labels = data_dict["fake_labels"]
 
-    # Train Discriminator
+    # Train Discriminator (D^H, D^L)
     generator.requires_grad_(False)
     discriminator.requires_grad_(True)
     encoder.requires_grad_(False)
@@ -161,7 +161,8 @@ def dp_training_step(
     )
     d_loss.backward()
     d_optimizer.step()
-    state.training_stats.train_metrics.d_loss.append(d_loss.detach().cpu().item())
+    d_loss_metric = d_loss.detach().cpu().item()
+    state.training_stats.train_metrics.d_loss.append(d_loss_metric)
 
     # Train Generator
     generator.requires_grad_(True)
@@ -179,7 +180,8 @@ def dp_training_step(
     )
     g_loss.backward()
     g_optimizer.step()
-    state.training_stats.train_metrics.g_loss.append(g_loss.detach().cpu().item())
+    g_loss_metric = g_loss.detach().cpu().item()
+    state.training_stats.train_metrics.g_loss.append(g_loss_metric)
 
     # Train Encoder
     generator.requires_grad_(False)
@@ -196,7 +198,8 @@ def dp_training_step(
     )
     e_loss.backward()
     e_optimizer.step()
-    state.training_stats.train_metrics.e_loss.append(e_loss.detach().cpu().item())
+    e_loss_metric = e_loss.detach().cpu().item()
+    state.training_stats.train_metrics.e_loss.append(e_loss_metric)
 
     # Train Sub-Encoder
     generator.requires_grad_(False)
@@ -217,8 +220,15 @@ def dp_training_step(
     )
     sub_e_loss.backward()
     sub_e_optimizer.step()
-    state.training_stats.train_metrics.sub_e_loss.append(
-        sub_e_loss.detach().cpu().item()
+    sub_e_loss_metric = sub_e_loss.detach().cpu().item()
+    state.training_stats.train_metrics.sub_e_loss.append(sub_e_loss_metric)
+
+    state.training_stats.train_metrics.total_loss.append(
+        d_loss_metric + g_loss_metric + e_loss_metric + sub_e_loss_metric
+    )
+
+    state.privacy_accountant.step(
+        noise_multiplier=state.noise_multiplier, sample_rate=state.sample_rate
     )
 
     state.training_stats.train_metrics.epsilon.append(
@@ -340,7 +350,6 @@ def training_loop_until_epsilon(
             data_iter = iter(dataloaders.train)
             batch = next(data_iter)
 
-        state.training_stats.step += 1
         state = dp_training_step(
             models=models,
             optimizers=optimizers,
@@ -349,6 +358,7 @@ def training_loop_until_epsilon(
             batch=batch,
         )
 
+        # Validate if we set the log_every_n_steps
         if (
             state.training_stats.log_every_n_steps is not None
             and state.training_stats.step % state.training_stats.log_every_n_steps == 0
