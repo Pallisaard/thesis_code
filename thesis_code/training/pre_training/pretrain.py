@@ -35,7 +35,7 @@ def parse_args() -> argparse.Namespace:
         help="Name of the model to train",
     )
     parser.add_argument(
-        "--latent-dim", type=int, default=256, help="Dimension of the latent space"
+        "--latent-dim", type=int, default=1024, help="Dimension of the latent space"
     )
     parser.add_argument(
         "--data-path", type=str, required=True, help="Path to the data directory"
