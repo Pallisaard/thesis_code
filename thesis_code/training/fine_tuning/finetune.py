@@ -186,6 +186,11 @@ def main():
     print("training dataset size:", len(train_ds))
     print("validation dataset size:", len(val_ds))
 
+    if args.size_limit is not None:
+        print("Will train until epsilon is", args.max_epsilon)
+    else:
+        print("Will train for", args.max_steps, "steps")
+
     if args.use_dp:
         print("Setting up DP training")
         models, optimizers, dataloaders, state, loss_fns = dp_loops.setup_dp_training(
