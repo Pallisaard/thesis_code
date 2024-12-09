@@ -46,7 +46,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--max-epsilon",
-        type=int,
+        type=float,
         default=None,
         help="Train until we achieve a maximum epsilon measured by RDP in Opacus. Will override --max-steps.",
     )
