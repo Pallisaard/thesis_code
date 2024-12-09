@@ -65,8 +65,8 @@ class TrainingStats:
     current_epsilon: float = 0.0
     epoch: int = 0
     step: int = 0
-    train_metrics: TrainMetrics = TrainMetrics()
-    val_metrics: ValMetrics = ValMetrics()
+    train_metrics: TrainMetrics = field(default_factory=TrainMetrics)
+    val_metrics: ValMetrics = field(default_factory=ValMetrics)
 
 
 ### DP DATATYPES
