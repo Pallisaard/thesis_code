@@ -251,7 +251,10 @@ def get_model(
             LitHAGAN,
             checkpoint_path=checkpoint_path,
             model_kwargs=dict(
-                latent_dim=latent_dim, lambda_1=args.lambdas, lambda_2=args.lambdas
+                latent_dim=latent_dim,
+                lambda_1=args.lambdas,
+                lambda_2=args.lambdas,
+                use_dp_safe=True,
             ),
         )
     else:
