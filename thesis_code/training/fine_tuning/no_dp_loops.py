@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 from opacus.accountants import RDPAccountant
 from tqdm import tqdm
+from jax.tree_util import tree_map
 
 from thesis_code.dataloading.mri_dataset import MRIDataset
 from thesis_code.models.gans.hagan import (
@@ -123,7 +124,11 @@ def no_dp_training_step(
     l1_loss = loss_fns.l1
     bce_loss = loss_fns.bce
 
-    data_dict = prepare_data(batch=batch, latent_dim=state.latent_dim)
+    # data_dict = prepare_data(batch=batch, latent_dim=state.latent_dim)
+    data_dict = tree_map(
+        lambda x: x.to(state.device) if isinstance(x, torch.Tensor) else x,
+        prepare_data(batch=batch, latent_dim=state.latent_dim),
+    )  # Send to device
     real_images = data_dict["real_images"]
     _batch_size = data_dict["batch_size"]
     real_images_small = data_dict["real_images_small"]
@@ -245,7 +250,11 @@ def no_dp_validation_step(
     l1_loss = loss_fns.l1
     bce_loss = loss_fns.bce
 
-    data_dict = prepare_data(batch=batch, latent_dim=state.latent_dim)
+    data_dict = tree_map(
+        lambda x: x.to(state.device) if isinstance(x, torch.Tensor) else x,
+        prepare_data(batch=batch, latent_dim=state.latent_dim),
+    )  # Send to device
+
     real_images = data_dict["real_images"]
     _batch_size = data_dict["batch_size"]
     real_images_small = data_dict["real_images_small"]
