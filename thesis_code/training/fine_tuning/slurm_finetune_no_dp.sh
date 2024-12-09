@@ -24,7 +24,7 @@ echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 echo "start time: $(date)"
 
 # Does not use differential privacy because --use-dp flag is not on.
-python -m thesis_code.training.fine_tuning.finetune  --latent-dim 1024 \
+CUDA_LAUNCH_BLOCKING=1 python -m thesis_code.training.fine_tuning.finetune  --latent-dim 1024 \
                 --data-path ../data/fine-tuning/brain-masked \
                 --use-all-data-for-training \
                 --max-epsilon 10.0 \
