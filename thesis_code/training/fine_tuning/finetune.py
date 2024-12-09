@@ -152,6 +152,9 @@ def check_args(args: argparse.Namespace) -> argparse.Namespace:
         print(
             "Warning: --max-steps will be ignored since --max-epsilon is set. Training will continue until the maximum epsilon is reached."
         )
+
+    if Path(args.checkpoint_path).exists():
+        Path(args.checkpoint_path).mkdir(parents=True, exist_ok=True)
     return args
 
 
