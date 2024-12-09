@@ -25,12 +25,13 @@ class LitHAGAN(L.LightningModule):
     def __init__(
         self,
         latent_dim: int,
+        # Does not show up in original code, but is mentioned in the paper.
+        lambda_1: float,
+        lambda_2: float,
+        # Hyperparameters from paper.
         lr_g: float = 0.0001,
         lr_d: float = 0.0004,
         lr_e: float = 0.0001,
-        # Does not show up in original code, but is mentioned in the paper
-        lambda_1: float = 5.0,
-        lambda_2: float = 5.0,
     ):
         super().__init__()
         self.latent_dim = latent_dim
