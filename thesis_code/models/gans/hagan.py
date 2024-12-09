@@ -11,12 +11,18 @@ import lightning as L
 import nibabel as nib
 
 from thesis_code.models.gans.hagan_backbone.Model_HA_GAN_256 import (
-    Generator,
-    Discriminator,
-    Encoder,
-    Sub_Encoder,
+    Generator as bb_Generator,
+    Discriminator as bb_Discriminator,
+    Encoder as bb_Encoder,
+    Sub_Encoder as bb_Sub_Encoder,
     S_L,
     S_H,
+)
+from thesis_code.models.gans.hagan_dp_safe.Model_HA_GAN_256 import (
+    Generator as safe_Generator,
+    Discriminator as safe_Discriminator,
+    Encoder as safe_Encoder,
+    Sub_Encoder as safe_Sub_Encoder,
 )
 from thesis_code.dataloading.transforms import normalize_to
 
@@ -29,16 +35,26 @@ class LitHAGAN(L.LightningModule):
         lambda_1: float,
         lambda_2: float,
         # Hyperparameters from paper.
+        use_dp_safe: bool = False,
         lr_g: float = 0.0001,
         lr_d: float = 0.0004,
         lr_e: float = 0.0001,
     ):
         super().__init__()
         self.latent_dim = latent_dim
-        self.G = Generator(latent_dim=self.latent_dim)
-        self.D = Discriminator()
-        self.E = Encoder()
-        self.Sub_E = Sub_Encoder(latent_dim=self.latent_dim)
+        self.use_dp_safe = use_dp_safe
+        self.G = (
+            bb_Generator(latent_dim=self.latent_dim)
+            if not use_dp_safe
+            else safe_Generator(latent_dim=self.latent_dim)
+        )
+        self.D = bb_Discriminator() if not use_dp_safe else safe_Discriminator()
+        self.E = bb_Encoder() if not use_dp_safe else safe_Encoder()
+        self.Sub_E = (
+            bb_Sub_Encoder(latent_dim=self.latent_dim)
+            if not use_dp_safe
+            else safe_Sub_Encoder(latent_dim=self.latent_dim)
+        )
         self.lr_g = lr_g
         self.lr_d = lr_d
         self.lr_e = lr_e
