@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import torch.optim as optim
+from opacus.accountants import RDPAccountant
 
 from thesis_code.dataloading.mri_dataset import MRIDataset
 from thesis_code.models.gans.hagan import (
@@ -15,18 +16,18 @@ from thesis_code.models.gans.hagan import (
     save_mri,
     safe_sample,
 )
-from .utils import checkpoint_no_dp_model
+from .utils import checkpoint_dp_model
 from .types import (
     NoDPOptimizers,
     NoDPDataLoaders,
-    NoDPState,
+    DPState,
     NoDPModels,
     LossFNs,
     TrainingStats,
 )
 
 
-def setup_no_dp_hagan_training(
+def setup_no_dp_training(
     generator: nn.Module,
     discriminator: nn.Module,
     encoder: nn.Module,
@@ -42,8 +43,10 @@ def setup_no_dp_hagan_training(
     noise_multiplier: float = 1.0,
     max_grad_norm: float = 1.0,
     delta: float = 1e-5,
-    log_every_n_steps: Optional[int] = None,
-) -> Tuple[NoDPModels, NoDPOptimizers, NoDPDataLoaders, NoDPState, LossFNs]:
+    val_every_n_steps: Optional[int] = None,
+    checkpoint_every_n_steps: Optional[int] = None,
+    alphas: list[float] = [1.1, 2, 3, 5, 10, 20, 50, 100],
+) -> Tuple[NoDPModels, NoDPOptimizers, NoDPDataLoaders, DPState, LossFNs]:
     g_optimizer = optim.Adam(
         generator.parameters(), lr=lr_g, betas=(0.0, 0.999), eps=1e-8
     )
@@ -68,6 +71,8 @@ def setup_no_dp_hagan_training(
         G=generator, D=discriminator, E=encoder, Sub_E=sub_encoder
     )
 
+    sample_rate = batch_size / len(train_dataset)
+
     train_dataloader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers
     )
@@ -76,11 +81,22 @@ def setup_no_dp_hagan_training(
     )
     no_dp_dataloaders = NoDPDataLoaders(train=train_dataloader, val=val_dataloader)
 
-    state = NoDPState(
+    accountant = RDPAccountant()
+
+    state = DPState(
+        privacy_accountant=accountant,
+        delta=delta,
+        noise_multiplier=noise_multiplier,
+        max_grad_norm=max_grad_norm,
+        sample_rate=sample_rate,
+        alphas=alphas,
         lambdas=1.0,
         device=device,
         latent_dim=1024,
-        training_stats=TrainingStats(log_every_n_steps=log_every_n_steps),
+        training_stats=TrainingStats(
+            val_every_n_steps=val_every_n_steps,
+            checkpoint_every_n_steps=checkpoint_every_n_steps,
+        ),
     )
 
     loss_fns = LossFNs()
@@ -92,9 +108,9 @@ def no_dp_training_step(
     models: NoDPModels,
     optimizers: NoDPOptimizers,
     loss_fns: LossFNs,
-    state: NoDPState,
+    state: DPState,
     batch: torch.Tensor,
-) -> NoDPState:
+) -> DPState:
     generator = models.G
     discriminator = models.D
     encoder = models.E
@@ -135,7 +151,7 @@ def no_dp_training_step(
     )
     d_loss.backward()
     d_optimizer.step()
-    state.training_stats.train_metrics.d_loss.append(d_loss.detach().cpu().item())
+    d_loss_metric = d_loss.detach().cpu().item()
 
     # Train Generator
     generator.requires_grad_(True)
@@ -153,7 +169,7 @@ def no_dp_training_step(
     )
     g_loss.backward()
     g_optimizer.step()
-    state.training_stats.train_metrics.g_loss.append(g_loss.detach().cpu().item())
+    g_loss_metric = g_loss.detach().cpu().item()
 
     # Train Encoder
     generator.requires_grad_(False)
@@ -170,7 +186,7 @@ def no_dp_training_step(
     )
     e_loss.backward()
     e_optimizer.step()
-    state.training_stats.train_metrics.e_loss.append(e_loss.detach().cpu().item())
+    e_loss_metric = e_loss.detach().cpu().item()
 
     # Train Sub-Encoder
     generator.requires_grad_(False)
@@ -191,9 +207,25 @@ def no_dp_training_step(
     )
     sub_e_loss.backward()
     sub_e_optimizer.step()
-    state.training_stats.train_metrics.sub_e_loss.append(
-        sub_e_loss.detach().cpu().item()
+    sub_e_loss_metric = sub_e_loss.detach().cpu().item()
+
+    state.training_stats.train_metrics.d_loss.append(d_loss_metric)
+    state.training_stats.train_metrics.g_loss.append(g_loss_metric)
+    state.training_stats.train_metrics.e_loss.append(e_loss_metric)
+    state.training_stats.train_metrics.sub_e_loss.append(sub_e_loss_metric)
+    total_loss_metric = (
+        d_loss_metric + g_loss_metric + e_loss_metric + sub_e_loss_metric
     )
+    state.training_stats.train_metrics.total_loss.append(total_loss_metric)
+
+    state.privacy_accountant.step(
+        noise_multiplier=state.noise_multiplier, sample_rate=state.sample_rate
+    )
+    state.training_stats.train_metrics.epsilon.append(
+        state.privacy_accountant.get_epsilon(state.delta)
+    )
+
+    state.training_stats.step += 1
 
     return state
 
@@ -201,10 +233,10 @@ def no_dp_training_step(
 def no_dp_validation_step(
     models: NoDPModels,
     loss_fns: LossFNs,
-    state: NoDPState,
+    state: DPState,
     batch: torch.Tensor,
     save_mris: bool = False,
-) -> NoDPState:
+) -> DPState:
     generator = models.G
     discriminator = models.D
     encoder = models.E
@@ -233,7 +265,7 @@ def no_dp_validation_step(
         real_labels=real_labels,
         fake_labels=fake_labels,
     )
-    state.training_stats.val_metrics.val_d_loss.append(val_d_loss.detach().cpu().item())
+    val_d_loss_metric = val_d_loss.detach().cpu().item()
 
     val_g_loss = compute_g_loss(
         G=generator,
@@ -243,7 +275,7 @@ def no_dp_validation_step(
         crop_idx=crop_idx,
         real_labels=real_labels,
     )
-    state.training_stats.val_metrics.val_g_loss.append(val_g_loss.detach().cpu().item())
+    val_g_loss_metric = val_g_loss.detach().cpu().item()
 
     val_e_loss = compute_e_loss(
         E=encoder,
@@ -252,7 +284,7 @@ def no_dp_validation_step(
         real_images_crop=real_images_crop,
         lambda_1=state.lambdas,
     )
-    state.training_stats.val_metrics.val_e_loss.append(val_e_loss.detach().cpu().item())
+    val_e_loss_metric = val_e_loss.detach().cpu().item()
 
     val_sub_e_loss = compute_sub_e_loss(
         E=encoder,
@@ -265,9 +297,19 @@ def no_dp_validation_step(
         crop_idx=crop_idx,
         lambda_2=state.lambdas,
     )
-    state.training_stats.val_metrics.val_sub_e_loss.append(
-        val_sub_e_loss.detach().cpu().item()
+    val_sub_e_loss_metric = val_sub_e_loss.detach().cpu().item()
+
+    state.training_stats.val_metrics.g_loss.append(val_g_loss_metric)
+    state.training_stats.val_metrics.e_loss.append(val_e_loss_metric)
+    state.training_stats.val_metrics.d_loss.append(val_d_loss_metric)
+    state.training_stats.val_metrics.sub_e_loss.append(val_sub_e_loss_metric)
+    val_total_loss_metric = (
+        val_d_loss_metric
+        + val_g_loss_metric
+        + val_e_loss_metric
+        + val_sub_e_loss_metric
     )
+    state.training_stats.val_metrics.total_loss.append(val_total_loss_metric)
 
     if save_mris:
         # Save a sample of the generated images
@@ -293,10 +335,10 @@ def no_dp_training_loop_for_n_steps(
     optimizers: NoDPOptimizers,
     dataloaders: NoDPDataLoaders,
     loss_fns: LossFNs,
-    state: NoDPState,
+    state: DPState,
     n_steps: int,
     checkpoint_path: str = "dp_training/checkpoints",
-) -> NoDPState:
+) -> DPState:
     """
     use the following n_steps for convertions to some epsilon:
 
@@ -304,7 +346,7 @@ def no_dp_training_loop_for_n_steps(
     e=1.0 => n_steps=1
     e=2.0 => n_steps=3950,
     e=5.0 => n_steps=20573,
-    e=1.0 => n_steps=74368
+    e=10.0 => n_steps=74368
     ```
     """
     data_iter = iter(dataloaders.train)
@@ -317,7 +359,6 @@ def no_dp_training_loop_for_n_steps(
             data_iter = iter(dataloaders.train)
             batch = next(data_iter)
 
-        state.training_stats.step += 1
         state = no_dp_training_step(
             models=models,
             optimizers=optimizers,
@@ -326,12 +367,11 @@ def no_dp_training_loop_for_n_steps(
             batch=batch,
         )
 
-        if (
-            state.training_stats.log_every_n_steps is not None
-            and state.training_stats.step % state.training_stats.log_every_n_steps == 0
-        ):
+        val_every_n_steps = state.training_stats.val_every_n_steps
+        checkpoint_every_n_steps = state.training_stats.checkpoint_every_n_steps
+        step = state.training_stats.step
+        if val_every_n_steps is not None and step % val_every_n_steps == 0:
             for i, val_batch in enumerate(dataloaders.val):
-                # val_batch = next(iter(dataloaders.val))
                 state = no_dp_validation_step(
                     models=models,
                     loss_fns=loss_fns,
@@ -340,10 +380,86 @@ def no_dp_training_loop_for_n_steps(
                     save_mris=i == 0,
                 )
 
-    checkpoint_no_dp_model(
-        models.G,
+        if (
+            checkpoint_every_n_steps is not None
+            and step % checkpoint_every_n_steps == 0
+        ):
+            checkpoint_dp_model(
+                models,
+                state,
+                f"{checkpoint_path}/no_dp_model_step={state.training_stats.step}.pth",
+            )
+
+    checkpoint_dp_model(
+        models,
         state,
-        f"{checkpoint_path}/generator_final_steps={n_steps}.pth",
+        f"{checkpoint_path}/no_dp_model_final_step={n_steps}.pth",
     )
 
     return state
+
+
+def training_loop_until_epsilon(
+    models: NoDPModels,
+    optimizers: NoDPOptimizers,
+    dataloaders: NoDPDataLoaders,
+    loss_fns: LossFNs,
+    state: DPState,
+    max_epsilon: float,
+    alphas: Optional[list[float]] = None,
+    checkpoint_path: str = "dp_training/checkpoints",
+) -> Tuple[DPState, float]:
+    current_epsilon = state.privacy_accountant.get_epsilon(state.delta, alphas=alphas)
+
+    data_iter = iter(dataloaders.train)
+    while current_epsilon < max_epsilon:
+        state.training_stats.step += 1
+        try:
+            batch = next(data_iter)
+        except StopIteration:
+            # Reinitialize the iterator if the previous one is exhausted
+            data_iter = iter(dataloaders.train)
+            batch = next(data_iter)
+
+        state = no_dp_training_step(
+            models=models,
+            optimizers=optimizers,
+            loss_fns=loss_fns,
+            state=state,
+            batch=batch,
+        )
+
+        val_every_n_steps = state.training_stats.val_every_n_steps
+        checkpoint_every_n_steps = state.training_stats.checkpoint_every_n_steps
+        step = state.training_stats.step
+        if val_every_n_steps is not None and step % val_every_n_steps == 0:
+            for i, val_batch in enumerate(dataloaders.val):
+                state = no_dp_validation_step(
+                    models=models,
+                    loss_fns=loss_fns,
+                    state=state,
+                    batch=val_batch,
+                    save_mris=i == 0,
+                )
+
+        if (
+            checkpoint_every_n_steps is not None
+            and step % checkpoint_every_n_steps == 0
+        ):
+            checkpoint_dp_model(
+                models,
+                state,
+                f"{checkpoint_path}/no_dp_model_step={state.training_stats.step}.pth",
+            )
+
+        state.training_stats.current_epsilon = state.privacy_accountant.get_epsilon(
+            state.delta, alphas=alphas
+        )
+
+    checkpoint_dp_model(
+        models,
+        state,
+        f"{checkpoint_path}/generator_final_epsilon={current_epsilon}.pth",
+    )
+
+    return state, current_epsilon

@@ -1,24 +1,43 @@
 from typing import Any, Tuple, Union
+from collections.abc import Callable
 
+from jax import tree_map
 import pandas as pd
 import torch
 import torch.nn as nn
 from opacus import GradSampleModule
+from lightning import LightningModule
 
 from .types import (
+    DPModels,
     DPState,
-    NoDPState,
+    NoDPModels,
 )
 
 
+def tree_key_map(func: Callable[[str], Any], tree: Any) -> Any:
+    if isinstance(tree, dict):
+        return {tree_key_map(func, k): v for k, v in tree.items()}
+    elif isinstance(tree, (list, tuple)):
+        return type(tree)(func(v) for v in tree)
+    else:
+        return func(tree)
+
+
+tree_map = tree_map
+
+
 def checkpoint_dp_model(
-    models: Union[nn.Module, GradSampleModule],
+    models: Union[DPModels, NoDPModels],
     state: DPState,
     checkpoint_path: str,
 ):
     torch.save(
         {
-            "state_dict": models.G.state_dict(),
+            "g_state_dict": models.G.state_dict(),
+            "d_state_dict": models.D.state_dict(),
+            "e_state_dict": models.E.state_dict(),
+            "sub_e_state_dict": models.Sub_E.state_dict(),
             "epoch": state.training_stats.epoch,
             "step": state.training_stats.step,
             "epsilon": state.privacy_accountant.get_epsilon(state.delta),
@@ -32,33 +51,16 @@ def checkpoint_dp_model(
     save_dict_as_csv(state.training_stats.val_metrics.to_dict(), val_metrics_file)
 
 
-def checkpoint_no_dp_model(
-    models: nn.Module,
-    state: NoDPState,
-    checkpoint_path: str,
-):
-    torch.save(
-        {
-            "state_dict": models.G.state_dict(),
-            "epoch": state.training_stats.epoch,
-            "step": state.training_stats.step,
-        },
-        checkpoint_path,
-    )
-
-    train_metrics_file = f"{checkpoint_path}_train_metrics.csv"
-    save_dict_as_csv(state.training_stats.train_metrics.to_dict(), train_metrics_file)
-    val_metrics_file = f"{checkpoint_path}_val_metrics.csv"
-    save_dict_as_csv(state.training_stats.val_metrics.to_dict(), val_metrics_file)
-
-
 def load_checkpoint(
-    models: Union[nn.Module, GradSampleModule],
+    models: Union[DPModels, NoDPModels],
     state: DPState,
     checkpoint_path: str,
-) -> Tuple[Union[nn.Module, GradSampleModule], DPState, float]:
+) -> Tuple[Union[DPModels, NoDPModels], DPState, float]:
     checkpoint = torch.load(checkpoint_path)
     models.G.load_state_dict(checkpoint["state_dict"])
+    models.D.load_state_dict(checkpoint["state_dict"])
+    models.E.load_state_dict(checkpoint["state_dict"])
+    models.Sub_E.load_state_dict(checkpoint["state_dict"])
     state.training_stats.epoch = checkpoint["epoch"]
     state.training_stats.step = checkpoint["step"]
     return models, state, checkpoint["epsilon"]

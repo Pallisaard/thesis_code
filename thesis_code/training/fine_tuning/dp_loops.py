@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import torch.optim as optim
+from jax.tree_util import tree_map
 
 from thesis_code.dataloading.mri_dataset import MRIDataset
 from thesis_code.models.gans.hagan import (
@@ -31,7 +32,7 @@ from .types import (
 )
 
 
-def setup_dp_hagan_training(
+def setup_dp_training(
     generator: nn.Module,
     discriminator: nn.Module,
     encoder: nn.Module,
@@ -47,7 +48,9 @@ def setup_dp_hagan_training(
     noise_multiplier: float = 1.0,
     max_grad_norm: float = 1.0,
     delta: float = 1e-5,
-    log_every_n_steps: Optional[int] = None,
+    val_every_n_steps: Optional[int] = None,
+    checkpoint_every_n_steps: Optional[int] = None,
+    alphas: list[float] = [1.1, 2, 3, 5, 10, 20, 50, 100],
 ) -> Tuple[DPModels, DPOptimizers, DPDataLoaders, DPState, LossFNs]:
     # Optimizer validation
     g_optimizer = optim.Adam(
@@ -102,11 +105,16 @@ def setup_dp_hagan_training(
         privacy_accountant=accountant,
         delta=delta,
         noise_multiplier=noise_multiplier,
+        max_grad_norm=max_grad_norm,
         sample_rate=sample_rate,
+        alphas=alphas,
         lambdas=1.0,
         device=device,
         latent_dim=1024,
-        training_stats=TrainingStats(log_every_n_steps=log_every_n_steps),
+        training_stats=TrainingStats(
+            val_every_n_steps=val_every_n_steps,
+            checkpoint_every_n_steps=checkpoint_every_n_steps,
+        ),
     )
 
     loss_fns = LossFNs()
@@ -120,6 +128,7 @@ def dp_training_step(
     loss_fns: LossFNs,
     state: DPState,
     batch: torch.Tensor,
+    val_every_n_steps: Optional[int] = None,
 ) -> DPState:
     generator = models.G
     discriminator = models.D
@@ -132,7 +141,11 @@ def dp_training_step(
     l1_loss = loss_fns.l1
     bce_loss = loss_fns.bce
 
-    data_dict = prepare_data(batch=batch, latent_dim=state.latent_dim)
+    data_dict = tree_map(
+        lambda x: x.to(state.device) if isinstance(x, torch.Tensor) else x,
+        prepare_data(batch=batch, latent_dim=state.latent_dim),
+    )  # Send to device
+
     real_images = data_dict["real_images"]
     _batch_size = data_dict["batch_size"]
     real_images_small = data_dict["real_images_small"]
@@ -162,7 +175,6 @@ def dp_training_step(
     d_loss.backward()
     d_optimizer.step()
     d_loss_metric = d_loss.detach().cpu().item()
-    state.training_stats.train_metrics.d_loss.append(d_loss_metric)
 
     # Train Generator
     generator.requires_grad_(True)
@@ -181,7 +193,6 @@ def dp_training_step(
     g_loss.backward()
     g_optimizer.step()
     g_loss_metric = g_loss.detach().cpu().item()
-    state.training_stats.train_metrics.g_loss.append(g_loss_metric)
 
     # Train Encoder
     generator.requires_grad_(False)
@@ -199,7 +210,6 @@ def dp_training_step(
     e_loss.backward()
     e_optimizer.step()
     e_loss_metric = e_loss.detach().cpu().item()
-    state.training_stats.train_metrics.e_loss.append(e_loss_metric)
 
     # Train Sub-Encoder
     generator.requires_grad_(False)
@@ -221,11 +231,13 @@ def dp_training_step(
     sub_e_loss.backward()
     sub_e_optimizer.step()
     sub_e_loss_metric = sub_e_loss.detach().cpu().item()
-    state.training_stats.train_metrics.sub_e_loss.append(sub_e_loss_metric)
 
-    state.training_stats.train_metrics.total_loss.append(
-        d_loss_metric + g_loss_metric + e_loss_metric + sub_e_loss_metric
-    )
+    state.training_stats.train_metrics.g_loss.append(g_loss_metric)
+    state.training_stats.train_metrics.d_loss.append(d_loss_metric)
+    state.training_stats.train_metrics.e_loss.append(e_loss_metric)
+    state.training_stats.train_metrics.sub_e_loss.append(sub_e_loss_metric)
+    total_loss = d_loss_metric + g_loss_metric + e_loss_metric + sub_e_loss_metric
+    state.training_stats.train_metrics.total_loss.append(total_loss)
 
     state.privacy_accountant.step(
         noise_multiplier=state.noise_multiplier, sample_rate=state.sample_rate
@@ -234,6 +246,7 @@ def dp_training_step(
     state.training_stats.train_metrics.epsilon.append(
         state.privacy_accountant.get_epsilon(state.delta)
     )
+    state.training_stats.step += 1
 
     return state
 
@@ -252,7 +265,11 @@ def dp_validation_step(
     l1_loss = loss_fns.l1
     bce_loss = loss_fns.bce
 
-    data_dict = prepare_data(batch=batch, latent_dim=state.latent_dim)
+    data_dict = tree_map(
+        lambda x: x.to(state.device) if isinstance(x, torch.Tensor) else x,
+        prepare_data(batch=batch, latent_dim=state.latent_dim),
+    )  # Send to device
+
     real_images = data_dict["real_images"]
     _batch_size = data_dict["batch_size"]
     real_images_small = data_dict["real_images_small"]
@@ -273,7 +290,7 @@ def dp_validation_step(
         real_labels=real_labels,
         fake_labels=fake_labels,
     )
-    state.training_stats.val_metrics.val_d_loss.append(val_d_loss.detach().cpu().item())
+    val_d_loss_metric = val_d_loss.detach().cpu().item()
 
     val_g_loss = compute_g_loss(
         G=generator,
@@ -283,7 +300,7 @@ def dp_validation_step(
         crop_idx=crop_idx,
         real_labels=real_labels,
     )
-    state.training_stats.val_metrics.val_g_loss.append(val_g_loss.detach().cpu().item())
+    val_g_loss_metric = val_g_loss.detach().cpu().item()
 
     val_e_loss = compute_e_loss(
         E=encoder,
@@ -292,7 +309,7 @@ def dp_validation_step(
         real_images_crop=real_images_crop,
         lambda_1=state.lambdas,
     )
-    state.training_stats.val_metrics.val_e_loss.append(val_e_loss.detach().cpu().item())
+    val_e_loss_metric = val_e_loss.detach().cpu().item()
 
     val_sub_e_loss = compute_sub_e_loss(
         E=encoder,
@@ -305,9 +322,19 @@ def dp_validation_step(
         crop_idx=crop_idx,
         lambda_2=state.lambdas,
     )
-    state.training_stats.val_metrics.val_sub_e_loss.append(
-        val_sub_e_loss.detach().cpu().item()
+    val_sub_e_loss_metric = val_sub_e_loss.detach().cpu().item()
+
+    state.training_stats.val_metrics.g_loss.append(val_g_loss_metric)
+    state.training_stats.val_metrics.d_loss.append(val_d_loss_metric)
+    state.training_stats.val_metrics.e_loss.append(val_e_loss_metric)
+    state.training_stats.val_metrics.sub_e_loss.append(val_sub_e_loss_metric)
+    val_total_loss_metric = (
+        val_g_loss_metric
+        + val_d_loss_metric
+        + val_e_loss_metric
+        + val_sub_e_loss_metric
     )
+    state.training_stats.val_metrics.total_loss.append(val_total_loss_metric)
 
     if save_mris:
         # Save a sample of the generated images
@@ -342,7 +369,6 @@ def training_loop_until_epsilon(
 
     data_iter = iter(dataloaders.train)
     while current_epsilon < max_epsilon:
-        state.training_stats.step += 1
         try:
             batch = next(data_iter)
         except StopIteration:
@@ -358,10 +384,10 @@ def training_loop_until_epsilon(
             batch=batch,
         )
 
-        # Validate if we set the log_every_n_steps
+        # Validate if we set the val_every_n_steps
         if (
-            state.training_stats.log_every_n_steps is not None
-            and state.training_stats.step % state.training_stats.log_every_n_steps == 0
+            state.training_stats.val_every_n_steps is not None
+            and state.training_stats.step % state.training_stats.val_every_n_steps == 0
         ):
             for i, val_batch in enumerate(dataloaders.val):
                 # val_batch = next(iter(dataloaders.val))
@@ -378,7 +404,7 @@ def training_loop_until_epsilon(
         )
 
     checkpoint_dp_model(
-        models.G,
+        models,
         state,
         f"{checkpoint_path}/generator_final_epsilon={current_epsilon}.pth",
     )
