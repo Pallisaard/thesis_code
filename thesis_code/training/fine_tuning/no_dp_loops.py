@@ -124,7 +124,6 @@ def no_dp_training_step(
     l1_loss = loss_fns.l1
     bce_loss = loss_fns.bce
 
-    # data_dict = prepare_data(batch=batch, latent_dim=state.latent_dim)
     data_dict = tree_map(
         lambda x: x.to(state.device) if isinstance(x, torch.Tensor) else x,
         prepare_data(batch=batch, latent_dim=state.latent_dim),
@@ -230,7 +229,6 @@ def no_dp_training_step(
     state.training_stats.train_metrics.epsilon.append(
         state.privacy_accountant.get_epsilon(state.delta)
     )
-
     state.training_stats.step += 1
 
     return state
@@ -472,11 +470,5 @@ def training_loop_until_epsilon(
                 f"Current epsilon: {state.training_stats.current_epsilon}"
             )
             pbar.update(1)
-
-    checkpoint_dp_model(
-        models,
-        state,
-        f"{checkpoint_path}/generator_final_epsilon={state.training_stats.current_epsilon}.pth",
-    )
 
     return state

@@ -215,7 +215,7 @@ def main():
         )
 
         print("Starting DP training")
-        state, final_epsilon = dp_loops.training_loop_until_epsilon(
+        state = dp_loops.training_loop_until_epsilon(
             models=models,
             optimizers=optimizers,
             dataloaders=dataloaders,
@@ -225,10 +225,14 @@ def main():
             checkpoint_path=args.checkpoint_path,
         )
 
-        print(f"Final epsilon: {final_epsilon}")
-        print("Checkpointing model")
+        print(f"Final epsilon: {state.training_stats.current_epsilon}")
 
-        checkpoint_dp_model(models, state, args.checkpoint_path)
+        print("Final checkpoint")
+        checkpoint_dp_model(
+            models,
+            state,
+            f"{checkpoint_path}/dp_model_final_epsilon={state.training_stats.current_epsilon}.pth",
+        )
 
     else:
         print("Setting up non-DP training")
@@ -271,9 +275,12 @@ def main():
                 checkpoint_path=args.checkpoint_path,
             )
 
-        print("Checkpointing model")
-
-        checkpoint_dp_model(models, state, args.checkpoint_path)
+        print("Final checkpoint")
+        checkpoint_dp_model(
+            models,
+            state,
+            f"{checkpoint_path}/no_dp_final_epsilon={state.training_stats.current_epsilon}.pth",
+        )
 
 
 if __name__ == "__main__":
