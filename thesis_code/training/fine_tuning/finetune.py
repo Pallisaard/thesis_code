@@ -7,8 +7,8 @@ import lightning as L
 
 from thesis_code.dataloading.mri_dataset import MRIDataset
 from thesis_code.models.gans.hagan import LitHAGAN
-import dp_loops
-import no_dp_loops
+from . import dp_loops
+from . import no_dp_loops
 from .utils import checkpoint_dp_model
 
 
