@@ -35,6 +35,8 @@ class LitHAGAN(L.LightningModule):
         lambda_1: float,
         lambda_2: float,
         # Hyperparameters from paper.
+        # Note to myself: Opacus module validator cannot pick up on SNLinear, and error occurs in GradSampleModule.
+        # Use jax instead for DP-SGD.
         use_dp_safe: bool = False,
         lr_g: float = 0.0001,
         lr_d: float = 0.0004,
