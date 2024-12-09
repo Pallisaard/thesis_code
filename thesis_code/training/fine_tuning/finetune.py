@@ -75,7 +75,7 @@ def parse_args() -> argparse.Namespace:
         help="Checkpoint every n steps during training.",
     )
     parser.add_argument(
-        "--log-every-n-steps",
+        "--val-every-n-steps",
         type=int,
         default=25,
         help="Log every n steps during training.",

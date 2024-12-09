@@ -31,7 +31,7 @@ python -m thesis_code.training.fine_tuning.finetune  --latent-dim 1024 \
                 --lambdas 5.0 \
                 --batch-size 4 \
                 --num-workers 8 \
-                --devices auto \
+                --device 'auto' \
                 --load-from-checkpoint '../checkpoints/pretrained/all-data'/hagan_l1_320k.ckpt \
                 --val-every-n-steps 1000 \
                 --checkpoint-every-n-steps 5000 \
