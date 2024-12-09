@@ -418,12 +418,13 @@ def training_loop_until_epsilon(
     max_epsilon: float,
     alphas: Optional[list[float]] = None,
     checkpoint_path: str = "dp_training/checkpoints",
-) -> Tuple[DPState, float]:
-    current_epsilon = state.privacy_accountant.get_epsilon(state.delta, alphas=alphas)
-
+) -> DPState:
+    state.training_stats.current_epsilon = state.privacy_accountant.get_epsilon(
+        state.delta, alphas=alphas
+    )
     data_iter = iter(dataloaders.train)
     with tqdm(desc="non-DP training progress.", dynamic_ncols=True, leave=True) as pbar:
-        while current_epsilon < max_epsilon:
+        while state.training_stats.current_epsilon < max_epsilon:
             state.training_stats.step += 1
             try:
                 batch = next(data_iter)
@@ -472,10 +473,10 @@ def training_loop_until_epsilon(
             )
             pbar.update(1)
 
-        checkpoint_dp_model(
-            models,
-            state,
-            f"{checkpoint_path}/generator_final_epsilon={current_epsilon}.pth",
-        )
+    checkpoint_dp_model(
+        models,
+        state,
+        f"{checkpoint_path}/generator_final_epsilon={state.training_stats.current_epsilon}.pth",
+    )
 
-    return state, current_epsilon
+    return state
