@@ -183,6 +183,8 @@ def main():
     train_ds, val_ds = get_datasets(
         args.data_path, args.size_limit, args.use_all_data_for_training
     )
+    print("training dataset size:", len(train_ds))
+    print("validation dataset size:", len(val_ds))
 
     if args.use_dp:
         print("Setting up DP training")
