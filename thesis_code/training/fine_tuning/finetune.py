@@ -160,9 +160,9 @@ def main():
     args = check_args(parse_args())
 
     device = (
-        torch.device(args.device)
+        args.device
         if args.device != "auto"
-        else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        else ("cuda" if torch.cuda.is_available() else "cpu")
     )
 
     print("Creating model")
@@ -190,7 +190,7 @@ def main():
             sub_encoder=sub_encoder,
             train_dataset=train_ds,
             val_dataset=val_ds,
-            device=args.device,
+            device=device,
             num_workers=args.num_workers,
             batch_size=args.batch_size,
             noise_multiplier=args.noise_multiplier,
@@ -224,7 +224,7 @@ def main():
                 sub_encoder=sub_encoder,
                 train_dataset=train_ds,
                 val_dataset=val_ds,
-                device=args.device,
+                device=device,
                 num_workers=args.num_workers,
                 batch_size=args.batch_size,
             )
