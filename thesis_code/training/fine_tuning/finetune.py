@@ -153,8 +153,6 @@ def check_args(args: argparse.Namespace) -> argparse.Namespace:
             "Warning: --max-steps will be ignored since --max-epsilon is set. Training will continue until the maximum epsilon is reached."
         )
 
-    if Path(args.checkpoint_path).exists():
-        Path(args.checkpoint_path).mkdir(parents=True, exist_ok=True)
     return args
 
 
@@ -162,6 +160,14 @@ def main():
     print("Running fine-tuning script.")
     args = check_args(parse_args())
 
+    # Create checkpoint path
+    checkpoint_path = Path(args.checkpoint_path)
+    while checkpoint_path.exists():
+        checkpoint_path = checkpoint_path.with_name(checkpoint_path.name + "_1")
+    print("Checkpoint path:", checkpoint_path)
+    Path(args.checkpoint_path).mkdir(parents=True, exist_ok=True)
+
+    # Setting device
     device = (
         args.device
         if args.device != "auto"
@@ -242,7 +248,7 @@ def main():
 
         if args.max_epsilon is not None:
             print("Starting DP training")
-            state, final_epsilon = no_dp_loops.training_loop_until_epsilon(
+            state = no_dp_loops.training_loop_until_epsilon(
                 models=models,
                 optimizers=optimizers,
                 dataloaders=dataloaders,
@@ -252,7 +258,7 @@ def main():
                 checkpoint_path=args.checkpoint_path,
             )
 
-            print(f"Final epsilon: {final_epsilon}")
+            print(f"Final epsilon: {state.training_stats.current_epsilon}")
         else:
             print("Starting non-DP training")
             no_dp_loops.no_dp_training_loop_for_n_steps(
