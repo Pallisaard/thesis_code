@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
@@ -20,12 +20,12 @@ class LossFNs:
 
 @dataclass
 class TrainMetrics:
-    d_loss: list[float] = []
-    g_loss: list[float] = []
-    e_loss: list[float] = []
-    sub_e_loss: list[float] = []
-    total_loss: list[float] = []
-    epsilon: list[float] = []
+    d_loss: list[float] = field(default_factory=list)
+    g_loss: list[float] = field(default_factory=list)
+    e_loss: list[float] = field(default_factory=list)
+    sub_e_loss: list[float] = field(default_factory=list)
+    total_loss: list[float] = field(default_factory=list)
+    epsilon: list[float] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, list[float]]:
         return {
@@ -40,12 +40,12 @@ class TrainMetrics:
 
 @dataclass
 class ValMetrics:
-    d_loss: list[float] = []
-    g_loss: list[float] = []
-    e_loss: list[float] = []
-    sub_e_loss: list[float] = []
-    total_loss: list[float] = []
-    d_accuracy: list[float] = []
+    d_loss: list[float] = field(default_factory=list)
+    g_loss: list[float] = field(default_factory=list)
+    e_loss: list[float] = field(default_factory=list)
+    sub_e_loss: list[float] = field(default_factory=list)
+    total_loss: list[float] = field(default_factory=list)
+    d_accuracy: list[float] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, list[float]]:
         return {
