@@ -15,7 +15,7 @@ import torch.optim as optim
 @dataclass
 class LossFNs:
     l1: nn.L1Loss = nn.L1Loss()
-    bce: nn.BCELoss = nn.BCELoss()
+    bce: nn.BCEWithLogitsLoss = nn.BCEWithLogitsLoss()
 
 
 @dataclass
