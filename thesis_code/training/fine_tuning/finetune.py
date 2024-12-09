@@ -126,7 +126,10 @@ def get_datasets(
 
 
 def get_model(
-    latent_dim: int, lambdas: float, load_from_checkpoint: Optional[str]
+    latent_dim: int,
+    lambdas: float,
+    load_from_checkpoint: Optional[str],
+    use_dp: bool,
 ) -> L.LightningModule:
     if load_from_checkpoint is not None:
         return LitHAGAN.load_from_checkpoint(
@@ -134,6 +137,7 @@ def get_model(
             latent_dim=latent_dim,
             lambda_1=lambdas,
             lambda_2=lambdas,
+            use_dp_safe=use_dp,
         )
     return LitHAGAN(latent_dim=latent_dim, lambda_1=lambdas, lambda_2=lambdas)
 
@@ -175,7 +179,9 @@ def main():
     )
 
     print("Creating model")
-    model = get_model(args.latent_dim, args.lambdas, args.load_from_checkpoint)
+    model = get_model(
+        args.latent_dim, args.lambdas, args.load_from_checkpoint, args.use_dp
+    )
     generator = model.G.to(device)
     discriminator = model.D.to(device)
     encoder = model.E.to(device)
