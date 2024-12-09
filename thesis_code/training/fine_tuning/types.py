@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-from lightning import LightningModule
 from opacus import GradSampleModule
 from opacus.accountants import RDPAccountant
 from opacus.optimizers import DPOptimizer
@@ -10,9 +9,6 @@ from opacus.data_loader import DPDataLoader
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import torch.optim as optim
-
-from thesis_code.models.gans import LitHAGAN
-from .utils import tree_key_map
 
 
 ### COMMON DATATYPES
@@ -110,20 +106,6 @@ class DPModels:
     E: GradSampleModule
     Sub_E: GradSampleModule
 
-    def to_lit(self, state: DPState) -> LightningModule:
-        def fix_state_dict(state_dict):
-            return tree_key_map(lambda k: k.replace("_module.", ""), state_dict)
-
-        model = LitHAGAN(
-            latent_dim=state.latent_dim, lambda_1=state.lambdas, lambda_2=state.lambdas
-        )
-        model.G.load_state_dict(fix_state_dict(self.G.state_dict()))
-        model.D.load_state_dict(fix_state_dict(self.D.state_dict()))
-        model.E.load_state_dict(fix_state_dict(self.E.state_dict()))
-        model.Sub_E.load_state_dict(fix_state_dict(self.Sub_E.state_dict()))
-
-        return model
-
 
 ### NO DP DATATYPES
 @dataclass
@@ -132,20 +114,6 @@ class NoDPModels:
     D: nn.Module
     E: nn.Module
     Sub_E: nn.Module
-
-    def to_lit(self, state: DPState) -> LightningModule:
-        def fix_state_dict(state_dict):
-            return tree_key_map(lambda k: k.replace("_module.", ""), state_dict)
-
-        model = LitHAGAN(
-            latent_dim=state.latent_dim, lambda_1=state.lambdas, lambda_2=state.lambdas
-        )
-        model.G.load_state_dict(fix_state_dict(self.G.state_dict()))
-        model.D.load_state_dict(fix_state_dict(self.D.state_dict()))
-        model.E.load_state_dict(fix_state_dict(self.E.state_dict()))
-        model.Sub_E.load_state_dict(fix_state_dict(self.Sub_E.state_dict()))
-
-        return model
 
 
 @dataclass

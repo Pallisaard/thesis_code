@@ -4,9 +4,9 @@ from collections.abc import Callable
 from jax import tree_map
 import pandas as pd
 import torch
-import torch.nn as nn
-from opacus import GradSampleModule
 from lightning import LightningModule
+
+from thesis_code.models.gans.hagan import LitHAGAN
 
 from .types import (
     DPModels,
@@ -72,3 +72,20 @@ def save_dict_as_csv(data_dict: dict[str, Any], csv_file_path: str):
     """
     df = pd.DataFrame(data_dict)
     df.to_csv(csv_file_path, index=False)
+
+
+def convert_models_to_lit(
+    models: DPModels | NoDPModels, state: DPState
+) -> LightningModule:
+    def fix_state_dict(state_dict):
+        return tree_key_map(lambda k: k.replace("_module.", ""), state_dict)
+
+    model = LitHAGAN(
+        latent_dim=state.latent_dim, lambda_1=state.lambdas, lambda_2=state.lambdas
+    )
+    model.G.load_state_dict(fix_state_dict(models.G.state_dict()))
+    model.D.load_state_dict(fix_state_dict(models.D.state_dict()))
+    model.E.load_state_dict(fix_state_dict(models.E.state_dict()))
+    model.Sub_E.load_state_dict(fix_state_dict(models.Sub_E.state_dict()))
+
+    return model
