@@ -165,7 +165,7 @@ def main():
     while checkpoint_path.exists():
         checkpoint_path = checkpoint_path.with_name(checkpoint_path.name + "_1")
     print("Checkpoint path:", checkpoint_path)
-    Path(args.checkpoint_path).mkdir(parents=True, exist_ok=True)
+    Path(checkpoint_path).mkdir(parents=True, exist_ok=True)
 
     # Setting device
     device = (
