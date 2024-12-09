@@ -258,3 +258,7 @@ def main():
         print("Checkpointing model")
 
         checkpoint_dp_model(models, state, args.checkpoint_path)
+
+
+if __name__ == "__main__":
+    main()
