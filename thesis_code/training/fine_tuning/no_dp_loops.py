@@ -5,6 +5,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import torch.optim as optim
 from opacus.accountants import RDPAccountant
+from tqdm import tqdm
 
 from thesis_code.dataloading.mri_dataset import MRIDataset
 from thesis_code.models.gans.hagan import (
@@ -412,54 +413,60 @@ def training_loop_until_epsilon(
     current_epsilon = state.privacy_accountant.get_epsilon(state.delta, alphas=alphas)
 
     data_iter = iter(dataloaders.train)
-    while current_epsilon < max_epsilon:
-        state.training_stats.step += 1
-        try:
-            batch = next(data_iter)
-        except StopIteration:
-            # Reinitialize the iterator if the previous one is exhausted
-            data_iter = iter(dataloaders.train)
-            batch = next(data_iter)
+    with tqdm(desc="non-DP training progress.", dynamic_cols=True, leave=True) as pbar:
+        while current_epsilon < max_epsilon:
+            state.training_stats.step += 1
+            try:
+                batch = next(data_iter)
+            except StopIteration:
+                # Reinitialize the iterator if the previous one is exhausted
+                data_iter = iter(dataloaders.train)
+                batch = next(data_iter)
 
-        state = no_dp_training_step(
-            models=models,
-            optimizers=optimizers,
-            loss_fns=loss_fns,
-            state=state,
-            batch=batch,
-        )
-
-        val_every_n_steps = state.training_stats.val_every_n_steps
-        checkpoint_every_n_steps = state.training_stats.checkpoint_every_n_steps
-        step = state.training_stats.step
-        if val_every_n_steps is not None and step % val_every_n_steps == 0:
-            for i, val_batch in enumerate(dataloaders.val):
-                state = no_dp_validation_step(
-                    models=models,
-                    loss_fns=loss_fns,
-                    state=state,
-                    batch=val_batch,
-                    save_mris=i == 0,
-                )
-
-        if (
-            checkpoint_every_n_steps is not None
-            and step % checkpoint_every_n_steps == 0
-        ):
-            checkpoint_dp_model(
-                models,
-                state,
-                f"{checkpoint_path}/no_dp_model_step={state.training_stats.step}.pth",
+            state = no_dp_training_step(
+                models=models,
+                optimizers=optimizers,
+                loss_fns=loss_fns,
+                state=state,
+                batch=batch,
             )
 
-        state.training_stats.current_epsilon = state.privacy_accountant.get_epsilon(
-            state.delta, alphas=alphas
-        )
+            val_every_n_steps = state.training_stats.val_every_n_steps
+            checkpoint_every_n_steps = state.training_stats.checkpoint_every_n_steps
+            step = state.training_stats.step
+            if val_every_n_steps is not None and step % val_every_n_steps == 0:
+                for i, val_batch in enumerate(dataloaders.val):
+                    state = no_dp_validation_step(
+                        models=models,
+                        loss_fns=loss_fns,
+                        state=state,
+                        batch=val_batch,
+                        save_mris=i == 0,
+                    )
 
-    checkpoint_dp_model(
-        models,
-        state,
-        f"{checkpoint_path}/generator_final_epsilon={current_epsilon}.pth",
-    )
+            if (
+                checkpoint_every_n_steps is not None
+                and step % checkpoint_every_n_steps == 0
+            ):
+                checkpoint_dp_model(
+                    models,
+                    state,
+                    f"{checkpoint_path}/no_dp_model_step={state.training_stats.step}.pth",
+                )
+
+            state.training_stats.current_epsilon = state.privacy_accountant.get_epsilon(
+                state.delta, alphas=alphas
+            )
+
+            pbar.set_postfix_str(
+                f"Current epsilon: {state.training_stats.current_epsilon}"
+            )
+            pbar.update(1)
+
+        checkpoint_dp_model(
+            models,
+            state,
+            f"{checkpoint_path}/generator_final_epsilon={current_epsilon}.pth",
+        )
 
     return state, current_epsilon
