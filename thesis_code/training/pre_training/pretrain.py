@@ -53,11 +53,6 @@ def parse_args() -> argparse.Namespace:
         "--batch-size", type=int, default=8, help="Batch size for training"
     )
     parser.add_argument(
-        "--strip-skulls",
-        action="store_true",
-        help="Whether to strip skulls from MRI images during preprocessing",
-    )
-    parser.add_argument(
         "--num-workers", type=int, default=0, help="Number of workers for data loader"
     )
     # Transforms
