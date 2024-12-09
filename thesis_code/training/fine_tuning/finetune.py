@@ -192,7 +192,7 @@ def main():
     print("training dataset size:", len(train_ds))
     print("validation dataset size:", len(val_ds))
 
-    if args.size_limit is not None:
+    if args.max_epsilon is not None:
         print("Will train until epsilon is", args.max_epsilon)
     else:
         print("Will train for", args.max_steps, "steps")
