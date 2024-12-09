@@ -96,7 +96,7 @@ class DPState:
     device: str
     latent_dim: int
 
-    training_stats: TrainingStats = TrainingStats()
+    training_stats: TrainingStats = field(default_factory=TrainingStats)
 
 
 @dataclass
@@ -128,12 +128,3 @@ class NoDPOptimizers:
 class NoDPDataLoaders:
     train: DataLoader
     val: DataLoader
-
-
-# @dataclass
-# class NoDPState:
-#     lambdas: float
-#     device: str
-#     latent_dim: int
-
-#     training_stats: TrainingStats = TrainingStats()
