@@ -156,10 +156,10 @@ def dp_training_step(
     fake_labels = data_dict["fake_labels"]
 
     # Train Discriminator (D^H, D^L)
-    generator.requires_grad_(False)
-    discriminator.requires_grad_(True)
-    encoder.requires_grad_(False)
-    sub_encoder.requires_grad_(False)
+    # generator.requires_grad_(False)
+    # discriminator.requires_grad_(True)
+    # encoder.requires_grad_(False)
+    # sub_encoder.requires_grad_(False)
     d_optimizer.zero_grad()
     d_loss = compute_d_loss(
         D=discriminator,
@@ -177,10 +177,10 @@ def dp_training_step(
     d_loss_metric = d_loss.detach().cpu().item()
 
     # Train Generator
-    generator.requires_grad_(True)
-    discriminator.requires_grad_(False)
-    encoder.requires_grad_(False)
-    sub_encoder.requires_grad_(False)
+    # generator.requires_grad_(True)
+    # discriminator.requires_grad_(False)
+    # encoder.requires_grad_(False)
+    # sub_encoder.requires_grad_(False)
     g_optimizer.zero_grad()
     g_loss = compute_g_loss(
         G=generator,
@@ -195,10 +195,10 @@ def dp_training_step(
     g_loss_metric = g_loss.detach().cpu().item()
 
     # Train Encoder
-    generator.requires_grad_(False)
-    discriminator.requires_grad_(False)
-    encoder.requires_grad_(True)
-    sub_encoder.requires_grad_(False)
+    # generator.requires_grad_(False)
+    # discriminator.requires_grad_(False)
+    # encoder.requires_grad_(True)
+    # sub_encoder.requires_grad_(False)
     e_optimizer.zero_grad()
     e_loss = compute_e_loss(
         E=encoder,
@@ -212,10 +212,10 @@ def dp_training_step(
     e_loss_metric = e_loss.detach().cpu().item()
 
     # Train Sub-Encoder
-    generator.requires_grad_(False)
-    discriminator.requires_grad_(False)
-    encoder.requires_grad_(False)
-    sub_encoder.requires_grad_(True)
+    # generator.requires_grad_(False)
+    # discriminator.requires_grad_(False)
+    # encoder.requires_grad_(False)
+    # sub_encoder.requires_grad_(True)
     sub_e_optimizer.zero_grad()
     sub_e_loss = compute_sub_e_loss(
         E=encoder,
