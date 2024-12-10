@@ -74,7 +74,11 @@ def main():
     print("Loading model")
     model = (
         LitHAGAN.load_from_checkpoint(
-            checkpoint_path=args.checkpoint_path, latent_dim=1024
+            checkpoint_path=args.checkpoint_path,
+            latent_dim=1024,
+            lambda_1=args.lambdas,
+            lambda_2=args.lambdas,
+            use_dp_safe=True,
         )
         .eval()
         .to(args.device)
@@ -115,7 +119,6 @@ def main():
         for i, sample_id in inner_bar:
             # Save MRI NIfTI sample
             sample_i = normalize_to(sample[i, 0], -1, 1)
-            # sample_i = sample[i, 0]
 
             mri_vector = (
                 mri_vectorizer(
