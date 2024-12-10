@@ -137,7 +137,7 @@ def get_model(
             latent_dim=latent_dim,
             lambda_1=lambdas,
             lambda_2=lambdas,
-            use_dp_safe=use_dp,
+            use_dp_safe=True,
         )
     return LitHAGAN(latent_dim=latent_dim, lambda_1=lambdas, lambda_2=lambdas)
 
