@@ -16,6 +16,7 @@ source .venv/bin/activate
 python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-1 \
                 --n-samples 512 \
                 --checkpoint-path ../checkpoints/pretrain/HAGAN_lambda_1.ckpt \
-                --device 'cuda' \
                 --lambdas 1 \
+                --devices auto \
                 --batch-size 2 \
+                --vectorizer-dim 512 \
