@@ -144,6 +144,9 @@ def dp_training_step(
     l1_loss = loss_fns.l1
     bce_loss = loss_fns.bce
 
+    if isinstance(batch, list) and len(batch) == 0:
+        return state
+
     data_dict = tree_map(
         lambda x: x.to(state.device) if isinstance(x, torch.Tensor) else x,
         prepare_data(batch=batch, latent_dim=state.latent_dim),
@@ -156,6 +159,9 @@ def dp_training_step(
     noise = data_dict["noise"]
     real_labels = data_dict["real_labels"]
     fake_labels = data_dict["fake_labels"]
+
+    print("batch_size:", _batch_size)
+    print("real_images.shape:", real_images.shape)
 
     # Train Discriminator (D^H, D^L)
     # generator.requires_grad_(False)
