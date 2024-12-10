@@ -148,6 +148,8 @@ def dp_training_step(
     #     return state
 
     print("batch_size:", len(batch))
+    if isinstance(batch, list):
+        print(batch)
 
     data_dict = tree_map(
         lambda x: x.to(state.device) if isinstance(x, torch.Tensor) else x,
