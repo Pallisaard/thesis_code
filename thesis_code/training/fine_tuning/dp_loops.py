@@ -144,12 +144,12 @@ def dp_training_step(
     l1_loss = loss_fns.l1
     bce_loss = loss_fns.bce
 
-    # if isinstance(batch, list) and len(batch) == 0:
-    #     return state
+    if isinstance(batch, list) and batch[0].size(0) < 1:
+        return state
 
-    print("batch_size:", len(batch))
-    if isinstance(batch, list):
-        print(batch)
+    # print("batch_size:", len(batch))
+    # if isinstance(batch, list):
+    #     print(batch)
 
     data_dict = tree_map(
         lambda x: x.to(state.device) if isinstance(x, torch.Tensor) else x,
