@@ -155,6 +155,9 @@ def dp_training_step(
     real_labels = data_dict["real_labels"]
     fake_labels = data_dict["fake_labels"]
 
+    print("batch_size:", _batch_size)
+    print("real_images.shape:", real_images.shape)
+
     # Train Discriminator (D^H, D^L)
     # generator.requires_grad_(False)
     # discriminator.requires_grad_(True)
