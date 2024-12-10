@@ -32,11 +32,11 @@ CUDA_LAUNCH_BLOCKING=1 python -m thesis_code.training.fine_tuning.finetune  --la
                 --lambdas 5.0 \
                 --batch-size 4 \
                 --num-workers 8 \
-                --device 'auto' \
-                --load-from-checkpoint '../checkpoints/pretrained/all-data'/hagan_l1_320k.ckpt \
+                --device auto \
+                --load-from-checkpoint ../checkpoints/pretrained/all-data/hagan_l1_320k.ckpt \
                 --val-every-n-steps 1000 \
                 --checkpoint-every-n-steps 2500 \
-                --checkpoint-path 'checkpoints/finetuned/no_dp' \
+                --checkpoint-path checkpoints/finetuned/dp-epsilon-5 \
                 --alphas 1.1 2 3 5 10 20 50 100 \
                 --noise-multiplier 1.0 \
                 --delta 1e-5 \
