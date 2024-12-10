@@ -53,6 +53,14 @@ def setup_dp_training(
     checkpoint_every_n_steps: Optional[int] = None,
     alphas: list[float] = [1.1, 2, 3, 5, 10, 20, 50, 100],
 ) -> Tuple[DPModels, DPOptimizers, DPDataLoaders, DPState, LossFNs]:
+    # Module validation
+    fix_and_validate = ModuleValidator.fix_and_validate
+    discriminator = GradSampleModule(fix_and_validate(discriminator))
+    encoder = GradSampleModule(fix_and_validate(encoder))
+    sub_encoder = GradSampleModule(fix_and_validate(sub_encoder))
+
+    dp_models = DPModels(G=generator, D=discriminator, E=encoder, Sub_E=sub_encoder)
+
     # Optimizer validation
     g_optimizer = optim.Adam(
         generator.parameters(), lr=lr_g, betas=(0.0, 0.999), eps=1e-8
@@ -81,14 +89,6 @@ def setup_dp_training(
         e_opt=e_dpoptimizer,
         sub_e_opt=sub_e_dpoptimizer,
     )
-
-    # Module validation
-    fix_and_validate = ModuleValidator.fix_and_validate
-    discriminator = GradSampleModule(fix_and_validate(discriminator))
-    encoder = GradSampleModule(fix_and_validate(encoder))
-    sub_encoder = GradSampleModule(fix_and_validate(sub_encoder))
-
-    dp_models = DPModels(G=generator, D=discriminator, E=encoder, Sub_E=sub_encoder)
 
     sample_rate = batch_size / len(train_dataset)
     train_dataloader = DPDataLoader(
