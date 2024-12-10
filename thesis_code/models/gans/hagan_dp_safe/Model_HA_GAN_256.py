@@ -177,6 +177,7 @@ class Discriminator(nn.Module):
         h = F.leaky_relu(self.conv6(h), negative_slope=0.2)
         h = F.leaky_relu(self.conv7(h), negative_slope=0.2)
         h = h.squeeze()
+        print("shape before death:", h.shape)
         h = torch.cat(
             [h, (crop_idx / 224.0 * torch.ones((h.size(0), 1), device=h.device))], 1
         )  # 256*7/8
