@@ -15,7 +15,8 @@ source .venv/bin/activate
 
 python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-5 \
                 --n-samples 512 \
-                --checkpoint-path ../checkpoints/pretrain/HAGAN_lambda_5.ckpt \
+                --use-dp-safe \
+                --checkpoint-path ../checkpoints/pretrain/all-data/HAGAN_l5_320k.ckpt \
                 --lambdas 5 \
                 --devices auto \
                 --batch-size 2 \

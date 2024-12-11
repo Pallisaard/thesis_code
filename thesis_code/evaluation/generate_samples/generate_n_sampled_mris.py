@@ -40,6 +40,7 @@ def pars_args():
         help="Vectorizer dim",
         choices=[512, 2048],
     )
+    parser.add_argument("--use-dp-safe", action="store_true", help="Use DP safe")
 
     return parser.parse_args()
 
@@ -65,7 +66,7 @@ def main():
             latent_dim=1024,
             lambda_1=args.lambdas,
             lambda_2=args.lambdas,
-            use_dp_safe=True,
+            use_dp_safe=args.use_dp_safe,
         )
         .eval()
         .to(device)
