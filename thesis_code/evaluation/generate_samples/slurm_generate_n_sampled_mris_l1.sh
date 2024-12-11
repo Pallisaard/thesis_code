@@ -19,6 +19,6 @@ python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --outp
                 --use-dp-safe \
                 --checkpoint-path ../checkpoints/pretrain/all-data/HAGAN_l1_320k.ckpt \
                 --lambdas 1 \
-                --devices auto \
+                --device auto \
                 --batch-size 2 \
                 --vectorizer-dim 512 \
