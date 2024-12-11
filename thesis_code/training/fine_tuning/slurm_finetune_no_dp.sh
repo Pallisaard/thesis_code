@@ -3,7 +3,7 @@
 #SBATCH --output=slurm_finetune_no_dp-%j.out # Name of output file
 #SBATCH --error=slurm_finetune_no_dp-%j.err # Name of error file
 #SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
-#SBATCH --time=3-00:00:00       # Time limit day-hrs:min:sec
+#SBATCH --time=2-00:00:00       # Time limit day-hrs:min:sec
 #SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
 #SBATCH --mem=16G        # Memory request
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
@@ -27,7 +27,7 @@ echo "start time: $(date)"
 CUDA_LAUNCH_BLOCKING=1 python -m thesis_code.training.fine_tuning.finetune  --latent-dim 1024 \
                 --data-path ../data/fine-tuning/brain-masked \
                 --use-all-data-for-training \
-                --max-epsilon 2.0 \
+                --max-epsilon 10.0 \
                 --lambdas 5.0 \
                 --batch-size 4 \
                 --num-workers 8 \
