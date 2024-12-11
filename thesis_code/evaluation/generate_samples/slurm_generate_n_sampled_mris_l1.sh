@@ -3,6 +3,7 @@
 #SBATCH --output=slurm_generate_n_sampled_mris_l1-%j.out # Name of output file
 #SBATCH --error=slurm_generate_n_sampled_mris_l1-%j.err # Name of error file
 #SBATCH --gres=gpu:titanrtx:1       # Request 4 GPU per job
+#SBATCH --time=01:15:00    # Time limit hrs:min:sec
 #SBATCH --cpus-per-task=4  # Number of CPUs for each gpu
 #SBATCH --mem=32G        # Memory request
 
