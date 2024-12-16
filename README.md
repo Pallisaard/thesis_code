@@ -30,19 +30,19 @@ inside the `thesis_code` folder, the following subfolders are present:
 
 ### [thesis_code/dataloading](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/dataloading)
 
-Contains scripts and modules for loading and preprocessing MRI datasets.
+Contains scripts and modules for loading and preprocessing MRI datasets. This part is for the most part done.
 
 ### [thesis_code/fastsurfer](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/fastsurfer)
 
-Includes scripts for running FastSurfer, a tool for processing MRI scans.
+Includes scripts for running FastSurfer, a tool for processing MRI scans. This part is finished
 
 ### [thesis_code/metrics](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/metrics)
 
-Contains modules for calculating various metrics used in model evaluation.
+Contains modules for calculating various metrics used in model evaluation. This part is currently under development as the project evolves.
 
 ### [thesis_code/models](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/models)
 
-Includes the implementation of different deep learning models used in the project.
+Includes the implementation of different deep learning models used in the project. This part is for the most part done.
 
 ### [thesis_code/scripts](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/scripts)
 
@@ -50,9 +50,9 @@ Contains various utility scripts for data processing and other tasks.
 
 ### [thesis_code/training](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/training)
 
-Includes scripts and modules for training and fine-tuning the models
+Includes scripts and modules for training and fine-tuning the models. Pre-training is done and fine-tuning using DP will we written in the next week or so.
 
-## [thesis_code/evaluation](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/evalutation)
+### [thesis_code/evaluation](https://github.com/Pallisaard/thesis_code/tree/main/thesis_code/evalutation)
 
 Includes scripts and notebooks for evaluating the models.
 
