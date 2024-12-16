@@ -3,6 +3,7 @@
 #SBATCH --output=slurm_generate_n_sampled_mris_l5-%j.out # Name of output file
 #SBATCH --error=slurm_generate_n_sampled_mris_l5-%j.err # Name of error file
 #SBATCH --gres=gpu:titanrtx:1       # Request 4 GPU per job
+#SBATCH --time=01:15:00    # Time limit hrs:min:sec
 #SBATCH --cpus-per-task=4  # Number of CPUs for each gpu
 #SBATCH --mem=32G        # Memory request
 
@@ -15,7 +16,9 @@ source .venv/bin/activate
 
 python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-5 \
                 --n-samples 512 \
-                --checkpoint-path ../checkpoints/pretrain/HAGAN_lambda_5.ckpt \
-                --device 'cuda' \
+                --use-dp-safe \
+                --checkpoint-path ../checkpoints/pretrained/all-data/HAGAN_l5_320k.ckpt \
                 --lambdas 5 \
+                --device auto \
                 --batch-size 2 \
+                --vecotrizer-dim 512 \

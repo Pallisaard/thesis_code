@@ -35,7 +35,7 @@ def parse_args() -> argparse.Namespace:
         help="Name of the model to train",
     )
     parser.add_argument(
-        "--latent-dim", type=int, default=256, help="Dimension of the latent space"
+        "--latent-dim", type=int, default=1024, help="Dimension of the latent space"
     )
     parser.add_argument(
         "--data-path", type=str, required=True, help="Path to the data directory"
@@ -47,21 +47,10 @@ def parse_args() -> argparse.Namespace:
     )
 
     # HAGAN arguments.
-    parser.add_argument(
-        "--lambda-1", type=float, default=1.0, help="Lambda 1 for HAGAN"
-    )
-    parser.add_argument(
-        "--lambda-2", type=float, default=1.0, help="Lambda 2 for HAGAN"
-    )
-
+    parser.add_argument("--lambdas", type=float, default=1.0, help="Lambdas for HAGAN")
     # Data module arguments.
     parser.add_argument(
         "--batch-size", type=int, default=8, help="Batch size for training"
-    )
-    parser.add_argument(
-        "--strip-skulls",
-        action="store_true",
-        help="Whether to strip skulls from MRI images during preprocessing",
     )
     parser.add_argument(
         "--num-workers", type=int, default=0, help="Number of workers for data loader"
@@ -262,7 +251,10 @@ def get_model(
             LitHAGAN,
             checkpoint_path=checkpoint_path,
             model_kwargs=dict(
-                latent_dim=latent_dim, lambda_1=args.lambda_1, lambda_2=args.lambda_2
+                latent_dim=latent_dim,
+                lambda_1=args.lambdas,
+                lambda_2=args.lambdas,
+                use_dp_safe=True,
             ),
         )
     else:
@@ -359,6 +351,7 @@ def main():
         args.num_workers,
         transform=transform,
         size_limit=100 if args.fast_dev_run else None,
+        use_all_data_for_training=args.use_all_data_for_training,
     )
 
     print("transforms:", transform)

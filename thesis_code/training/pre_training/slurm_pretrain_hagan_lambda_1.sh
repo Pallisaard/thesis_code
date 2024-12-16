@@ -4,6 +4,7 @@
 #SBATCH --error=slurm_pretrain_hagan_l1-%j.err # Name of error file
 #SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
+#SBATCH --time=1-12:00:00    # Limit to 36 hours.
 #SBATCH --mem=16G        # Memory request
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
@@ -33,10 +34,9 @@ python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --callbacks 'checkpoint' \
                 --save-top-k 3 \
                 --save-last \
-                --log-every-n-steps 25 \
+                --log-every-n-steps 50 \
                 --max-steps 320000 \
-                --lambda-1 1.0 \
-                --lambda-2 1.0 \
+                --lambdas 1.0 \
                 # --fast-dev-run \
 
 # echo time at end

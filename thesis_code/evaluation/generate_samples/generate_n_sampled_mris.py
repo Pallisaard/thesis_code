@@ -25,31 +25,51 @@ def pars_args():
     parser.add_argument(
         "--checkpoint-path", required=True, type=str, help="Checkpoint path"
     )
-    parser.add_argument("--device", type=str, help="Device to use", default="cpu")
+    parser.add_argument(
+        "--device", type=str, help="Device to use", choices=["cpu", "cuda", "auto"]
+    )
     parser.add_argument(
         "--lambdas",
         type=float,
         help="Value for lambda_1 and lambda_2",
-        default=1.0,
     )
     parser.add_argument("--batch-size", type=int, help="Batch size", default=4)
+    parser.add_argument(
+        "--vectorizer-dim",
+        type=int,
+        help="Vectorizer dim",
+        choices=[512, 2048],
+    )
+    parser.add_argument("--use-dp-safe", action="store_true", help="Use DP safe")
 
     return parser.parse_args()
 
 
 def main():
     args = pars_args()
+    device = (
+        args.device
+        if args.device != "auto"
+        else "cuda"
+        if torch.cuda.is_available()
+        else "cpu"
+    )
+    vectorizer_depth = 10 if args.vectorizer_dim == 512 else 50
 
     # Load model
     print("Loading MRI vectorizer")
-    mri_vectorizer = get_mri_vectorizer(50).eval().to(args.device)
+    mri_vectorizer = get_mri_vectorizer(vectorizer_depth).eval().to(device)
     print("Loading model")
     model = (
         LitHAGAN.load_from_checkpoint(
-            checkpoint_path=args.checkpoint_path, latent_dim=1024
+            checkpoint_path=args.checkpoint_path,
+            latent_dim=1024,
+            lambda_1=args.lambdas,
+            lambda_2=args.lambdas,
+            use_dp_safe=args.use_dp_safe,
         )
         .eval()
-        .to(args.device)
+        .to(device)
     )
 
     print("Generating vectorizer out array")
@@ -67,7 +87,6 @@ def main():
     for batch_ids in outer_bar:
         sample = model.safe_sample(len(batch_ids))
         sample = sample.detach().cpu().numpy()
-        sample = 0.5 * sample + 0.5
 
         inner_bar = tqdm.tqdm(
             enumerate(batch_ids),
@@ -87,7 +106,7 @@ def main():
             # Get MRI vectorizer output
             mri_vectorizer_out[sample_id] = (
                 mri_vectorizer(
-                    torch.from_numpy(sample_i).unsqueeze(0).unsqueeze(0).to(args.device)
+                    torch.from_numpy(sample_i).unsqueeze(0).unsqueeze(0).to(device)
                 )
                 .detach()
                 .cpu()

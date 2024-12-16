@@ -22,13 +22,14 @@ def get_checkpoint_callback(
         path = Path(path)
 
     path = path / model_name
+    base_path = path
     # if path exists, add "_n" to the end of the path. Let n start from 1 and go up until we find a path that doesn't exist
     if not path.exists():
         path.mkdir(parents=True)
     else:
         n = 1
         while path.exists():
-            path = path.with_name(f"{path.name}_{n}")
+            path = path.with_name(f"{base_path.name}_{n}")
             n += 1
 
     return ModelCheckpoint(
