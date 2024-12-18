@@ -5,7 +5,7 @@ import nibabel as nib
 import argparse
 from tqdm import tqdm
 
-from thesis_code.data_collection.reorient_nii import reorient_nii_to_ras
+from thesis_code.scripts.reorient_nii import reorient_nii_to_ras
 from thesis_code.dataloading.transforms import (
     MRITransform,
     Compose,
