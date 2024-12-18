@@ -10,7 +10,7 @@ import torch.optim as optim
 import lightning as L
 import nibabel as nib
 
-from thesis_code.models.gans.hagan_backbone.Model_HA_GAN_256 import (
+from .backbone.Model_HA_GAN_256 import (
     Generator as bb_Generator,
     Discriminator as bb_Discriminator,
     Encoder as bb_Encoder,
@@ -18,7 +18,7 @@ from thesis_code.models.gans.hagan_backbone.Model_HA_GAN_256 import (
     S_L,
     S_H,
 )
-from thesis_code.models.gans.hagan_dp_safe.Model_HA_GAN_256 import (
+from .dp_safe_backbone.Model_HA_GAN_256 import (
     Generator as safe_Generator,
     Discriminator as safe_Discriminator,
     Encoder as safe_Encoder,

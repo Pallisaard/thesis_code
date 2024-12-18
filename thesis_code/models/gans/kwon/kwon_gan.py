@@ -9,15 +9,13 @@ from thesis_code.training.callbacks.callbacks import (
     get_checkpoint_callback,
     DEFAULT_CHECKPOINT_PATH,
 )
+from .backbone import CodeDiscriminator, Encoder, Generator, Discriminator
 
 
 class LitKwonGan(L.LightningModule):
     def __init__(
         self,
-        generator: nn.Module,
-        critic: nn.Module,
-        code_critic: nn.Module,
-        encoder: nn.Module,
+        latent_dim: int,
         lambda_grad_policy: float = 10.0,
         n_critic_steps: int = 5,
         lambda_recon: float = 1.0,
@@ -26,10 +24,10 @@ class LitKwonGan(L.LightningModule):
         # Save hyperparameters to the checkpoint
         self.save_hyperparameters()
 
-        self.generator = generator
-        self.critic = critic
-        self.code_critic = code_critic
-        self.encoder = encoder
+        self.generator = Generator(latent_dim)
+        self.critic = Discriminator()
+        self.code_critic = CodeDiscriminator(latent_dim)
+        self.encoder = Encoder(latent_dim)
         self.lambda_grad_policy = lambda_grad_policy
         self.n_critic_steps = n_critic_steps
         self.lambda_recon = lambda_recon
@@ -298,3 +296,12 @@ class LitKwonGan(L.LightningModule):
         )[0]
 
         return gradient
+
+    def _interpolate_data_with_gradient(
+        self, real_data: torch.Tensor, fake_data: torch.Tensor
+    ) -> torch.Tensor:
+        alpha = torch.rand(real_data.size(0), 1, 1, 1, device=self.device)
+        alpha = alpha.expand_as(real_data)
+        interpolates = alpha * real_data + (1 - alpha) * fake_data
+        interpolates.requires_grad_(True)
+        return interpolates
