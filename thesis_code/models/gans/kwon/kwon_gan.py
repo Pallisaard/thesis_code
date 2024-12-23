@@ -287,9 +287,11 @@ class LitKwonGan(L.LightningModule):
         return torch.mean((gradient_norms - 1) ** 2)
 
     def _compute_gradient(self, model: nn.Module, interpolates_grad: torch.Tensor):
+        interpolates_grad.requires_grad_(True)
         gradient = torch.autograd.grad(
             outputs=model(interpolates_grad).sum(),
             inputs=interpolates_grad,
+            only_inputs=True,
         )[0]
 
         return gradient
@@ -300,5 +302,5 @@ class LitKwonGan(L.LightningModule):
         alpha_dim = (real_data.size(0), *([1] * (real_data.dim() - 1)))
         alpha = torch.rand(size=alpha_dim, device=self.device)
         interpolates = alpha * real_data + (1 - alpha) * fake_data
-        interpolates.detach().requires_grad_(True)
+        interpolates.requires_grad_(True)
         return interpolates
