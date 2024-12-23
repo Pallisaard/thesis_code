@@ -267,6 +267,10 @@ class LitKwonGan(L.LightningModule):
         real_data: torch.Tensor,
         fake_data: torch.Tensor,
     ) -> torch.Tensor:
+        print("In gradient policy fn")
+        print("model name:", model.__class__.__name__)
+        print("real_data.size():", real_data.size())
+        print("fake_data.size():", fake_data.size())
         interpolates_grad = self._interpolate_data_with_gradient(real_data, fake_data)
 
         batch_size = fake_data.size(0)
