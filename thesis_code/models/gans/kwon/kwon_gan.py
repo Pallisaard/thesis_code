@@ -114,80 +114,80 @@ class LitKwonGan(L.LightningModule):
         return torch.mean(fake_code_critic_score)
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
-        with torch.autograd.set_detect_anomaly(True):
-            # Optimizers
-            opt_g, opt_d, opt_c, opt_e = self.optimizers()  # type: ignore
+        # with torch.autograd.set_detect_anomaly(True):
+        # Optimizers
+        opt_g, opt_d, opt_c, opt_e = self.optimizers()  # type: ignore
 
-            real_data = batch
-            batch_size = real_data.size(0)
-            latent_dim = self.generator.latent_dim
+        real_data = batch
+        batch_size = real_data.size(0)
+        latent_dim = self.generator.latent_dim
 
-            # Sample noise and latent codes
-            random_codes = torch.randn(batch_size, latent_dim, device=self.device)
-            latent_codes = self.encoder(real_data)
-            # All generated data
-            fake_data = self.generator(random_codes)
-            recon_data = self.generator(latent_codes)
-            # All scores from the critic, should be scalars
-            real_critic_score = self.critic(real_data)
-            fake_critic_score = self.critic(fake_data)
-            recon_critic_score = self.critic(recon_data)
-            # All scores from the code critic, should be scalars
-            real_code_critic_score = self.code_critic(random_codes)
-            fake_code_critic_score = self.code_critic(latent_codes)
+        # Sample noise and latent codes
+        random_codes = torch.randn(batch_size, latent_dim, device=self.device)
+        latent_codes = self.encoder(real_data)
+        # All generated data
+        fake_data = self.generator(random_codes)
+        recon_data = self.generator(latent_codes)
+        # All scores from the critic, should be scalars
+        real_critic_score = self.critic(real_data)
+        fake_critic_score = self.critic(fake_data)
+        recon_critic_score = self.critic(recon_data)
+        # All scores from the code critic, should be scalars
+        real_code_critic_score = self.code_critic(random_codes)
+        fake_code_critic_score = self.code_critic(latent_codes)
 
-            # Encoder loss and optimization
-            e_loss = self.encoder_loss(
-                fake_code_critic_score=fake_code_critic_score,
-                real_data=real_data,
-                recon_data=recon_data,
-            )
+        # Encoder loss and optimization
+        e_loss = self.encoder_loss(
+            fake_code_critic_score=fake_code_critic_score,
+            real_data=real_data,
+            recon_data=recon_data,
+        )
 
-            # Generator loss and optimization
-            g_loss = self.generator_loss(
-                real_critic_score=real_critic_score,
-                fake_critic_score=fake_critic_score,
-                real_data=real_data,
-                recon_data=recon_data,
-            )
+        # Generator loss and optimization
+        g_loss = self.generator_loss(
+            real_critic_score=real_critic_score,
+            fake_critic_score=fake_critic_score,
+            real_data=real_data,
+            recon_data=recon_data,
+        )
 
-            # critic loss and optimization
-            d_loss = self.critic_loss(
-                real_critic_score=real_critic_score,
-                fake_critic_score=fake_critic_score,
-                recon_critic_score=recon_critic_score,
-                real_data=real_data,
-                fake_data=fake_data,
-            )
-            # Code critic loss and optimization
-            c_loss = self.code_critic_loss(
-                real_code_critic_score=real_code_critic_score,
-                fake_code_critic_score=fake_code_critic_score,
-                random_codes=random_codes,
-                fake_codes=latent_codes,
-            )
+        # critic loss and optimization
+        d_loss = self.critic_loss(
+            real_critic_score=real_critic_score,
+            fake_critic_score=fake_critic_score,
+            recon_critic_score=recon_critic_score,
+            real_data=real_data,
+            fake_data=fake_data,
+        )
+        # Code critic loss and optimization
+        c_loss = self.code_critic_loss(
+            real_code_critic_score=real_code_critic_score,
+            fake_code_critic_score=fake_code_critic_score,
+            random_codes=random_codes,
+            fake_codes=latent_codes,
+        )
 
-            opt_e.zero_grad()
-            opt_g.zero_grad()
-            opt_d.zero_grad()
-            opt_c.zero_grad()
+        opt_e.zero_grad()
+        opt_g.zero_grad()
+        opt_d.zero_grad()
+        opt_c.zero_grad()
 
-            self.manual_backward(e_loss, retain_graph=True)
-            opt_e.step()
+        self.manual_backward(e_loss, retain_graph=True)
+        opt_e.step()
 
-            self.manual_backward(g_loss, retain_graph=True)
-            opt_g.step()
+        self.manual_backward(g_loss, retain_graph=True)
+        opt_g.step()
 
-            self.manual_backward(d_loss, retain_graph=True)
-            opt_d.step()
+        self.manual_backward(d_loss, retain_graph=True)
+        opt_d.step()
 
-            self.manual_backward(c_loss, retain_graph=True)
-            opt_c.step()
+        self.manual_backward(c_loss, retain_graph=True)
+        opt_c.step()
 
-            # Log losses
-            self.log_dict(
-                {"d_loss": d_loss, "g_loss": g_loss, "c_loss": c_loss, "e_loss": e_loss}
-            )
+        # Log losses
+        self.log_dict(
+            {"d_loss": d_loss, "g_loss": g_loss, "c_loss": c_loss, "e_loss": e_loss}
+        )
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         real_data = batch

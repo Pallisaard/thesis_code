@@ -9,18 +9,22 @@ class CodeDiscriminator(nn.Module):
         # self.model = nn.Sequential(
         #     nn.Linear(self.latent_dim, 4096),
         #     nn.BatchNorm1d(4096),
-        #     nn.LeakyReLU(0.2, inplace=True),
+        #     nn.LeakyReLU(0.2, ),
         #     nn.Linear(4096, 4096),
         #     nn.BatchNorm1d(4096),
-        #     nn.LeakyReLU(0.2, inplace=True),
+        #     nn.LeakyReLU(0.2, ),
         #     nn.Linear(4096, 1),
         # )
         self.l1 = nn.Linear(self.latent_dim, 4096)
         self.bn1 = nn.BatchNorm1d(4096)
-        self.relu1 = nn.LeakyReLU(0.2, inplace=True)
+        self.relu1 = nn.LeakyReLU(
+            0.2,
+        )
         self.l2 = nn.Linear(4096, 4096)
         self.bn2 = nn.BatchNorm1d(4096)
-        self.relu2 = nn.LeakyReLU(0.2, inplace=True)
+        self.relu2 = nn.LeakyReLU(
+            0.2,
+        )
         self.l3 = nn.Linear(4096, 1)
 
     def forward(self, code):
@@ -57,7 +61,9 @@ class EncoderBlock(nn.Module):
         )
 
         self.norm = nn.BatchNorm3d(out_channels) if self.use_norm else nn.Identity()
-        self.relu = nn.LeakyReLU(0.2, inplace=True)
+        self.relu = nn.LeakyReLU(
+            0.2,
+        )
 
     def forward(self, x):
         x = self.conv(x)
@@ -106,7 +112,7 @@ class GeneratorInBlock(nn.Module):
                 in_channels, out_channels, kernel_size, stride, padding, bias=False
             ),
             nn.BatchNorm3d(out_channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
         )
 
     def forward(self, x):
@@ -125,7 +131,7 @@ class GeneratorMidBlock(nn.Module):
                 in_channels, out_channels, kernel_size, stride, padding, bias=False
             ),
             nn.BatchNorm3d(out_channels),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
         )
 
     def forward(self, x):
