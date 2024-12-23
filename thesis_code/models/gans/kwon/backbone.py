@@ -10,7 +10,7 @@ class CodeDiscriminator(nn.Module):
             nn.Linear(self.latent_dim, 4096),
             nn.BatchNorm1d(4096),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.BatchNorm1d(4096),
+            nn.Linear(4096, 4096),
             nn.BatchNorm1d(4096),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(4096, 1),
