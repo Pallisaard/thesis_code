@@ -98,7 +98,7 @@ class GeneratorInBlock(nn.Module):
     ):
         super(GeneratorInBlock, self).__init__()
         self.model = nn.Sequential(
-            nn.Conv3d(
+            nn.ConvTranspose3d(
                 in_channels, out_channels, kernel_size, stride, padding, bias=False
             ),
             nn.BatchNorm3d(out_channels),
