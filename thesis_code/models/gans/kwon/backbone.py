@@ -6,18 +6,32 @@ class CodeDiscriminator(nn.Module):
     def __init__(self, latent_dim: int):
         super(CodeDiscriminator, self).__init__()
         self.latent_dim = latent_dim
-        self.model = nn.Sequential(
-            nn.Linear(self.latent_dim, 4096),
-            nn.BatchNorm1d(4096),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(4096, 4096),
-            nn.BatchNorm1d(4096),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(4096, 1),
-        )
+        # self.model = nn.Sequential(
+        #     nn.Linear(self.latent_dim, 4096),
+        #     nn.BatchNorm1d(4096),
+        #     nn.LeakyReLU(0.2, inplace=True),
+        #     nn.Linear(4096, 4096),
+        #     nn.BatchNorm1d(4096),
+        #     nn.LeakyReLU(0.2, inplace=True),
+        #     nn.Linear(4096, 1),
+        # )
+        self.l1 = nn.Linear(self.latent_dim, 4096)
+        self.bn1 = nn.BatchNorm1d(4096)
+        self.relu1 = nn.LeakyReLU(0.2, inplace=True)
+        self.l2 = nn.Linear(4096, 4096)
+        self.bn2 = nn.BatchNorm1d(4096)
+        self.relu2 = nn.LeakyReLU(0.2, inplace=True)
+        self.l3 = nn.Linear(4096, 1)
 
     def forward(self, code):
-        return self.model(code)
+        code = self.ln1(code)
+        code = self.bn1(code)
+        code = self.relu1(code)
+        code = self.l2(code)
+        code = self.bn2(code)
+        code = self.relu2(code)
+        code = self.l3(code)
+        return code
 
 
 class EncoderBlock(nn.Module):
