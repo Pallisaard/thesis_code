@@ -279,7 +279,8 @@ class LitKwonGan(L.LightningModule):
 
         return torch.mean((gradient_norms - 1) ** 2)
 
-    def _compute_gradient(self, model, interpolates_grad):
+    def _compute_gradient(self, model: nn.Module, interpolates_grad: torch.Tensor):
+        interpolates_grad.requires_grad_(True)
         gradient = torch.autograd.grad(
             outputs=model(interpolates_grad).sum(),
             inputs=interpolates_grad,
