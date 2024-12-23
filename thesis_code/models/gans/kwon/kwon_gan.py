@@ -144,7 +144,7 @@ class LitKwonGan(L.LightningModule):
         opt_e.zero_grad()
         # Also performs backwards for reconstruction loss on generator, so no
         # need to call it again
-        self.manual_backward(e_loss)
+        self.manual_backward(e_loss, retain_graph=True)
         opt_e.step()
 
         # Generator loss and optimization
@@ -155,7 +155,7 @@ class LitKwonGan(L.LightningModule):
             recon_data=recon_data,
         )
         opt_g.zero_grad()
-        self.manual_backward(g_loss)
+        self.manual_backward(g_loss, retain_graph=True)
         opt_g.step()
 
         # critic loss and optimization
@@ -167,7 +167,7 @@ class LitKwonGan(L.LightningModule):
             fake_data=fake_data,
         )
         opt_d.zero_grad()
-        self.manual_backward(d_loss)
+        self.manual_backward(d_loss, retain_graph=True)
         opt_d.step()
 
         # Code critic loss and optimization
@@ -178,7 +178,7 @@ class LitKwonGan(L.LightningModule):
             fake_codes=latent_codes,
         )
         opt_c.zero_grad()
-        self.manual_backward(c_loss)
+        self.manual_backward(c_loss, retain_graph=True)
         opt_c.step()
 
         # Log losses
