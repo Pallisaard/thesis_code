@@ -291,6 +291,8 @@ class LitKwonGan(L.LightningModule):
         gradient = torch.autograd.grad(
             outputs=model(interpolates_grad).sum(),
             inputs=interpolates_grad,
+            retain_graph=True,
+            create_graph=True,
             only_inputs=True,
         )[0]
 
