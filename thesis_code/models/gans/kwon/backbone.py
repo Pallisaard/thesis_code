@@ -141,6 +141,9 @@ class GeneratorOutBlock(nn.Module):
             nn.Tanh(),
         )
 
+        def forward(self, x):
+            return self.model(x)
+
 
 class Generator(nn.Module):
     def __init__(self, latent_dim: int):
