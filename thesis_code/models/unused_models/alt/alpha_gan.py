@@ -31,13 +31,16 @@ class LitAlphaGAN(L.LightningModule):
         fake_data: Tensor,
         real_codes: Tensor,
     ) -> Tensor:
-        real_labels = torch.ones_like(self.discriminator(real_data))
-        real_loss = F.binary_cross_entropy(self.discriminator(real_data), real_labels)
+        d_real = self.discriminator(real_data)
+        real_labels = torch.ones_like(d_real)
+        real_loss = F.binary_cross_entropy(d_real, real_labels)
 
-        fake_labels = torch.zeros_like(self.discriminator(fake_data))
-        fake_loss = F.binary_cross_entropy(self.discriminator(fake_data), fake_labels)
+        d_fake = self.discriminator(fake_data)
+        fake_labels = torch.zeros_like(d_fake)
+        fake_loss = F.binary_cross_entropy(d_fake, fake_labels)
 
-        real_latent_labels = torch.zeros_like(self.discriminator(real_codes))
+        d_real_codes = self.discriminator(real_codes)
+        real_latent_labels = torch.zeros_like(d_real_codes)
         latent_loss = F.binary_cross_entropy(
             self.discriminator(real_codes), real_latent_labels
         )
@@ -66,22 +69,22 @@ class LitAlphaGAN(L.LightningModule):
     ) -> Tensor:
         code_disc_latent = self.code_discriminator(fake_codes)
         latent_labels = torch.ones_like(code_disc_latent)
-        code_loss = F.binary_cross_entropy(code_disc_latent, latent_labels)
+        code_loss = -F.binary_cross_entropy(code_disc_latent, latent_labels)
         code_loss += F.binary_cross_entropy(1 - code_disc_latent, 1 - latent_labels)
         return code_loss
 
     def generator_loss(self, fake_data: Tensor, fake_data_recon: Tensor) -> Tensor:
         # Adversarial loss for samples generated from random noise
-        disc_fake = self.discriminator(fake_data)
-        fake_labels = torch.ones_like(disc_fake)
-        adv_loss_fake = F.binary_cross_entropy(disc_fake, fake_labels)
-        adv_loss_fake += F.binary_cross_entropy(1 - disc_fake, 1 - fake_labels)
+        disciminator_fake = self.discriminator(fake_data)
+        fake_labels = torch.ones_like(disciminator_fake)
+        adv_loss_fake = -F.binary_cross_entropy(disciminator_fake, fake_labels)
+        adv_loss_fake += F.binary_cross_entropy(1 - disciminator_fake, 1 - fake_labels)
 
         # Adversarial loss for reconstructed samples
         # Better stability with this formula,
         disc_recon = self.discriminator(fake_data_recon)
         recon_labels = torch.ones_like(disc_recon)
-        adv_loss_recon = F.binary_cross_entropy(disc_recon, recon_labels)
+        adv_loss_recon = -F.binary_cross_entropy(disc_recon, recon_labels)
         adv_loss_recon += F.binary_cross_entropy(1 - disc_recon, 1 - recon_labels)
 
         return adv_loss_fake + adv_loss_recon
