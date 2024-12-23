@@ -24,6 +24,7 @@ class CodeDiscriminator(nn.Module):
         self.l3 = nn.Linear(4096, 1)
 
     def forward(self, code):
+        print("code.size():", code.size())
         code = self.l1(code)
         code = self.bn1(code)
         code = self.relu1(code)
