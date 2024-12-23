@@ -84,24 +84,13 @@ class Encoder(nn.Module):
         )
 
     def forward(self, x):
-        return self.model(x)
+        return self.model(x).view(x.size(0), self.latent_dim)
 
 
 class Discriminator(nn.Module):
     def __init__(self):
         super(Discriminator, self).__init__()
-        self.model = nn.Sequential(
-            # Layer 1
-            EncoderBlock(1, 64, kernel_size=4, stride=2, padding=1, use_norm=False),
-            # Layer 2
-            EncoderBlock(64, 128, kernel_size=4, stride=2, padding=1, use_norm=True),
-            # Layer 3
-            EncoderBlock(128, 256, kernel_size=4, stride=2, padding=1, use_norm=True),
-            # Layer 4
-            EncoderBlock(256, 512, kernel_size=4, stride=2, padding=1, use_norm=True),
-            # Layer 5
-            nn.Conv3d(512, 1, kernel_size=4, stride=1, padding=0),
-        )
+        self.model = Encoder(latent_dim=1)
 
     def forward(self, x):
         return self.model(x)
