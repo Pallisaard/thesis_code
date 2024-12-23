@@ -120,7 +120,7 @@ class GeneratorMidBlock(nn.Module):
             nn.Conv3d(
                 in_channels, out_channels, kernel_size, stride, padding, bias=False
             ),
-            nn.BatchNorm3d(256),
+            nn.BatchNorm3d(out_channels),
             nn.ReLU(inplace=True),
         )
 
