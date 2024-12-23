@@ -1,5 +1,5 @@
 from .medical_net import ResNet, resnet50
-from .alt import LitKwonGan, LitAlphaGAN, LitWGANGP, LitWGAN, LitGAN
+from .alt import LitAlphaGAN, LitWGANGP, LitWGAN, LitGAN
 
 __all__ = [
     "ResNet",
@@ -8,5 +8,4 @@ __all__ = [
     "LitWGANGP",
     "LitWGAN",
     "LitGAN",
-    "LitKwonGan",
 ]
