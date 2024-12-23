@@ -292,7 +292,7 @@ class LitKwonGan(L.LightningModule):
     def _interpolate_data_with_gradient(
         self, real_data: torch.Tensor, fake_data: torch.Tensor
     ) -> torch.Tensor:
-        alpha = torch.rand(real_data.size(0), device=self.device)
+        alpha = torch.rand(real_data.size(0), 1, 1, 1, 1, device=self.device)
         # alpha = alpha.expand_as(real_data)
         interpolates = alpha * real_data + (1 - alpha) * fake_data
         interpolates.requires_grad_(True)
