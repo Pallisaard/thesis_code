@@ -106,6 +106,7 @@ class GeneratorInBlock(nn.Module):
         )
 
     def forward(self, x):
+        x = x.view(x.size(0), x.size(1), 1, 1, 1)
         return self.model(x)
 
 
