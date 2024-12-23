@@ -12,6 +12,7 @@ from thesis_code.dataloading.transforms import (
     RangeNormalize,
     Resize,
     RemovePercentOutliers,
+    RemoveZeroSlices,
 )
 
 
@@ -36,16 +37,6 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def get_transforms(size: int, percent_outliers: float) -> Compose:
-    return Compose(
-        [
-            Resize(size),
-            RemovePercentOutliers(percent_outliers),
-            RangeNormalize(target_min=-1, target_max=1),
-        ]
-    )
-
-
 def apply_mask_to_mri(mask_img, original_mri, transforms: Optional[MRITransform]):
     reoriented_mask_img = reorient_nii_to_ras(mask_img)
     reoriented_mask_data = reoriented_mask_img.get_fdata()
@@ -58,7 +49,6 @@ def apply_mask_to_mri(mask_img, original_mri, transforms: Optional[MRITransform]
 
 if __name__ == "__main__":
     args = parse_args()
-    # transforms = get_transforms(args.size, args.percent_outliers)
 
     data_dir = Path(args.data_dir)
     if not data_dir.exists():

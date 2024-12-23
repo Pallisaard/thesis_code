@@ -9,6 +9,7 @@ from thesis_code.dataloading.transforms import (
     Compose,
     RangeNormalize,
     RemovePercentOutliers,
+    RemoveZeroSlices,
 )
 
 
@@ -16,6 +17,12 @@ from thesis_code.dataloading.transforms import (
 @pytest.fixture
 def sample_image() -> torch.Tensor:
     image = torch.randn(1, 10, 20, 30)
+    return image
+
+
+@pytest.fixture
+def zero_image() -> torch.Tensor:
+    image = torch.zeros(1, 10, 10, 10)
     return image
 
 
@@ -71,3 +78,11 @@ def test_compose(sample_image: torch.Tensor):
     assert transformed_sample.shape == (1, 64, 64, 64)
     assert transformed_sample.min().item() == -1.0
     assert transformed_sample.max().item() == 1.0
+
+
+def test_remove_zero_slices(zero_image: torch.Tensor):
+    zero_image[:, 3:5, 2:6, 1:7] = 1
+    remove_zero_slices = RemoveZeroSlices()
+    cleaned_sample = remove_zero_slices(zero_image)
+
+    assert cleaned_sample.shape == (1, 2, 4, 6)
