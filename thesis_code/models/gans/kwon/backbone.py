@@ -141,8 +141,8 @@ class GeneratorOutBlock(nn.Module):
             nn.Tanh(),
         )
 
-        def forward(self, x):
-            return self.model(x)
+    def forward(self, x):
+        return self.model(x)
 
 
 class Generator(nn.Module):
