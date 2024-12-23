@@ -92,11 +92,11 @@ class Discriminator(nn.Module):
         return self.model(x)
 
 
-class EncoderInBlock(nn.Module):
+class GeneratorInBlock(nn.Module):
     def __init__(
         self, in_channels: int, out_channels: int, kernel_size=4, stride=1, padding=0
     ):
-        super(EncoderInBlock, self).__init__()
+        super(GeneratorInBlock, self).__init__()
         self.model = nn.Sequential(
             nn.Conv3d(
                 in_channels, out_channels, kernel_size, stride, padding, bias=False
@@ -109,11 +109,11 @@ class EncoderInBlock(nn.Module):
         return self.model(x)
 
 
-class EncoderMidBlock(nn.Module):
+class GeneratorMidBlock(nn.Module):
     def __init__(
         self, in_channels: int, out_channels: int, kernel_size=3, stride=1, padding=1
     ):
-        super(EncoderMidBlock, self).__init__()
+        super(GeneratorMidBlock, self).__init__()
         self.model = nn.Sequential(
             nn.Upsample(scale_factor=2),
             nn.Conv3d(
@@ -127,11 +127,11 @@ class EncoderMidBlock(nn.Module):
         return self.model(x)
 
 
-class EncoderOutBlock(nn.Module):
+class GeneratorOutBlock(nn.Module):
     def __init__(
         self, in_channels: int, out_channels: int, kernel_size=3, stride=1, padding=1
     ):
-        super(EncoderOutBlock, self).__init__()
+        super(GeneratorOutBlock, self).__init__()
         self.model = nn.Sequential(
             nn.Upsample(scale_factor=2),
             nn.Conv3d(
@@ -149,15 +149,15 @@ class Generator(nn.Module):
 
         self.model = nn.Sequential(
             # In layer
-            EncoderInBlock(self.latent_dim, 512),
+            GeneratorInBlock(self.latent_dim, 512),
             # Mid layer 1
-            EncoderMidBlock(512, 256),
+            GeneratorMidBlock(512, 256),
             # Mid layer 2
-            EncoderMidBlock(256, 128),
+            GeneratorMidBlock(256, 128),
             # Mid layer 3
-            EncoderMidBlock(128, 64),
+            GeneratorMidBlock(128, 64),
             # Out layer
-            EncoderOutBlock(64, 1),
+            GeneratorOutBlock(64, 1),
         )
 
     def forward(self, x):

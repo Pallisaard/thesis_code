@@ -1,13 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pytorch_lightning as L
+import lightning as L
 from torchmetrics.image import (
     StructuralSimilarityIndexMeasure,
-)
-from thesis_code.training.callbacks.callbacks import (
-    get_checkpoint_callback,
-    DEFAULT_CHECKPOINT_PATH,
 )
 from .backbone import CodeDiscriminator, Encoder, Generator, Discriminator
 
@@ -16,7 +12,7 @@ class LitKwonGan(L.LightningModule):
     def __init__(
         self,
         latent_dim: int,
-        lambda_grad_policy: float = 10.0,
+        lambda_gp: float = 10.0,
         n_critic_steps: int = 5,
         lambda_recon: float = 1.0,
     ):
@@ -28,7 +24,7 @@ class LitKwonGan(L.LightningModule):
         self.critic = Discriminator()
         self.code_critic = CodeDiscriminator(latent_dim)
         self.encoder = Encoder(latent_dim)
-        self.lambda_grad_policy = lambda_grad_policy
+        self.lambda_gp = lambda_gp
         self.n_critic_steps = n_critic_steps
         self.lambda_recon = lambda_recon
 
@@ -91,7 +87,7 @@ class LitKwonGan(L.LightningModule):
             torch.mean(fake_critic_score)
             + torch.mean(recon_critic_score)
             - 2.0 * torch.mean(real_critic_score)
-            + self.lambda_grad_policy * gp_loss
+            + self.lambda_gp * gp_loss
         )
 
     def code_critic_loss(
@@ -106,7 +102,7 @@ class LitKwonGan(L.LightningModule):
         return (
             torch.mean(fake_code_critic_score)
             - torch.mean(real_code_critic_score)
-            + self.lambda_grad_policy * gp_loss
+            + self.lambda_gp * gp_loss
         )
 
     def encoder_loss(
@@ -115,11 +111,7 @@ class LitKwonGan(L.LightningModule):
         real_data: torch.Tensor,
         recon_data: torch.Tensor,
     ) -> torch.Tensor:
-        return (
-            torch.mean(fake_code_critic_score)
-            * self.lambda_recon
-            * self.reconstruction_loss(real_data=real_data, recon_data=recon_data)
-        )
+        return torch.mean(fake_code_critic_score)
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         # Optimizers
