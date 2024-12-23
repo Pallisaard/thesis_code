@@ -290,8 +290,6 @@ class LitKwonGan(L.LightningModule):
         gradient = torch.autograd.grad(
             outputs=model(interpolates_grad).sum(),
             inputs=interpolates_grad,
-            create_graph=True,
-            retain_graph=True,
         )[0]
 
         return gradient
@@ -302,5 +300,5 @@ class LitKwonGan(L.LightningModule):
         alpha_dim = (real_data.size(0), *([1] * (real_data.dim() - 1)))
         alpha = torch.rand(size=alpha_dim, device=self.device)
         interpolates = alpha * real_data + (1 - alpha) * fake_data
-        interpolates.requires_grad_(True)
+        interpolates.detach().requires_grad_(True)
         return interpolates
