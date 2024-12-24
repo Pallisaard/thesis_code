@@ -1,3 +1,6 @@
+import time
+from pathlib import Path
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,6 +8,8 @@ import lightning as L
 from torchmetrics.image import (
     StructuralSimilarityIndexMeasure,
 )
+
+from thesis_code.models.gans.hagan.hagan import save_mri
 from .backbone import CodeDiscriminator, Encoder, Generator, Discriminator
 
 
@@ -36,6 +41,7 @@ class LitKwonGan(L.LightningModule):
         )
 
         self.automatic_optimization = False  # Manual optimization
+        self.start_time = time.time()
 
     def verify_models(self, x):
         z = self.sample_z(x.size(0))
@@ -67,7 +73,7 @@ class LitKwonGan(L.LightningModule):
         latent_dim: int,
     ) -> torch.Tensor:
         batch_size = real_data.size(0)
-        random_codes = torch.randn(batch_size, latent_dim, device=self.device)
+        random_codes = self.sample_z(batch_size)
         latent_codes = self.encoder(real_data)
         fake_data = self.generator(random_codes)
         recon_data = self.generator(latent_codes)
@@ -86,7 +92,7 @@ class LitKwonGan(L.LightningModule):
         latent_dim: int,
     ) -> torch.Tensor:
         batch_size = real_data.size(0)
-        random_codes = torch.randn(batch_size, latent_dim, device=self.device)
+        random_codes = self.sample_z(batch_size)
 
         latent_codes = self.encoder(real_data)
 
@@ -112,7 +118,7 @@ class LitKwonGan(L.LightningModule):
         latent_dim: int,
     ) -> torch.Tensor:
         batch_size = real_data.size(0)
-        random_codes = torch.randn(batch_size, latent_dim, device=self.device)
+        random_codes = self.sample_z(batch_size)
         latent_codes = self.encoder(real_data)
 
         real_code_critic_score = self.code_critic(random_codes)
@@ -166,14 +172,24 @@ class LitKwonGan(L.LightningModule):
         self.manual_backward(c_loss)
         opt_c.step()
 
+        total_loss = d_loss + g_loss + c_loss + e_loss
+        elapsed_time = time.time() - self.start_time
         # Log losses
         self.log_dict(
-            {"d_loss": d_loss, "g_loss": g_loss, "c_loss": c_loss, "e_loss": e_loss}
+            {
+                "d_loss": d_loss,
+                "g_loss": g_loss,
+                "c_loss": c_loss,
+                "e_loss": e_loss,
+                "total_loss": total_loss,
+                "elapsed_time": elapsed_time,
+            }
         )
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         real_data = batch
         latent_dim = self.generator.latent_dim
+        batch_size = real_data.size(0)
 
         # Enable gradient computation for gradient penalty calculation
         with torch.enable_grad():
@@ -189,6 +205,30 @@ class LitKwonGan(L.LightningModule):
             # Code critic loss and optimization
             c_loss = self.code_critic_loss(real_data=real_data, latent_dim=latent_dim)
 
+        if batch_idx == 0:
+            # Save validation data
+            log_dir = Path(self.logger.log_dir)  # type: ignore
+
+            fake_images = self.safe_sample(batch_size)
+            synthetic_example_save_path = (
+                log_dir / f"synthetic_example_{self.current_epoch}.nii.gz"
+            )
+            save_mri(fake_images, synthetic_example_save_path)
+
+            # Save true data
+            true_example_save_path = (
+                log_dir / f"true_example_{self.current_epoch}.nii.gz"
+            )
+            save_mri(real_data, true_example_save_path)
+
+        fake_data = self.generator(self.sample_z(batch_size))
+        # Logging accuracy of discriminator with respect to cropped and small images simultaneously
+        d_accuracy = (
+            torch.mean(self.critic(real_data)) + torch.mean(self.critic(fake_data))
+        ) / 2
+
+        elapsed_time = time.time() - self.start_time
+
         # Log losses
         self.log_dict(
             {
@@ -197,7 +237,11 @@ class LitKwonGan(L.LightningModule):
                 "val_c_loss": c_loss,
                 "val_e_loss": e_loss,
                 "val_total_loss": d_loss + g_loss + c_loss + e_loss,
-            }
+                "val_d_accuracy": d_accuracy,
+                "elapsed_time": elapsed_time,
+            },
+            logger=True,
+            sync_dist=True,
         )
 
     def configure_optimizers(self):
