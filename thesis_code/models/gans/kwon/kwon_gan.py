@@ -54,10 +54,10 @@ class LitKwonGan(L.LightningModule):
     def sample_z(self, batch_size):
         return torch.randn(batch_size, self.latent_dim, device=self.device)
 
-    def sample_mri(self) -> torch.Tensor:
+    def sample_1(self) -> torch.Tensor:
         return self(self.sample_z(1))[0]
 
-    def sample_n_mri(self, n) -> torch.Tensor:
+    def sample_n(self, n) -> torch.Tensor:
         return self(self.sample_z(n))
 
     def forward(self, z):
@@ -210,7 +210,7 @@ class LitKwonGan(L.LightningModule):
             # Save validation data
             log_dir = Path(self.logger.log_dir)  # type: ignore
 
-            fake_images = self.safe_sample(batch_size)
+            fake_images = self.sample_n(batch_size)
             synthetic_example_save_path = (
                 log_dir / f"synthetic_example_{self.current_epoch}.nii.gz"
             )
