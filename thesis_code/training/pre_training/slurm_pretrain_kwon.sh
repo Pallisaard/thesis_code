@@ -27,7 +27,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "kwon_gan" \
                 --latent-dim 1024 \
                 --data-path ../data/pre-training/brain-masked-64 \
                 --use-all-data-for-training \
-                --batch-size 4 \
+                --batch-size 6 \
                 --num-workers 8 \
                 --accelerator gpu \
                 --devices auto \
