@@ -2,7 +2,7 @@
 #SBATCH --job-name=pretrain_kwon
 #SBATCH --output=slurm_pretrain_kwon-%j.out # Name of output file
 #SBATCH --error=slurm_pretrain_kwon-%j.err # Name of error file
-#SBATCH --gres=gpu:titanrtx:1       # Request 4 GPU per job
+#SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
 #SBATCH --time=24:00:00    # Limit to 36 hours.
 #SBATCH --mem=32G        # Memory request
@@ -35,7 +35,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "kwon_gan" \
                 --save-top-k 3 \
                 --save-last \
                 --log-every-n-steps 50 \
-                --max-steps 700000 \
+                --max-steps 800000 \
                 --lambdas 10.0 \
                 # --fast-dev-run \
 
