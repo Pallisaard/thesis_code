@@ -97,13 +97,13 @@ class LitKwonGan(L.LightningModule):
         fake_critic_score = self.critic(fake_data)
         recon_critic_score = self.critic(recon_data)
 
-        # gp_loss = self._gradient_policy(self.critic, real_data, fake_data)
+        gp_loss = self._gradient_policy(self.critic, real_data, fake_data)
 
         return (
             torch.mean(fake_critic_score)
             + torch.mean(recon_critic_score)
             - 2.0 * torch.mean(real_critic_score)
-            # + self.lambda_gp * gp_loss
+            + self.lambda_gp * gp_loss
         )
 
     def code_critic_loss(
@@ -115,18 +115,15 @@ class LitKwonGan(L.LightningModule):
         random_codes = torch.randn(batch_size, latent_dim, device=self.device)
         latent_codes = self.encoder(real_data)
 
-        # fake_data = self.generator(random_codes)
-
-        # real_critic_score = self.critic(real_data)
-        # fake_critic_score = self.critic(fake_data)
         real_code_critic_score = self.code_critic(random_codes)
         fake_code_critic_score = self.code_critic(latent_codes)
 
-        # gp_loss = self._gradient_policy(self.code_critic, random_codes, latent_codes)
+        gp_loss = self._gradient_policy(self.code_critic, random_codes, latent_codes)
 
         return (
-            torch.mean(fake_code_critic_score) - torch.mean(real_code_critic_score)
-            # + self.lambda_gp * gp_loss
+            torch.mean(fake_code_critic_score)
+            - torch.mean(real_code_critic_score)
+            + self.lambda_gp * gp_loss
         )
 
     def encoder_loss(
