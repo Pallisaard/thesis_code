@@ -142,6 +142,9 @@ class LitKwonGan(L.LightningModule):
             real_data=real_data,
             recon_data=recon_data,
         )
+        opt_e.zero_grad()
+        self.manual_backward(e_loss)
+        opt_e.step()
 
         # Generator loss and optimization
         g_loss = self.generator_loss(
@@ -150,6 +153,9 @@ class LitKwonGan(L.LightningModule):
             real_data=real_data,
             recon_data=recon_data,
         )
+        opt_g.zero_grad()
+        self.manual_backward(g_loss)
+        opt_g.step()
 
         # critic loss and optimization
         d_loss = self.critic_loss(
@@ -159,6 +165,10 @@ class LitKwonGan(L.LightningModule):
             real_data=real_data,
             fake_data=fake_data,
         )
+        opt_d.zero_grad()
+        self.manual_backward(d_loss)
+        opt_d.step()
+
         # Code critic loss and optimization
         c_loss = self.code_critic_loss(
             real_code_critic_score=real_code_critic_score,
@@ -166,21 +176,7 @@ class LitKwonGan(L.LightningModule):
             random_codes=random_codes,
             fake_codes=latent_codes,
         )
-
-        opt_e.zero_grad()
-        opt_g.zero_grad()
-        opt_d.zero_grad()
         opt_c.zero_grad()
-
-        self.manual_backward(e_loss)
-        opt_e.step()
-
-        self.manual_backward(g_loss)
-        opt_g.step()
-
-        self.manual_backward(d_loss)
-        opt_d.step()
-
         self.manual_backward(c_loss)
         opt_c.step()
 
