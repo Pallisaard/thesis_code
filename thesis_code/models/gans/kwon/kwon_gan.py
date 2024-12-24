@@ -172,16 +172,16 @@ class LitKwonGan(L.LightningModule):
         opt_d.zero_grad()
         opt_c.zero_grad()
 
-        self.manual_backward(e_loss, retain_graph=True)
+        self.manual_backward(e_loss)
         opt_e.step()
 
-        self.manual_backward(g_loss, retain_graph=True)
+        self.manual_backward(g_loss)
         opt_g.step()
 
-        self.manual_backward(d_loss, retain_graph=True)
+        self.manual_backward(d_loss)
         opt_d.step()
 
-        self.manual_backward(c_loss, retain_graph=True)
+        self.manual_backward(c_loss)
         opt_c.step()
 
         # Log losses
