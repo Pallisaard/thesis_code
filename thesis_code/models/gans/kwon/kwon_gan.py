@@ -32,6 +32,7 @@ class LitKwonGan(L.LightningModule):
         self.lambda_gp = lambda_gp
         self.n_critic_steps = n_critic_steps
         self.lambda_recon = lambda_recon
+        self.latent_dim = latent_dim
 
         self.ssim = StructuralSimilarityIndexMeasure(
             gaussian_kernel=True,
