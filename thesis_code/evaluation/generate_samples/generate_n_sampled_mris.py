@@ -9,7 +9,7 @@ import tqdm
 
 from thesis_code.dataloading.transforms import normalize_to
 from thesis_code.metrics.utils import get_mri_vectorizer
-from thesis_code.models.gans.hagan import LitHAGAN
+from thesis_code.models.gans import LitHAGAN
 from thesis_code.training.utils import numpy_to_nifti
 
 
