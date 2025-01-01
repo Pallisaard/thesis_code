@@ -82,9 +82,9 @@ class LitKwonGan(L.LightningModule):
         fake_critic_score = self.critic(fake_data)
 
         return (
-            -torch.mean(fake_critic_score)
+            self.lambda_recon * self.reconstruction_loss(real_data, recon_data)
+            - torch.mean(fake_critic_score)
             - torch.mean(recon_critic_score)
-            + self.lambda_recon * self.reconstruction_loss(real_data, recon_data)
         )
 
     def encoder_loss(
@@ -112,7 +112,7 @@ class LitKwonGan(L.LightningModule):
         fake_critic_score = self.critic(fake_data)
         recon_critic_score = self.critic(recon_data)
 
-        gp_loss = self._gradient_policy(self.critic, real_data, fake_data)
+        gp_loss = self.gradient_policy(self.critic, real_data, fake_data)
 
         return (
             torch.mean(fake_critic_score)
@@ -133,13 +133,35 @@ class LitKwonGan(L.LightningModule):
         real_code_critic_score = self.code_critic(random_codes)
         fake_code_critic_score = self.code_critic(latent_codes)
 
-        gp_loss = self._gradient_policy(self.code_critic, random_codes, latent_codes)
+        gp_loss = self.gradient_policy(self.code_critic, random_codes, latent_codes)
 
         return (
             torch.mean(fake_code_critic_score)
             - torch.mean(real_code_critic_score)
             + self.lambda_gp * gp_loss
         )
+
+    def gradient_policy(
+        self,
+        model: nn.Module,
+        real_data: torch.Tensor,
+        fake_data: torch.Tensor,
+    ) -> torch.Tensor:
+        interpolated_data = self._interpolate_data(real_data, fake_data)
+        interpolated_data.requires_grad_(True)
+
+        batch_size = fake_data.size(0)
+        # Computes the gradient of the critic with respect to the fake data
+
+        gradient = self._compute_gradient(model, interpolated_data)
+
+        # Flatten so the norm computation is easier
+        gradient = gradient.view(batch_size, -1)
+        # Norm with added epsilon to avoid division by zero
+        gradient_norms = ((gradient**2 + 1e-12).sum(-1)).sqrt()
+        # Compute the gradient penalty
+
+        return torch.mean((gradient_norms - 1) ** 2)
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         # with torch.autograd.set_detect_anomaly(True):
@@ -159,6 +181,7 @@ class LitKwonGan(L.LightningModule):
         g_loss = self.generator_loss(real_data=real_data, latent_dim=latent_dim)
         opt_g.zero_grad()
         self.manual_backward(g_loss)
+        opt_g.step()
         opt_g.step()
 
         # critic loss and optimization
@@ -253,32 +276,10 @@ class LitKwonGan(L.LightningModule):
         opt_e = torch.optim.Adam(self.encoder.parameters())
         return [opt_g, opt_d, opt_c, opt_e]
 
-    def _gradient_policy(
-        self,
-        model: nn.Module,
-        real_data: torch.Tensor,
-        fake_data: torch.Tensor,
-    ) -> torch.Tensor:
-        interpolates_grad = self._interpolate_data(real_data, fake_data)
-        interpolates_grad.requires_grad_(True)
-
-        batch_size = fake_data.size(0)
-        # Computes the gradient of the critic with respect to the fake data
-
-        gradient = self._compute_gradient(model, interpolates_grad)
-
-        # Flatten so the norm computation is easier
-        gradient = gradient.view(batch_size, -1)
-        # Norm with added epsilon to avoid division by zero
-        gradient_norms = ((gradient**2 + 1e-12).sum(-1)).sqrt()
-        # Compute the gradient penalty
-
-        return torch.mean((gradient_norms - 1) ** 2)
-
-    def _compute_gradient(self, model: nn.Module, interpolates_grad: torch.Tensor):
+    def _compute_gradient(self, model: nn.Module, interpolated_data: torch.Tensor):
         gradient = torch.autograd.grad(
-            outputs=model(interpolates_grad).sum(),
-            inputs=interpolates_grad,
+            outputs=model(interpolated_data).sum(),
+            inputs=interpolated_data,
             retain_graph=True,
             create_graph=True,
             only_inputs=True,
