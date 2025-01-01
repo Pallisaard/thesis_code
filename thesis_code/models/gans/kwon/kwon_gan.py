@@ -158,7 +158,7 @@ class LitKwonGan(L.LightningModule):
         # Flatten so the norm computation is easier
         gradient = gradient.view(batch_size, -1)
         # Norm with added epsilon to avoid division by zero
-        gradient_norms = ((gradient**2 + 1e-12).sum(-1)).sqrt()
+        gradient_norms = ((gradient**2).sum(-1) + 1e-12).sqrt()
         # Compute the gradient penalty
 
         return torch.mean((gradient_norms - 1) ** 2)
