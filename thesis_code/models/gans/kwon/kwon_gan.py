@@ -87,14 +87,6 @@ class LitKwonGan(L.LightningModule):
             - torch.mean(recon_critic_score)
         )
 
-    def encoder_loss(
-        self,
-        real_data: torch.Tensor,
-    ) -> torch.Tensor:
-        latent_codes = self.encoder(real_data)
-        fake_code_critic_score = self.code_critic(latent_codes)
-        return torch.mean(fake_code_critic_score)
-
     def critic_loss(
         self,
         real_data: torch.Tensor,
@@ -120,6 +112,14 @@ class LitKwonGan(L.LightningModule):
             - 2.0 * torch.mean(real_critic_score)
             + self.lambda_gp * gp_loss
         )
+
+    def encoder_loss(
+        self,
+        real_data: torch.Tensor,
+    ) -> torch.Tensor:
+        latent_codes = self.encoder(real_data)
+        fake_code_critic_score = self.code_critic(latent_codes)
+        return -torch.mean(fake_code_critic_score)
 
     def code_critic_loss(
         self,
