@@ -25,7 +25,7 @@ echo "start time: $(date)"
 
 python -m thesis_code.training.pre_training.pretrain --model-name "kwon_gan" \
                 --latent-dim 1024 \
-                --data-path ../data/pre-training/brain-masked-64 \
+                --data-path ../data/pre-training/brain-masked-zerosliced-64 \
                 --use-all-data-for-training \
                 --batch-size 16 \
                 --num-workers 8 \
