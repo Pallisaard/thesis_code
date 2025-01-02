@@ -4,7 +4,7 @@
 #SBATCH --error=slurm_pretrain_hagan_l1-%j.err # Name of error file
 #SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
-#SBATCH --time=1-12:00:00    # Limit to 36 hours.
+#SBATCH --time=2-00:00:00    # Limit to 36 hours.
 #SBATCH --mem=16G        # Memory request
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
@@ -25,7 +25,7 @@ echo "start time: $(date)"
 
 python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
-                --data-path ../data/pre-training/brain-masked \
+                --data-path ../data/pre-training/brain-masked-zerosliced \
                 --use-all-data-for-training \
                 --batch-size 4 \
                 --num-workers 8 \
