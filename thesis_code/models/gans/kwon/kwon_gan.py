@@ -121,11 +121,11 @@ class LitKwonGan(L.LightningModule):
     ) -> torch.Tensor:
         latent_codes = self.encoder(real_data)
         recon_code_critic_score = self.code_critic(latent_codes)
-        # recon_data = self.generator(latent_codes)
+        recon_data = self.generator(latent_codes)
 
         return -torch.mean(
             recon_code_critic_score
-        )  #  + self.lambda_recon * self.reconstruction_loss(real_data, recon_data)
+        ) + self.lambda_recon * self.reconstruction_loss(real_data, recon_data)
 
     def code_critic_loss(
         self,
