@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 from lightning import LightningModule
 
-from thesis_code.models.gans.hagan import LitHAGAN
+from thesis_code.models.gans import LitHAGAN
 
 from .types import (
     DPModels,
