@@ -297,6 +297,8 @@ class LitKwonGan(L.LightningModule):
         self, real_data: torch.Tensor, fake_data: torch.Tensor
     ) -> torch.Tensor:
         alpha_dim = (real_data.size(0), *([1] * (real_data.dim() - 1)))
-        alpha = torch.rand(size=alpha_dim, device=self.device)
+        alpha = torch.full(
+            size=alpha_dim, fill_value=torch.rand(1).item(), device=self.device
+        )
         interpolates = alpha * real_data + (1 - alpha) * fake_data
         return interpolates
