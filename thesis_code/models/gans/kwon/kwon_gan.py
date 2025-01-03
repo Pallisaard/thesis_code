@@ -87,6 +87,33 @@ class LitKwonGan(L.LightningModule):
             - torch.mean(recon_critic_score)
         )
 
+    def encoder_loss(
+        self,
+        real_data: torch.Tensor,
+    ) -> torch.Tensor:
+        latent_codes = self.encoder(real_data)
+        recon_code_critic_score = self.code_critic(latent_codes)
+        recon_data = self.generator(latent_codes)
+
+        return -torch.mean(
+            recon_code_critic_score
+        ) + self.lambda_recon * self.reconstruction_loss(real_data, recon_data)
+
+    def generator_encoder_loss(self, real_data: torch.Tensor):
+        batch_size = real_data.size(0)
+        random_codes = self.sample_z(batch_size)
+        latent_codes = self.encoder(real_data)
+        fake_data = self.generator(random_codes)
+        recon_data = self.generator(latent_codes)
+        recon_critic_score = self.critic(recon_data)
+        fake_critic_score = self.critic(fake_data)
+        recon_code_critic_score = self.code_critic(latent_codes)
+
+        c_loss = -torch.mean(recon_code_critic_score)
+        d_loss = -torch.mean(fake_critic_score) - torch.mean(recon_critic_score)
+        l1_loss = self.lambda_recon * self.reconstruction_loss(real_data, recon_data)
+        return l1_loss + c_loss + d_loss
+
     def critic_loss(
         self,
         real_data: torch.Tensor,
@@ -114,18 +141,6 @@ class LitKwonGan(L.LightningModule):
             + self.lambda_gp * gp_loss_fake
             + self.lambda_gp * gp_loss_recon
         )
-
-    def encoder_loss(
-        self,
-        real_data: torch.Tensor,
-    ) -> torch.Tensor:
-        latent_codes = self.encoder(real_data)
-        recon_code_critic_score = self.code_critic(latent_codes)
-        recon_data = self.generator(latent_codes)
-
-        return -torch.mean(
-            recon_code_critic_score
-        ) + self.lambda_recon * self.reconstruction_loss(real_data, recon_data)
 
     def code_critic_loss(
         self,
@@ -177,16 +192,24 @@ class LitKwonGan(L.LightningModule):
         real_data = batch
         latent_dim = self.generator.latent_dim
 
-        # Encoder loss and optimization
-        e_loss = self.encoder_loss(real_data=real_data)
-        opt_e.zero_grad()
-        self.manual_backward(e_loss)
-        opt_e.step()
+        # # Encoder loss and optimization
+        # e_loss = self.encoder_loss(real_data=real_data)
+        # opt_e.zero_grad()
+        # self.manual_backward(e_loss)
+        # opt_e.step()
 
-        # Generator loss and optimization
-        g_loss = self.generator_loss(real_data=real_data, latent_dim=latent_dim)
+        # # Generator loss and optimization
+        # g_loss = self.generator_loss(real_data=real_data, latent_dim=latent_dim)
+        # opt_g.zero_grad()
+        # self.manual_backward(g_loss)
+        # opt_g.step()
+        # opt_g.step()
+
         opt_g.zero_grad()
-        self.manual_backward(g_loss)
+        opt_e.zero_grad()
+        e_g_loss = self.generator_encoder_loss(real_data=real_data)
+        self.manual_backward(e_g_loss)
+        opt_e.step()
         opt_g.step()
         opt_g.step()
 
@@ -202,15 +225,17 @@ class LitKwonGan(L.LightningModule):
         self.manual_backward(c_loss)
         opt_c.step()
 
-        total_loss = d_loss + g_loss + c_loss + e_loss
+        # total_loss = d_loss + g_loss + c_loss + e_loss
+        total_loss = d_loss + c_loss + e_g_loss
         elapsed_time = time.time() - self.start_time
         # Log losses
         self.log_dict(
             {
                 "d_loss": d_loss,
-                "g_loss": g_loss,
+                # "g_loss": g_loss,
                 "c_loss": c_loss,
-                "e_loss": e_loss,
+                # "e_loss": e_loss,
+                "e_g_loss": e_g_loss,
                 "total_loss": total_loss,
                 "elapsed_time": elapsed_time,
             }
