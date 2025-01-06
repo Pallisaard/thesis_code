@@ -20,10 +20,11 @@ echo "task id: $SLURM_ARRAY_TASK_ID"
 if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
     echo "This is the first task"
     sleep 3
-    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-authors \
+    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/small-generated-examples-authors \
                     --n-samples 512 \
                     --checkpoint-path ../checkpoints/pretrained/HAGAN_from_authors.ckpt \
                     --lambdas 5 \
+                    --use-small-model \
                     --device auto \
                     --batch-size 2 \
                     --from-authors \
@@ -32,11 +33,12 @@ if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
 elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
     echo "This is the second task"
     sleep 3
-    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-1 \
+    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/small-generated-examples-lambda-1 \
                     --n-samples 512 \
                     --use-dp-safe \
                     --checkpoint-path ../checkpoints/pretrained/all-data/HAGAN_l1_320k.ckpt \
                     --lambdas 1 \
+                    --use-small-model \
                     --device auto \
                     --batch-size 2 \
                     --vectorizer-dim 512  || { echo "Task 2 failed"; exit 1; }
@@ -44,11 +46,12 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
 elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
     echo "This is the third task"
     sleep 3
-    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-5 \
+    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/small-generated-examples-lambda-5 \
                     --n-samples 512 \
                     --use-dp-safe \
                     --checkpoint-path ../checkpoints/pretrained/all-data/HAGAN_l5_320k.ckpt \
                     --lambdas 5 \
+                    --use-small-model \
                     --device auto \
                     --batch-size 2 \
                     --vectorizer-dim 512 || { echo "Task 3 failed"; exit 1; }
@@ -59,6 +62,8 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
     python -m thesis_code.evaluation.generate_samples.vectorize_test_dataset --data-dir ../data/pre-training/brain-masked \
                     --output-dir ../torch-output/pretrain-eval/'true-examples-all' \
                     --device 'cuda' \
+                    --use-small-model \
+                    --test-size 512 \
                     --make-filename-file \
                     --out-vectorizer-name mri_vectorizer_all_512_out.npy \
                     --vectorizer-dim 512 || { echo "Task 4 failed"; exit 1; }

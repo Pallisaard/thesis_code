@@ -28,6 +28,11 @@ def pars_args():
         help="Generate samples from authors model",
     )
     parser.add_argument(
+        "--use-small-model",
+        action="store_true",
+        help="Use sub generator of HAGAN",
+    )
+    parser.add_argument(
         "--checkpoint-path", required=True, type=str, help="Checkpoint path"
     )
     parser.add_argument(
@@ -90,7 +95,10 @@ def main():
     )
 
     for batch_ids in outer_bar:
-        sample = model.sample(len(batch_ids))
+        if args.use_small_model:
+            sample = model.sample_small(len(batch_ids))
+        else:
+            sample = model.sample(len(batch_ids))
         sample = sample.detach().cpu().numpy()
 
         inner_bar = tqdm.tqdm(

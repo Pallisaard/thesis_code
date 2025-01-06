@@ -8,6 +8,7 @@ import tqdm
 
 from thesis_code.dataloading.transforms import normalize_to
 from thesis_code.metrics.utils import get_mri_vectorizer
+from thesis_code.dataloading.transforms import Resize
 
 
 def pars_args():
@@ -24,6 +25,9 @@ def pars_args():
         "--test-size",
         type=int,
         help="Number of samples in the test dataset.",
+    )
+    parser.add_argument(
+        "--use-small-model", action="store_true", help="Use sub generator of HAGAN"
     )
     parser.add_argument(
         "--make-filename-file",
@@ -86,6 +90,8 @@ def main():
         desc="Generating vectors for true data",
     )
 
+    transform_resize = Resize(64)
+
     print("Saving samples")
     for i, nii_path in inner_bar:
         mri_i = nib.load(nii_path)  # type: ignore
@@ -94,6 +100,9 @@ def main():
 
         # Get MRI vectorizer output
         inputs = torch.from_numpy(data_i).float().unsqueeze(0).unsqueeze(0).to(device)
+        if args.use_small_model:
+            inputs = transform_resize(inputs)
+
         with torch.no_grad():
             mri_vectorizer_out[i] = (
                 mri_vectorizer(inputs).detach().cpu().squeeze(0).squeeze(0)
