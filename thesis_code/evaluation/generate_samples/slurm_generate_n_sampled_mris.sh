@@ -15,6 +15,8 @@ module load gcc/13.2.0
 cd ~/projects/thesis/thesis-code
 source .venv/bin/activate
 
+echo "task id: $SLURM_ARRAY_TASK_ID"
+
 if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
     echo "This is the first task"
     sleep 3
@@ -25,7 +27,7 @@ if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
                     --device auto \
                     --batch-size 2 \
                     --from-authors \
-                    --vectorizer-dim 512
+                    --vectorizer-dim 512 || { echo "Task 1 failed"; exit 1; }
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
     echo "This is the second task"
@@ -37,7 +39,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
                     --lambdas 1 \
                     --device auto \
                     --batch-size 2 \
-                    --vectorizer-dim 512
+                    --vectorizer-dim 512  || { echo "Task 2 failed"; exit 1; }
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
     echo "This is the third task"
@@ -49,7 +51,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
                     --lambdas 5 \
                     --device auto \
                     --batch-size 2 \
-                    --vectorizer-dim 512
+                    --vectorizer-dim 512 || { echo "Task 3 failed"; exit 1; }
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
     echo "This is the fourth task"
@@ -59,7 +61,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
                     --device 'cuda' \
                     --make-filename-file \
                     --out-vectorizer-name mri_vectorizer_all_512_out.npy \
-                    --vectorizer-dim 512
+                    --vectorizer-dim 512 || { echo "Task 4 failed"; exit 1; }
 
 else
     echo "Invalid SLURM_ARRAY_TASK_ID"
