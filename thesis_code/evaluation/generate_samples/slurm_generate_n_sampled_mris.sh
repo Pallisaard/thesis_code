@@ -16,6 +16,8 @@ cd ~/projects/thesis/thesis-code
 source .venv/bin/activate
 
 if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
+    echo "This is the first task"
+    sleep 3
     python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-authors \
                     --n-samples 512 \
                     --checkpoint-path ../checkpoints/pretrained/HAGAN_from_authors.ckpt \
@@ -27,7 +29,7 @@ if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
     echo "This is the second task"
-    sleep 10
+    sleep 3
     python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-1 \
                     --n-samples 512 \
                     --use-dp-safe \
@@ -38,6 +40,8 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
                     --vectorizer-dim 512
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
+    echo "This is the third task"
+    sleep 3
     python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-5 \
                     --n-samples 512 \
                     --use-dp-safe \
@@ -48,6 +52,8 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
                     --vectorizer-dim 512
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
+    echo "This is the fourth task"
+    sleep 3
     python -m thesis_code.evaluation.generate_samples.vectorize_test_dataset --data-dir ../data/pre-training/brain-masked \
                     --output-dir ../torch-output/pretrain-eval/'true-examples-all' \
                     --device 'cuda' \
