@@ -41,15 +41,15 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
                     --lambdas 5 \
                     --device auto \
                     --batch-size 2 \
-                    --vecotrizer-dim 512
+                    --vectorizer-dim 512
 elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
     python -m thesis_code.evaluation.generate_samples.vectorize_test_dataset --data-dir ../data/pre-training/brain-masked \
                     --output-dir ../torch-output/pretrain-eval/'true-examples-all' \
                     --device 'cuda' \
                     --make-filename-file \
                     --out-vectorizer-name mri_vectorizer_all_512_out.npy \
-                    --vectorizer-size 512
+                    --vectorizer-dim 512
 else
     echo "Invalid SLURM_ARRAY_TASK_ID"
     exit
-
+fi
