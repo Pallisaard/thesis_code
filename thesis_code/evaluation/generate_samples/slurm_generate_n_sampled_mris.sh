@@ -26,7 +26,7 @@ if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
                     --vectorizer-dim 512
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
-    print("This is the second task")
+    echo "This is the second task"
     sleep 10
     python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-1 \
                     --n-samples 512 \
