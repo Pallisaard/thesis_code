@@ -23,6 +23,11 @@ def pars_args():
         "--n-samples", required=True, type=int, help="Number of samples to generate"
     )
     parser.add_argument(
+        "--from-authors",
+        action="store_true",
+        help="Generate samples from authors model",
+    )
+    parser.add_argument(
         "--checkpoint-path", required=True, type=str, help="Checkpoint path"
     )
     parser.add_argument(
@@ -85,7 +90,7 @@ def main():
     )
 
     for batch_ids in outer_bar:
-        sample = model.safe_sample(len(batch_ids))
+        sample = model.sample(len(batch_ids))
         sample = sample.detach().cpu().numpy()
 
         inner_bar = tqdm.tqdm(
@@ -114,7 +119,13 @@ def main():
                 .squeeze(0)
             )
 
-    np.save(f"{args.output_dir}/mri_vectorizer_out.npy", mri_vectorizer_out)
+    if args.from_authors:
+        np.save(f"{args.output_dir}/vectorized-from-authors.npy", mri_vectorizer_out)
+    else:
+        np.save(
+            f"{args.output_dir}/vectorized-lambda-{int(args.lambdas)}.npy",
+            mri_vectorizer_out,
+        )
 
     print("Finished generating samples")
 

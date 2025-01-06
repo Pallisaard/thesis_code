@@ -16,7 +16,7 @@ source .venv/bin/activate
 
 python -m thesis_code.evaluation.generate_samples.vectorize_test_dataset --data-dir ../data/pre-training/brain-masked \
                 --output-dir ../torch-output/pretrain-eval/'true-examples-all' \
-                --make-filename-file \
                 --device 'cuda' \
+                --make-filename-file \
                 --out-vectorizer-name mri_vectorizer_all_512_out.npy \
-                --vectorizer-size 10 \
+                --vectorizer-size 512
