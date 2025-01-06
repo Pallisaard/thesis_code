@@ -128,10 +128,10 @@ def main():
             )
 
     if args.from_authors:
-        np.save(f"{args.output_dir}/vectorized-from-authors.npy", mri_vectorizer_out)
+        np.save(f"{args.output_dir}/generated-from-authors.npy", mri_vectorizer_out)
     else:
         np.save(
-            f"{args.output_dir}/vectorized-lambda-{int(args.lambdas)}.npy",
+            f"{args.output_dir}/generated-lambda-{int(args.lambdas)}.npy",
             mri_vectorizer_out,
         )
 

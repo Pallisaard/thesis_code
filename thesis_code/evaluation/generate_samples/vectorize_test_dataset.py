@@ -35,11 +35,6 @@ def pars_args():
         help="Make a file with the filenames of the samples",
     )
     parser.add_argument(
-        "--out-vectorizer-name",
-        type=str,
-        help="Name of the output vectorizer file",
-    )
-    parser.add_argument(
         "--vectorizer-dim",
         type=int,
         help="Vectorizer dim",
@@ -110,10 +105,9 @@ def main():
                 mri_vectorizer(inputs).detach().cpu().squeeze(0).squeeze(0)
             )
 
+    out_vectorizer_name = "true-from-all-dataset.npy"
     out_vectorizer_name: str = (
-        args.out_vectorizer_name + ".npy"
-        if not args.out_vectorizer_name.endswith(".npy")
-        else ""
+        out_vectorizer_name + ".npy" if not out_vectorizer_name.endswith(".npy") else ""
     )
 
     np.save(str(Path(args.output_dir) / out_vectorizer_name), mri_vectorizer_out)

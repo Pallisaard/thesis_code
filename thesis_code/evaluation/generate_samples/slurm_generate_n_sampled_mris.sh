@@ -65,7 +65,6 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
                     --use-small-model \
                     --test-size 512 \
                     --make-filename-file \
-                    --out-vectorizer-name mri_vectorizer_all_512_out.npy \
                     --vectorizer-dim 512 || { echo "Task 4 failed"; exit 1; }
 
 else
