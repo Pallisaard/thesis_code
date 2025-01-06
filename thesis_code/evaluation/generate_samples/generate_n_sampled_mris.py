@@ -111,7 +111,7 @@ def main():
 
         for i, sample_id in inner_bar:
             # Save MRI NIfTI sample
-            sample_i = normalize_to(sample[i, 0], -1, 1)
+            sample_i = sample[i, 0]
             sample[i, 0] = sample_i
             sample_mri = numpy_to_nifti(sample_i)
             nib.save(sample_mri, f"{args.output_dir}/sample_{sample_id}.nii.gz")  # type: ignore
