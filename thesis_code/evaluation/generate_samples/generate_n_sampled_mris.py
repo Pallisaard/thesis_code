@@ -88,7 +88,7 @@ def main():
     )
 
     print("Generating vectorizer out array")
-    mri_vectorizer_out = torch.zeros((args.n_samples, 512))
+    mri_vectorizer_out = torch.zeros((args.n_samples, args.vectorizer_dim))
 
     if not Path(args.output_dir).exists():
         Path(args.output_dir).mkdir(parents=True)
