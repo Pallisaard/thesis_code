@@ -59,7 +59,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
 elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
     echo "This is the fourth task"
     sleep 3
-    python -m thesis_code.evaluation.generate_samples.vectorize_test_dataset --data-dir ../data/pre-training/brain-masked-64 \
+    python -m thesis_code.evaluation.generate_samples.vectorize_test_dataset --data-dir ../data/pre-training/brain-masked-zerosliced \
                     --output-dir ../torch-output/pretrain-eval/'true-examples-all' \
                     --device 'cuda' \
                     --use-small-model \
