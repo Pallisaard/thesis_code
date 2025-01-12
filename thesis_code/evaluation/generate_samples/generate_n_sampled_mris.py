@@ -56,7 +56,10 @@ def pars_args():
 
 
 def main():
+    print("Generating samples")
     args = pars_args()
+    print(vars(args))
+
     device = (
         args.device
         if args.device != "auto"
@@ -64,7 +67,9 @@ def main():
         if torch.cuda.is_available()
         else "cpu"
     )
+    print("device:", device)
     vectorizer_depth = 10 if args.vectorizer_dim == 512 else 50
+    print("vectorizer depth:", vectorizer_depth)
 
     # Load model
     print("Loading MRI vectorizer")

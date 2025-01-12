@@ -28,7 +28,7 @@ if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
                     --device auto \
                     --batch-size 2 \
                     --from-authors \
-                    --vectorizer-dim 512 || { echo "Task 1 failed"; exit 1; }
+                    --vectorizer-dim 2048 || { echo "Task 1 failed"; exit 1; }
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
     echo "This is the second task"
@@ -41,7 +41,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
                     --use-small-model \
                     --device auto \
                     --batch-size 2 \
-                    --vectorizer-dim 512  || { echo "Task 2 failed"; exit 1; }
+                    --vectorizer-dim 2048  || { echo "Task 2 failed"; exit 1; }
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
     echo "This is the third task"
@@ -54,18 +54,18 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
                     --use-small-model \
                     --device auto \
                     --batch-size 2 \
-                    --vectorizer-dim 512 || { echo "Task 3 failed"; exit 1; }
+                    --vectorizer-dim 2048 || { echo "Task 3 failed"; exit 1; }
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
     echo "This is the fourth task"
     sleep 3
-    python -m thesis_code.evaluation.generate_samples.vectorize_test_dataset --data-dir ../data/pre-training/brain-masked \
+    python -m thesis_code.evaluation.generate_samples.vectorize_test_dataset --data-dir ../data/pre-training/brain-masked-64 \
                     --output-dir ../torch-output/pretrain-eval/'true-examples-all' \
                     --device 'cuda' \
                     --use-small-model \
                     --test-size 512 \
                     --make-filename-file \
-                    --vectorizer-dim 512 || { echo "Task 4 failed"; exit 1; }
+                    --vectorizer-dim 2048 || { echo "Task 4 failed"; exit 1; }
 
 else
     echo "Invalid SLURM_ARRAY_TASK_ID"

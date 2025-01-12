@@ -307,6 +307,7 @@ def main():
     print("Running pre-training script")
     args = parse_args()
     check_args(args)
+    print("Arguments:", vars(args))
 
     print(
         "devices:",

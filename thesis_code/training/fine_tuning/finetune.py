@@ -163,6 +163,7 @@ def check_args(args: argparse.Namespace) -> argparse.Namespace:
 def main():
     print("Running fine-tuning script.")
     args = check_args(parse_args())
+    print("Arguments:", vars(args))
 
     # Create checkpoint path
     checkpoint_path = Path(args.checkpoint_path)
