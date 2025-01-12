@@ -2,7 +2,7 @@
 #SBATCH --job-name=generate_n_sampled_mris_authors
 #SBATCH --output=slurm_generate_n_sampled_mris_authors-%j.out # Name of output file
 #SBATCH --error=slurm_generate_n_sampled_mris_authors-%j.err # Name of error file
-#SBATCH --array=1-4%2
+#SBATCH --array=1-4%1
 #SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
 #SBATCH --time=01:15:00    # Time limit hrs:min:sec
 #SBATCH --cpus-per-task=4  # Number of CPUs for each gpu
