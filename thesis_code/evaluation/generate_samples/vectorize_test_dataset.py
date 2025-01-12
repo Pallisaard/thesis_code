@@ -46,6 +46,13 @@ def pars_args():
 
 def main():
     args = pars_args()
+    print(vars(args))
+
+    print(
+        "devices:",
+        [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())],
+    )
+
     device = (
         args.device
         if args.device != "auto"
