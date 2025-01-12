@@ -291,7 +291,7 @@ class LitHAGAN(L.LightningModule):
 
     def sample_large(self, num_samples: int) -> torch.Tensor:
         noise = torch.randn((num_samples, self.latent_dim), device=self.device)
-        return self.G.G_H(self.g.G_A(noise))
+        return self.G.G_H(self.G.G_A(noise))
 
     def encode_to_small(self, x: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
