@@ -2,11 +2,13 @@
 #SBATCH --job-name=generate_n_sampled_mris_authors
 #SBATCH --output=slurm_generate_n_sampled_mris_authors-%j.out # Name of output file
 #SBATCH --error=slurm_generate_n_sampled_mris_authors-%j.err # Name of error file
-#SBATCH --array=1-4%2   # Array job for 2740 MRI files, limit to 5 jobs running at once
+#SBATCH --array=1-4%2
 #SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
 #SBATCH --time=01:15:00    # Time limit hrs:min:sec
 #SBATCH --cpus-per-task=4  # Number of CPUs for each gpu
 #SBATCH --mem=32G        # Memory request
+#SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
+#SBATCH --mail-user=rpa@di.ku.dk # Email
 
 module load cuda/11.8
 module load cudnn/8.6.0
