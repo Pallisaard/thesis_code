@@ -97,6 +97,8 @@ def main():
         inputs = torch.from_numpy(data_i).float().unsqueeze(0).to(device)
         if args.use_small_model:
             inputs = transform_resize(inputs).unsqueeze(0)
+        else:
+            inputs = inputs.unsqueeze(0)
 
         with torch.no_grad():
             mri_vectorizer_out[i] = (
