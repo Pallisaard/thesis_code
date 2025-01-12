@@ -18,6 +18,7 @@ cd ~/projects/thesis/thesis-code
 source .venv/bin/activate
 
 echo "task id: $SLURM_ARRAY_TASK_ID"
+echo 
 
 if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
     echo "This is the first task"
