@@ -34,4 +34,6 @@ dependencies = [
     "monai>=1.4.0",
     "huggingface-hub>=0.26.2",
     "transformers>=4.46.3",
+    "seaborn>=0.13.2",
+    "sympy>=1.13.3",
 ]
