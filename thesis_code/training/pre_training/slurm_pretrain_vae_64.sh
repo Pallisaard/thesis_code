@@ -11,10 +11,10 @@
 
 module load cuda/11.8
 module load cudnn/8.6.0
+module load gcc/13.2.0
 
-source ~/venv/bin/activate
-
-cd ~/thesis_code
+cd ~/projects/thesis/thesis-code
+source .venv/bin/activate
 
 python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_64" \
                 --latent-dim 1024 \
