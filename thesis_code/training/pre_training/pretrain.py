@@ -216,6 +216,9 @@ def get_model(
             encoder_out_channels_per_block=[16, 32, 64],
             decoder_out_channels_per_block=[64, 32, 16, 1],
             latent_dim=latent_dim,
+            constant_beta=1.0,
+            max_beta=4.0,
+            warmup_epochs=25,
         )
     elif model_name == "kwon_gan":
         return LitKwonGan(
