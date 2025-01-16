@@ -25,7 +25,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "cicek_3d_vae_
                 --resize-size 64 \
                 --accelerator gpu \
                 --devices auto \
-                --max-epochs 100 \
+                --max-steps 160000 \
                 --callbacks checkpoint summary \
                 --save-top-k 3 \
                 --save-last \
