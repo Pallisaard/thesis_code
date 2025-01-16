@@ -297,6 +297,8 @@ class VAE3D(nn.Module):
         # Reconstruction loss (MSE for continuous values)
         recon_loss = F.mse_loss(recon_x, x, reduction="mean")
 
+        log_var = log_var + 1e-8
+
         # KL divergence loss
         kld_loss = -0.5 * torch.mean(1 + log_var - mu.pow(2) - log_var.exp())
 
