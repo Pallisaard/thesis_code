@@ -33,12 +33,17 @@ def process_zip_files(input_dir, output_dir):
         for dicom_folder in tqdm(
             dicom_folders, desc="Converting DICOM to NIfTI", leave=False
         ):
-            output_filepath = output_dir / f"{dicom_folder.name}.nii.gz"
+            # Extract user and filename from the folder structure
+            parts = dicom_folder.parts
+            user = parts[-4]  # Subject id
+            filename = parts[-1]  # Image id
+            output_filepath = output_dir / f"{user}-{filename}.nii.gz"
+            output_filepath.parent.mkdir(parents=True, exist_ok=True)
+
             # Convert DICOMs in this folder to a NIfTI file
             dicom2nifti.dicom_series_to_nifti(
                 dicom_folder, output_filepath, reorient_nifti=True
             )
-            # convert_dicom_to_nifti(dicom_folder, output_filepath)
 
         # Delete the unpacked folder after processing
         shutil.rmtree(unpacked_folder)
@@ -49,12 +54,12 @@ def parse_args():
         description="Convert DICOM zip archives to NIfTI files."
     )
     parser.add_argument(
-        "input_dir",
+        "--input-dir",
         type=str,
         help="Path to the input directory containing zip files with DICOM data.",
     )
     parser.add_argument(
-        "output_dir",
+        "--output-dir",
         type=str,
         help="Path to the output directory where NIfTI files will be saved.",
     )
