@@ -11,4 +11,4 @@ cd ~/projects/thesis/thesis-code/
 
 source .venv/bin/activate
 
-python -m thesis_code.scripts.apply_mask_to_mris --data-dir ../data/fine-tuning/not-brain-masked/ --fastsurfer-output-dir ../fastsurfer-output/fine-tuning/
+python -m thesis_code.scripts.apply_mask_to_mris --data-dir ../data/fine-tuning/not-brain-masked/ --output-dir ../data/fine-tuning/brain-masked-new --fastsurfer-output-dir ../fastsurfer-output/fine-tuning/

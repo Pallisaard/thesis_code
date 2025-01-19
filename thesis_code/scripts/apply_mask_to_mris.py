@@ -23,13 +23,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--data-dir",
         type=str,
-        default="/data",
         help="Path to the data directory containing train, test, and val subdirectories.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        help="Path to the output directory.",
     )
     parser.add_argument(
         "--fastsurfer-output-dir",
         type=str,
-        default="/fastsurfer-output",
         help="Path to the fastsurfer-output directory containing the masks.",
     )
     parser.add_argument(
@@ -78,7 +81,7 @@ if __name__ == "__main__":
         source_dirs = {"all": data_dir}
 
     # Define destination directory
-    dest_dir = data_dir / "masks"
+    dest_dir = args.output_dir
 
     # Ensure destination directory exists
     dest_dir.mkdir(parents=True, exist_ok=True)
@@ -107,7 +110,7 @@ if __name__ == "__main__":
                 raise FileNotFoundError(f"Mask file not found: {mask_path}")
 
             # Construct the destination path
-            dest_path: Path = category_dest_dir / f"{nii_file_stem}_mask.nii.gz"
+            dest_path: Path = category_dest_dir / f"{nii_file_stem}_masked.nii.gz"
 
             if dest_path.exists():
                 print(f"Mask already exists: {dest_path}")
