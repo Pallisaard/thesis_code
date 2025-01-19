@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #SBATCH --job-name=collect-finetune-data # Job name
-#SBATCH --output=collect-finetune-data-%j.out # Name of output file
-#SBATCH --error=collect-finetune-data-%j.err # Name of error file
+#SBATCH --output=slurm_collect_finetune_data-%j.out # Name of output file
+#SBATCH --error=slurm_collect_finetune_data-%j.err # Name of error file
 #SBATCH --ntasks=1 # Number of tasks
 #SBATCH --cpus-per-task=2 # Number of CPU cores per task
 #SBATCH --time=6:00:00 # Wall time
@@ -12,4 +12,4 @@
 
 cd ~/home/projects/thesis/thesis-code
 conda activate thesis
-bash thesis_code/data-collection/collect_finetune_data.sh ../data/fine-tuning
+bash thesis_code/scripts/collect_finetune_data.sh ../data/fine-tuning
