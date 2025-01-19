@@ -32,6 +32,9 @@ def parse_args() -> argparse.Namespace:
         default="/fastsurfer-output",
         help="Path to the fastsurfer-output directory containing the masks.",
     )
+    parser.add_argument(
+        "--use_splits", action="store_true", help="Use train, test, and val splits."
+    )
     # parser.add_argument("--size", type=int, default=256)
     # parser.add_argument("--percent-outliers", type=float, default=0.001)
     return parser.parse_args()
@@ -65,11 +68,14 @@ if __name__ == "__main__":
         print(f"FastSurfer output directory found: {fastsurfer_output_dir}")
 
     # Define source directories
-    source_dirs = {
-        "train": data_dir / "train",
-        "test": data_dir / "test",
-        "val": data_dir / "val",
-    }
+    if args.use_splits:
+        source_dirs = {
+            "train": data_dir / "train",
+            "test": data_dir / "test",
+            "val": data_dir / "val",
+        }
+    else:
+        source_dirs = {"all": data_dir}
 
     # Define destination directory
     dest_dir = data_dir / "masks"
