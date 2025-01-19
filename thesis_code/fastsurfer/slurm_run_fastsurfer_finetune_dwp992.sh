@@ -16,9 +16,6 @@ mkdir -p ~/projects/thesis/fastsurfer-output/fine-tuning
 # if "~/projects/thesis/data/fine-tuning/fs_scans/" does not exist, create it
 mkdir -p ~/projects/thesis/data/fine-tuning/fs_scans
 
-# if "~/projects/thesis/data/fine-tuning/brain_masks/" does not exist, create it
-mkdir -p ~/projects/thesis/data/fine-tuning/brain_masks
-
 source ~/projects/thesis/thesis-code/.venv/bin/activate
 
 # Get the MRI file based on the SLURM array task ID
@@ -34,8 +31,6 @@ echo "subject id" $SUBJECT_ID
 bash ~/projects/thesis/thesis-code/thesis_code/fastsurfer/run_fastsurfer_finetune_dwp992.sh $MRI_FILE $SUBJECT_ID
 
 mv ~/projects/thesis/fastsurfer-output/${SUBJECT_ID} ~/projects/thesis/fastsurfer-output/fine-tuning/.
-
-cp ~/projects/thesis/fastsurfer-output/fine-tuning/${SUBJECT_ID}/mri/mask.mgz ~/projects/thesis/data/fine-tuning/brain_masks/${SUBJECT_ID}.mgz
 
 # Copy the output to the final directory
 cp ~/projects/thesis/fastsurfer-output/fine-tuning/${SUBJECT_ID}/mri/orig_nu.mgz ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
