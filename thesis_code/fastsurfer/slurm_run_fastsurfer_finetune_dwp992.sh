@@ -13,7 +13,7 @@ module load cudnn/8.6.0
 source ~/projects/thesis/thesis-code/.venv/bin/activate
 
 # Get the MRI file based on the SLURM array task ID
-MRI_FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" ~/projects/thesis/data/finetune/nii_gz_files.txt)
+MRI_FILE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" ~/projects/thesis/data/fine-tuning/nii_gz_files.txt)
 
 # Extract the subject ID from the file name (or pass another way)
 SUBJECT_ID=$(basename $MRI_FILE .nii.gz)
@@ -25,10 +25,10 @@ echo "subject id" $SUBJECT_ID
 bash ~/projects/thesis/thesis-code/thesis_code/fastsurfer/run_fastsurfer_finetune_dwp992.sh $MRI_FILE $SUBJECT_ID
 
 # Copy the output to the final directory
-cp ~/projects/thesis/fastsurfer-output/${SUBJECT_ID}/mri/orig_nu.mgz ~/projects/thesis/data/finetune/fs_scans/${SUBJECT_ID}.mgz
+cp ~/projects/thesis/fastsurfer-output/${SUBJECT_ID}/mri/orig_nu.mgz ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
 
 # Reorient the NIfTI file
-python ~/projects/thesis/thesis-code/thesis_code/data_collection/reorient_nii.py ~/projects/thesis/data/finetune/fs_scans/${SUBJECT_ID}.mgz
+python ~/projects/thesis/thesis-code/thesis_code/data_collection/reorient_nii.py ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
 
 # Remove the FastSurfer output
-rm -r ~/projects/thesis/data/finetune/fs_scans/${SUBJECT_ID}.mgz
+rm -r ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz

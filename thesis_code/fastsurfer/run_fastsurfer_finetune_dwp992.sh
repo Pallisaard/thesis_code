@@ -20,7 +20,7 @@ run_fastsurfer() {
 
     singularity exec --nv \
                     --no-home \
-                    -B ~/projects/thesis/data/finetune:/data \
+                    -B ~/projects/thesis/data/fine-tuning/adni_data:/data \
                     -B ~/projects/thesis/fastsurfer-output:/output \
                     -B ~/projects/thesis/FastSurfer:/FastSurfer \
                     -B ~/fs_license:/fs_license \
