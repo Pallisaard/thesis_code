@@ -81,7 +81,7 @@ if __name__ == "__main__":
         source_dirs = {"all": data_dir}
 
     # Define destination directory
-    dest_dir = args.output_dir
+    dest_dir = Path(args.output_dir)
 
     # Ensure destination directory exists
     dest_dir.mkdir(parents=True, exist_ok=True)
