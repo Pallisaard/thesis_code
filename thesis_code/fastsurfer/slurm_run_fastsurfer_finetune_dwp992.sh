@@ -10,6 +10,12 @@
 module load cuda/11.8
 module load cudnn/8.6.0
 
+# If "~/projects/thesis/fastsurfer-output/fine-tuning" does not exist, create it
+mkdir -p ~/projects/thesis/fastsurfer-output/fine-tuning
+
+# if "~/projects/thesis/data/fine-tuning/fs_scans/" does not exist, create it
+mkdir -p ~/projects/thesis/data/fine-tuning/fs_scans
+
 source ~/projects/thesis/thesis-code/.venv/bin/activate
 
 # Get the MRI file based on the SLURM array task ID
@@ -24,11 +30,13 @@ echo "subject id" $SUBJECT_ID
 # Call your existing run_fastsurfer.sh script
 bash ~/projects/thesis/thesis-code/thesis_code/fastsurfer/run_fastsurfer_finetune_dwp992.sh $MRI_FILE $SUBJECT_ID
 
+mv ~/projects/thesis/fastsurfer-output/${SUBJECT_ID} ~/projects/thesis/fastsurfer-output/fine-tuning/.
+
 # Copy the output to the final directory
 cp ~/projects/thesis/fastsurfer-output/${SUBJECT_ID}/mri/orig_nu.mgz ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
 
 # Reorient the NIfTI file
-python ~/projects/thesis/thesis-code/thesis_code/data_collection/reorient_nii.py ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
+python ~/projects/thesis/thesis-code/thesis_code/scripts/reorient_nii.py ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
 
 # Remove the FastSurfer output
 rm -r ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
