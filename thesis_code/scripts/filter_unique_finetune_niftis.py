@@ -18,6 +18,8 @@ def copy_unique_niftis(input_dir, output_dir):
         if user not in copied_users:
             shutil.copy(nifti_file, output_path / nifti_file.name)
             copied_users.add(user)
+        else:
+            print(f"Skipping {nifti_file.name} as user {user} has already been copied.")
 
 
 def main():
