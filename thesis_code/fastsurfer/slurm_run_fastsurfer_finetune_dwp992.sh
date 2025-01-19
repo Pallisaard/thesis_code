@@ -33,7 +33,7 @@ bash ~/projects/thesis/thesis-code/thesis_code/fastsurfer/run_fastsurfer_finetun
 mv ~/projects/thesis/fastsurfer-output/${SUBJECT_ID} ~/projects/thesis/fastsurfer-output/fine-tuning/.
 
 # Copy the output to the final directory
-cp ~/projects/thesis/fastsurfer-output/${SUBJECT_ID}/mri/orig_nu.mgz ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
+cp ~/projects/thesis/fastsurfer-output/fine-tuning/${SUBJECT_ID}/mri/orig_nu.mgz ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
 
 # Reorient the NIfTI file
 python ~/projects/thesis/thesis-code/thesis_code/scripts/reorient_nii.py ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
