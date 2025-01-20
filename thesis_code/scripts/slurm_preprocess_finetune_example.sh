@@ -14,11 +14,12 @@ dir="all"
 
 echo "dir: "$dir
 
+data_dir="../data/fine-tuning/brain-masked/"$dir
 preprocess_dir="../data/fine-tuning/brain-masked-zerosliced/"$dir
 
 echo "preprocess_dir: " $preprocess_dir
 
-python -m thesis_code.scripts.preprocess_example --nii-path $preprocess_dir \
+python -m thesis_code.scripts.preprocess_example --nii-path $data_dir \
     --out-path $preprocess_dir \
     --preprocess-folder \
     --percent-outliers 0.999 \
