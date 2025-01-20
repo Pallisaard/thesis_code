@@ -37,4 +37,5 @@ python -m thesis_code.scripts.preprocess_example --nii-path $preprocess_dir \
     --out-path $preprocess_dir \
     --preprocess-folder \
     --percent-outliers 0.999 \
+    --remove-zero-slice \
     --size 64

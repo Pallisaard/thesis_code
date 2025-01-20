@@ -7,6 +7,7 @@ import torch
 
 from thesis_code.dataloading.transforms import (
     Compose,
+    Identity,
     RangeNormalize,
     Resize,
     RemovePercentOutliers,
@@ -25,6 +26,7 @@ def parse_args():
     )
     parser.add_argument("--size", type=int, default=256)
     parser.add_argument("--percent-outliers", type=float, default=0.001)
+    parser.add_argument("--remove-zero-slices", action="store_true")
     parser.add_argument(
         "--preprocess-folder",
         action="store_true",
@@ -36,11 +38,12 @@ def parse_args():
     return parser.parse_args()
 
 
-def get_transforms(size: int, percent_outliers: float) -> Compose:
+def get_transforms(
+    size: int, percent_outliers: float, remove_sero_slices: bool
+) -> Compose:
     return Compose(
         [
-            # Identity(),
-            RemoveZeroSlices(),
+            RemoveZeroSlices() if remove_sero_slices else Identity(),
             Resize(size),
             RemovePercentOutliers(percent_outliers),
             RangeNormalize(target_min=-1, target_max=1),
@@ -50,7 +53,9 @@ def get_transforms(size: int, percent_outliers: float) -> Compose:
 
 if __name__ == "__main__":
     args = parse_args()
-    transforms = get_transforms(args.size, args.percent_outliers)
+    transforms = get_transforms(
+        args.size, args.percent_outliers, args.remove_zero_slices
+    )
 
     if not Path(args.out_path).exists():
         raise FileNotFoundError(f"Output path not found: {args.out_path}")
