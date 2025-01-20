@@ -14,4 +14,4 @@ echo "Data path: $DATA_PATH"
 
 python thesis_code/scripts/convert_dicom_2_nifti.py --input-dir $DATA_PATH/zip_files --output-dir $DATA_PATH/nifti_files
 python thesis_code/scripts/filter_unique_finetune_niftis.py --input-dir $DATA_PATH/nifti_files --output-dir $DATA_PATH/unique_nifti_files
-python thesis_code/scripts/find_all_nii_files.py $DATA_PATH/unique_niftis --replace $DATA_PATH/unique_nifti_files:/data/
+python thesis_code/scripts/find_all_nii_files.py $DATA_PATH/unique_nifti_files --replace $DATA_PATH/unique_nifti_files:/data/
