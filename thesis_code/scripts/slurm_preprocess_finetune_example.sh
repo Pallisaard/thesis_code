@@ -17,6 +17,8 @@ echo "dir: "$dir
 data_dir="../data/fine-tuning/brain-masked/"$dir
 preprocess_dir="../data/fine-tuning/brain-masked-zerosliced/"$dir
 
+mkdir -p $preprocess_dir
+
 echo "preprocess_dir: " $preprocess_dir
 
 python -m thesis_code.scripts.preprocess_example --nii-path $data_dir \
