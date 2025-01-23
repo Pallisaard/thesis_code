@@ -59,7 +59,6 @@ while IFS= read -r line; do
 done <../exported_datasets.txt
 
 # Process all datasets
-ls
 echo "Processing datasets..."
 for dataset in "${datasets[@]}"; do
   echo "Processing $dataset..."
