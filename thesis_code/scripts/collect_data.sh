@@ -161,4 +161,7 @@ rm -f final_dataset/scans/ds004217_sub-084_T1w.nii.gz
 rm -f final_dataset/scans/ds004217_sub-085_T1w.nii.gz
 rm -f final_dataset/scans/ds004217_sub-090_T1w.nii.gz
 rm -f final_dataset/scans/ds004217_sub-025_T1w.nii.gz
+
+python thesis_code/scripts/find_all_nii_files.py final_dataset --replace final_dataset:/data/
+
 echo "done!"
