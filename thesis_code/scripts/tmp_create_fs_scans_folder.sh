@@ -17,7 +17,7 @@ mkdir -p ~/projects/thesis/data/fine-tuning/fs_scans
 source ~/projects/thesis/thesis-code/.venv/bin/activate
 
 # Path to the text file containing subject IDs
-SUBJECTS_FILE="~/projects/thesis/data/fine-tuning/nii_gz_files.txt"
+SUBJECTS_FILE=~/projects/thesis/data/fine-tuning/nii_gz_files.txt
 
 # Read each line in the text file
 while IFS= read -r line
