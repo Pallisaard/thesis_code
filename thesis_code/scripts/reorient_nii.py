@@ -8,7 +8,7 @@ def reorient_nii_to_ras(nii, orientation: str = "RAS"):
     # Get the affine matrix
     affine = nii.affine
 
-    orientation_tuple = (letter for letter in orientation)
+    orientation_tuple = tuple(letter for letter in orientation)
 
     # Desired RAS+ orientation
     # ras_ornt = nib.orientations.axcodes2ornt(("R", "A", "S"))
