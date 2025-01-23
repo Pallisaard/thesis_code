@@ -36,4 +36,5 @@ dependencies = [
     "transformers>=4.46.3",
     "seaborn>=0.13.2",
     "sympy>=1.13.3",
+    "datalad>=1.1.5",
 ]
