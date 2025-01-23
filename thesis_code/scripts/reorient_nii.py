@@ -4,18 +4,21 @@ import nibabel as nib
 from pathlib import Path
 
 
-def reorient_nii_to_ras(nii):
+def reorient_nii_to_ras(nii, orientation: str = "RAS"):
     # Get the affine matrix
     affine = nii.affine
 
+    orientation_tuple = (letter for letter in orientation)
+
     # Desired RAS+ orientation
-    ras_ornt = nib.orientations.axcodes2ornt(("R", "A", "S"))
+    # ras_ornt = nib.orientations.axcodes2ornt(("R", "A", "S"))
+    new_ornt = nib.orientations.axcodes2ornt(orientation_tuple)
 
     # Get the orientation of the image in matrix form
     current_ornt = nib.orientations.io_orientation(affine)
 
     # Get the transformation from current orientation to RAS+
-    transform_ornt = nib.orientations.ornt_transform(current_ornt, ras_ornt)
+    transform_ornt = nib.orientations.ornt_transform(current_ornt, new_ornt)
 
     # Apply the orientation transform to the data
     reoriented_data = nib.orientations.apply_orientation(
