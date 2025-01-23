@@ -10,6 +10,6 @@
 #SBATCH --mail-user=rpa@di.ku.dk # Email
 #SBATCH --mail-type=END # When to email
 
-cd ~/home/projects/thesis/thesis-code
-conda activate thesis
+cd ~/projects/thesis/thesis-code
+source .venv/bin/activate
 bash thesis_code/data-collection/collect_data.sh ../data/pre-training/collections/
