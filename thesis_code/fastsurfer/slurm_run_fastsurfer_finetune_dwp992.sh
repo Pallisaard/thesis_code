@@ -4,7 +4,7 @@
 #SBATCH --error=slurm_fastsurfer_%A_%a.err
 #SBATCH --array=1-409%5  # Array job for 879 MRI files, limit to 5 jobs running at once
 #SBATCH --time=10:00  # Maximum time for the job
-# #SBATCH --gres=gpu:titanrtx:1       # Request 1 GPU per job
+#SBATCH --gres=gpu:titanrtx:1       # Request 1 GPU per job
 #SBATCH --cpus-per-task=2  # Number of CPUs for each task
 
 module load cuda/11.8
