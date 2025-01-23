@@ -10,6 +10,11 @@
 #SBATCH --mail-user=rpa@di.ku.dk # Email
 #SBATCH --mail-type=END # When to email
 
+module load miniconda/24.5.0
+
 cd ~/projects/thesis/thesis-code || exit 1
-source .venv/bin/activate || exit 1
+
+conda activate thesis || exit 1
+# source .venv/bin/activate || exit 1
+
 bash thesis_code/scripts/collect_data.sh ../data/pre-training/collections/
