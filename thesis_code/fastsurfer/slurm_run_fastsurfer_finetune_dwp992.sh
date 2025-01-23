@@ -27,7 +27,7 @@ echo "mri file" $MRI_FILE
 echo "subject id" $SUBJECT_ID
 
 # Call your existing run_fastsurfer.sh script
-bash ~/projects/thesis/thesis-code/thesis_code/fastsurfer/run_fastsurfer_finetune_dwp992.sh $MRI_FILE $SUBJECT_ID
+# bash ~/projects/thesis/thesis-code/thesis_code/fastsurfer/run_fastsurfer_finetune_dwp992.sh $MRI_FILE $SUBJECT_ID
 
 mv ~/projects/thesis/fastsurfer-output/${SUBJECT_ID} ~/projects/thesis/fastsurfer-output/fine-tuning/.
 
@@ -35,7 +35,7 @@ mv ~/projects/thesis/fastsurfer-output/${SUBJECT_ID} ~/projects/thesis/fastsurfe
 cp ~/projects/thesis/fastsurfer-output/fine-tuning/${SUBJECT_ID}/mri/orig_nu.mgz ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
 
 # Reorient the NIfTI file
-python ~/projects/thesis/thesis-code/thesis_code/scripts/reorient_nii.py ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
+python ~/projects/thesis/thesis-code/thesis_code/scripts/convert_mgz_to_nifti.py ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz
 
 # Remove the FastSurfer output
 rm -r ~/projects/thesis/data/fine-tuning/fs_scans/${SUBJECT_ID}.mgz

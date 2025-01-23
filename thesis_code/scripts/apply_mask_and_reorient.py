@@ -121,12 +121,10 @@ if __name__ == "__main__":
             # Load the original T1w mri
             original_mri = nib.load(nii_file)  # type: ignore
 
-            reoriented_mask_img = reorient_nii_to_ras(mask_img)
-            masked_mri = apply_mask_to_mri(
-                reoriented_mask_img, original_mri, transforms=None
-            )
+            masked_mri = apply_mask_to_mri(mask_img, original_mri, transforms=None)
+            reoriented_masked_mri = reorient_nii_to_ras(masked_mri)
 
             # Save the loaded mask to the destination path in .nii.gz format
-            nib.save(masked_mri, str(dest_path))  # type: ignore
+            nib.save(reoriented_masked_mri, str(dest_path))  # type: ignore
 
             # print(f"Saved mask to: {dest_path}")
