@@ -13,6 +13,11 @@
 module load miniconda/24.5.0
 
 cd ~/projects/thesis/thesis-code || exit 1
+# check if ~/.conda exists
+if [ ! -d ~/.conda ]; then
+  echo "~/.conda doesn't exist... Exiting."
+  exit 1
+fi
 
 conda activate thesis || exit 1
 # source .venv/bin/activate || exit 1
