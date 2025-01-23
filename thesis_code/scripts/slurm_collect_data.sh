@@ -12,4 +12,4 @@
 
 cd ~/projects/thesis/thesis-code || exit 1
 source .venv/bin/activate || exit 1
-bash thesis_code/data-collection/collect_data.sh ../data/pre-training/collections/
+bash thesis_code/scripts/collect_data.sh ../data/pre-training/collections/
