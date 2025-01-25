@@ -333,7 +333,6 @@ def main():
     )
 
     print("Data module:", data_module)
-    print("length of dataset:", len(data_module.mri_train))
 
     print("transforms:", transform)
 
