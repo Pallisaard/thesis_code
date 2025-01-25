@@ -332,6 +332,9 @@ def main():
         use_all_data_for_training=args.use_all_data_for_training,
     )
 
+    print("Data module:", data_module)
+    print("length of dataset:", len(data_module.mri_train))
+
     print("transforms:", transform)
 
     callbacks = get_callbacks_from_args(args)
