@@ -3,7 +3,6 @@
 #SBATCH --output=slurm_pretrain_hagan_l5-%j.out # Name of output file
 #SBATCH --error=slurm_pretrain_hagan_l5-%j.err # Name of error file
 #SBATCH --time=24:00:00    # Limit to 36 hours.
-#SBATCH --array=1-5%5  # Let's train 5 different models.
 #SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=20  # Number of CPUs for each gpu
 #SBATCH --mem=64G        # Memory request
