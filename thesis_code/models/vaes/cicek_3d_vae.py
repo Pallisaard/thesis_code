@@ -365,6 +365,10 @@ class LitVAE3D(L.LightningModule):
             max_beta=max_beta,
             warmup_epochs=warmup_epochs,
         )
+
+        # Use xavier initialization for weights
+        self.model.apply(self.init_weights)
+
         self.ssim = StructuralSimilarityIndexMeasure(
             gaussian_kernel=True,
             kernel_size=11,
@@ -383,6 +387,11 @@ class LitVAE3D(L.LightningModule):
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         x = batch
         recon_x, mu, log_var = self(x)
+
+        # Clip mean and log_var to prevent extreme values
+        mu = torch.clamp(mu, min=-10, max=10)  # Adjust bounds as needed
+        log_var = torch.clamp(log_var, min=-10, max=10)  # Adjust bounds as needed
+        log_var = log_var + 1e-8  # Add epsilon for numerical stability
 
         # Calculate loss
         loss, recon_loss, kld_loss, beta = self.model.calculate_loss(
@@ -430,5 +439,5 @@ class LitVAE3D(L.LightningModule):
         self.log("test_ssim", self.ssim, sync_dist=True)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters())
+        optimizer = torch.optim.Adam(self.parameters(), lr=1e-4)
         return optimizer

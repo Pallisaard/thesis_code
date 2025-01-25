@@ -205,10 +205,10 @@ def get_model(
             encoder_out_channels_per_block=[8, 16, 32, 64],
             decoder_out_channels_per_block=[64, 64, 16, 8, 1],
             latent_dim=latent_dim,
-            beta_annealing="constant",
-            constant_beta=1.0,
+            beta_annealing="monotonic",
             max_beta=4.0,
-            warmup_epochs=25,
+            # 100,000 beta annealing steps with batch size = 32 and dataset size 2740
+            warmup_epochs=32 * 100000 // 2740,
         )
     elif model_name == "cicek_3d_vae_64":
         return LitVAE3D(
