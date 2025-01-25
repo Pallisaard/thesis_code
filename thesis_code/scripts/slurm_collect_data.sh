@@ -23,3 +23,10 @@ conda activate thesis || exit 1
 # source .venv/bin/activate || exit 1
 
 bash thesis_code/scripts/collect_data.sh ../data/pre-training/collections/
+
+conda deactivate
+cd ~/projects/thesis/thesis-code || exit 1
+source .venv/bin/activate || exit 1
+
+python thesis_code/scripts/find_all_nii_files.py final_dataset --replace final_dataset:/data/
+
