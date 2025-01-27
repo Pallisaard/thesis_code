@@ -11,61 +11,6 @@ from torchmetrics.image import (
 )
 
 
-# class ResNetBlock3D(nn.Module):
-#     def __init__(self, in_channels, out_channels, stride=1, groups=32):
-#         """
-#         3D ResNet block with two convolution layers and a residual connection.
-
-#         Args:
-#             in_channels (int): Number of input channels
-#             out_channels (int): Number of output channels
-#             stride (int): Stride for the first convolution (default: 1)
-#             downsample (nn.Module): Optional downsampling layer for residual connection
-#         """
-#         super(ResNetBlock3D, self).__init__()
-
-#         # First convolution layer
-#         self.conv1 = nn.Conv3d(
-#             in_channels=in_channels,
-#             out_channels=out_channels,
-#             kernel_size=3,
-#             stride=stride,
-#             padding=1,
-#             bias=False,
-#         )
-#         # self.bn1 = nn.BatchNorm3d(out_channels)
-#         self.gn1 = nn.GroupNorm(num_groups=groups, num_channels=out_channels)
-#         self.relu = nn.ReLU(inplace=True)
-
-#         # Second convolution layer
-#         self.conv2 = nn.Conv3d(
-#             in_channels=out_channels,
-#             out_channels=out_channels,
-#             kernel_size=3,
-#             stride=1,
-#             padding=1,
-#             bias=False,
-#         )
-#         # self.bn2 = nn.BatchNorm3d(out_channels)
-#         self.gn2 = nn.GroupNorm(num_groups=groups, num_channels=out_channels)
-
-# def forward(self, x):
-#     # First conv block
-#     out = self.conv1(x)
-#     out = self.gn1(out)
-#     out = self.relu(out)
-
-#     # Second conv block
-#     out = self.conv2(out)
-#     out = self.gn2(out)
-
-#     # Add residual connection
-#     out += x
-#     out = self.relu(out)
-
-#     return out
-
-
 class ConvUnit(nn.Module):
     def __init__(self, in_channels: int, out_channels: int):
         super().__init__()
