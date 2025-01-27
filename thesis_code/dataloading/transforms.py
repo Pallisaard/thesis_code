@@ -141,7 +141,9 @@ class RangeNormalize(MRITransform):
 
         # Avoid division by zero
         if source_min == source_max:
-            raise ValueError("Input sample has no intensity variation")
+            # Return sample but bounded by target min and target max
+            return torch.clamp(sample, self.target_min, self.target_max)
+            # raise ValueError("Input sample has no intensity variation")
 
         # Direct scaling to target range
         normalized_sample = (self.target_max - self.target_min) * (
