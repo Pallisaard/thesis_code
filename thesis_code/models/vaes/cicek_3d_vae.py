@@ -92,16 +92,12 @@ class ConvDecoderBlock(nn.Module):
     def __init__(
         self,
         channels: list[int],
-        kernel_size: int = 2,
-        stride: int = 2,
     ):
         super().__init__()
         in_out_channel_tuples = list(zip(channels[:-1], channels[1:]))
 
         self.conv_block = nn.Sequential(
-            nn.ConvTranspose3d(
-                channels[0], channels[0], kernel_size=kernel_size, stride=stride
-            ),
+            nn.ConvTranspose3d(channels[0], channels[0], kernel_size=2, stride=1),
             *[ConvUnit(in_c, out_c) for in_c, out_c in in_out_channel_tuples],
         )
 
@@ -115,16 +111,12 @@ class VAE3DDecoder(nn.Module):
         self,
         out_channels_per_block: list[int],
         in_shape: Tuple[int, int, int, int],
-        kernel_size: int = 2,
-        stride: int = 2,
     ):
         super().__init__()
         self.in_shape = in_shape
         self.in_channels = in_shape[0]
         self.in_size = in_shape[1:]
         self.out_channels_per_block = out_channels_per_block
-        self.kernel_size = kernel_size
-        self.stride = stride
 
         first_conv = ConvUnit(self.in_channels, self.in_channels)
 
@@ -135,8 +127,6 @@ class VAE3DDecoder(nn.Module):
         consecutive_blocks: list[nn.Module] = [
             ConvDecoderBlock(
                 [in_channel, in_channel, out_channel],
-                kernel_size=kernel_size,
-                stride=stride,
             )
             for in_channel, out_channel in in_out_channel_tuples
         ]
@@ -157,8 +147,6 @@ class VAE3D(nn.Module):
         decoder_out_channels_per_block: list[int],
         latent_dim: int,
         pool_size: int = 2,
-        kernel_size: int = 2,
-        stride: int = 2,
         beta_annealing: Literal["monotonic", "constant"] = "monotonic",
         constant_beta: float = 1.0,
         max_beta: float = 4.0,
@@ -174,8 +162,6 @@ class VAE3D(nn.Module):
         self.decoder_out_channels_per_block = decoder_out_channels_per_block
         self.latent_dim = latent_dim
         self.pool_size = pool_size
-        self.kernel_size = kernel_size
-        self.stride = stride
         self.beta_annealing = beta_annealing
         self.constant_beta = constant_beta
         self.max_beta = max_beta
@@ -183,10 +169,7 @@ class VAE3D(nn.Module):
 
         self.encoder = VAE3DEncoder(encoder_out_channels_per_block, pool_size, in_shape)
         self.decoder = VAE3DDecoder(
-            decoder_out_channels_per_block,
-            self.encoder.encoded_space,
-            kernel_size=kernel_size,
-            stride=stride,
+            decoder_out_channels_per_block, self.encoder.encoded_space
         )
 
         # VAE latent space
@@ -303,8 +286,6 @@ class LitVAE3D(L.LightningModule):
             decoder_out_channels_per_block=decoder_out_channels_per_block,
             latent_dim=latent_dim,
             pool_size=pool_size,
-            kernel_size=kernel_size,
-            stride=stride,
             beta_annealing=beta_annealing,
             constant_beta=constant_beta,
             max_beta=max_beta,
