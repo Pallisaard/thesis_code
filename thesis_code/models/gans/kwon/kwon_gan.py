@@ -319,11 +319,10 @@ class LitKwonGan(L.LightningModule):
         return gradient
 
     def _interpolate_data(
-        self, real_data: torch.Tensor, fake_data: torch.Tensor
+        self, real_data: torch.Tensor, fake_data: torch.Tensor, device="cuda"
     ) -> torch.Tensor:
-        alpha_dim = (real_data.size(0), *([1] * (real_data.dim() - 1)))
-        alpha = torch.full(
-            size=alpha_dim, fill_value=torch.rand(1).item(), device=self.device
-        )
+        alpha = torch.rand(real_data.size(0), 1, 1, 1, 1)
+        alpha = alpha.expand(real_data.size())
+        alpha = alpha.to(device)
         interpolates = alpha * real_data + (1 - alpha) * fake_data
         return interpolates
