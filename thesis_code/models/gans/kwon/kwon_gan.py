@@ -317,4 +317,4 @@ def calc_gradient_penalty(
     gradient_norms = ((gradients * gradients + 1e-12).sum(-1)).sqrt()
     # Compute the gradient penalty
 
-    return ((gradient_norms - 1) ** 2).mean()
+    return lambda_ * ((gradient_norms - 1) ** 2).mean()
