@@ -231,7 +231,7 @@ class LitHAGAN(L.LightningModule):
             # Save validation data
             log_dir = Path(self.logger.log_dir)  # type: ignore
 
-            fake_images = self.sample(batch_size)
+            fake_images = self.sample(2)
             synthetic_example_save_path = (
                 log_dir / f"synthetic_example_{self.current_epoch}.nii.gz"
             )
