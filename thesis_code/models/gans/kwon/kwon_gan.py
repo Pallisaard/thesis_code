@@ -131,8 +131,8 @@ class LitKwonGan(L.LightningModule):
         fake_critic_score = self.critic(fake_data)
         recon_critic_score = self.critic(recon_data)
 
-        gp_loss_fake = self.gradient_policy(self.critic, real_data, fake_data)
-        gp_loss_recon = self.gradient_policy(self.critic, real_data, recon_data)
+        gp_loss_fake = calc_gradient_penalty(self.critic, real_data, fake_data)
+        gp_loss_recon = calc_gradient_penalty(self.critic, real_data, recon_data)
 
         return (
             torch.mean(fake_critic_score)
@@ -154,35 +154,13 @@ class LitKwonGan(L.LightningModule):
         real_code_critic_score = self.code_critic(random_codes)
         fake_code_critic_score = self.code_critic(latent_codes)
 
-        gp_loss = self.gradient_policy(self.code_critic, random_codes, latent_codes)
+        gp_loss = calc_gradient_penalty(self.code_critic, random_codes, latent_codes)
 
         return (
             torch.mean(fake_code_critic_score)
             - torch.mean(real_code_critic_score)
             + self.lambda_gp * gp_loss
         )
-
-    def gradient_policy(
-        self,
-        model: nn.Module,
-        real_data: torch.Tensor,
-        fake_data: torch.Tensor,
-    ) -> torch.Tensor:
-        interpolated_data = self._interpolate_data(real_data, fake_data)
-        interpolated_data.requires_grad_(True)
-
-        batch_size = fake_data.size(0)
-        # Computes the gradient of the critic with respect to the fake data
-
-        gradient = self._compute_gradient(model, interpolated_data)
-
-        # Flatten so the norm computation is easier
-        gradient = gradient.view(batch_size, -1)
-        # Norm with added epsilon to avoid division by zero
-        gradient_norms = ((gradient**2).sum(-1) + 1e-12).sqrt()
-        # Compute the gradient penalty
-
-        return torch.mean((gradient_norms - 1) ** 2)
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         # with torch.autograd.set_detect_anomaly(True):
@@ -192,26 +170,26 @@ class LitKwonGan(L.LightningModule):
         real_data = batch
         latent_dim = self.generator.latent_dim
 
-        # # Encoder loss and optimization
-        # e_loss = self.encoder_loss(real_data=real_data)
-        # opt_e.zero_grad()
-        # self.manual_backward(e_loss)
-        # opt_e.step()
-
-        # # Generator loss and optimization
-        # g_loss = self.generator_loss(real_data=real_data, latent_dim=latent_dim)
-        # opt_g.zero_grad()
-        # self.manual_backward(g_loss)
-        # opt_g.step()
-        # opt_g.step()
-
-        opt_g.zero_grad()
+        # Encoder loss and optimization
+        e_loss = self.encoder_loss(real_data=real_data)
         opt_e.zero_grad()
-        e_g_loss = self.generator_encoder_loss(real_data=real_data)
-        self.manual_backward(e_g_loss)
+        self.manual_backward(e_loss)
         opt_e.step()
+
+        # Generator loss and optimization
+        g_loss = self.generator_loss(real_data=real_data, latent_dim=latent_dim)
+        opt_g.zero_grad()
+        self.manual_backward(g_loss)
         opt_g.step()
         opt_g.step()
+
+        # opt_g.zero_grad()
+        # opt_e.zero_grad()
+        # e_g_loss = self.generator_encoder_loss(real_data=real_data)
+        # self.manual_backward(e_g_loss)
+        # opt_e.step()
+        # opt_g.step()
+        # opt_g.step()
 
         # critic loss and optimization
         d_loss = self.critic_loss(real_data=real_data, latent_dim=latent_dim)
@@ -226,16 +204,16 @@ class LitKwonGan(L.LightningModule):
         opt_c.step()
 
         # total_loss = d_loss + g_loss + c_loss + e_loss
-        total_loss = d_loss + c_loss + e_g_loss
+        total_loss = d_loss + c_loss + e_loss + g_loss
         elapsed_time = time.time() - self.start_time
         # Log losses
         self.log_dict(
             {
                 "d_loss": d_loss,
-                # "g_loss": g_loss,
+                "g_loss": g_loss,
                 "c_loss": c_loss,
-                # "e_loss": e_loss,
-                "e_g_loss": e_g_loss,
+                "e_loss": e_loss,
+                # "e_g_loss": e_g_loss,
                 "total_loss": total_loss,
                 "elapsed_time": elapsed_time,
             }
@@ -307,22 +285,35 @@ class LitKwonGan(L.LightningModule):
         opt_e = torch.optim.Adam(self.encoder.parameters())
         return [opt_g, opt_d, opt_c, opt_e]
 
-    def _compute_gradient(self, model: nn.Module, interpolated_data: torch.Tensor):
-        gradient = torch.autograd.grad(
-            outputs=model(interpolated_data).sum(),
-            inputs=interpolated_data,
-            retain_graph=True,
-            create_graph=True,
-            only_inputs=True,
-        )[0]
 
-        return gradient
+def calc_gradient_penalty(
+    model: nn.Module,
+    real_data: torch.Tensor,
+    fake_data: torch.Tensor,
+    device: str = "cuda",
+    lambda_: float = 10.0,
+):
+    alpha = torch.rand(real_data.size(0), 1, 1, 1, 1)
+    alpha = alpha.expand(real_data.size())
+    alpha = alpha.to(device)
 
-    def _interpolate_data(
-        self, real_data: torch.Tensor, fake_data: torch.Tensor, device="cuda"
-    ) -> torch.Tensor:
-        alpha = torch.rand(real_data.size(0), 1, 1, 1, 1)
-        alpha = alpha.expand(real_data.size())
-        alpha = alpha.to(device)
-        interpolates = alpha * real_data + (1 - alpha) * fake_data
-        return interpolates
+    interpolates = alpha * real_data + ((1 - alpha) * fake_data)
+    interpolates = interpolates.to(device)
+    interpolates = interpolates.requires_grad_(True)
+
+    discriminated_interpolates = model(interpolates)
+
+    gradients = torch.autograd.grad(
+        outputs=discriminated_interpolates,
+        inputs=interpolates,
+        grad_outputs=torch.ones(discriminated_interpolates.size()).to(device),
+        create_graph=True,
+        retain_graph=True,
+        only_inputs=True,
+    )[0]
+
+    # Norm with added epsilon to avoid division by zero
+    gradient_norms = ((gradients * gradients + 1e-12).sum((-3, -2, -1))).sqrt()
+    # Compute the gradient penalty
+
+    return ((gradient_norms - 1) ** 2).mean()

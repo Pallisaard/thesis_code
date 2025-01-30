@@ -1,5 +1,5 @@
 from .vaes import LitVAE3D
-from .unused_models import (
+from .alternatives import (
     ResNet,
     resnet50,
     LitAlphaGAN,

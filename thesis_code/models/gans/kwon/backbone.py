@@ -19,17 +19,6 @@ class CodeDiscriminator(nn.Module):
             ),
             nn.Linear(4096, 1),
         )
-        # self.l1 = nn.Linear(self.latent_dim, 4096)
-        # self.bn1 = nn.BatchNorm1d(4096)
-        # self.relu1 = nn.LeakyReLU(
-        #     0.2,
-        # )
-        # self.l2 = nn.Linear(4096, 4096)
-        # self.bn2 = nn.BatchNorm1d(4096)
-        # self.relu2 = nn.LeakyReLU(
-        #     0.2,
-        # )
-        # self.l3 = nn.Linear(4096, 1)
 
     def forward(self, code):
         return self.model(code)

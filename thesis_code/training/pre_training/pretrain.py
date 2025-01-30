@@ -6,9 +6,7 @@ from lightning.pytorch.trainer import Trainer
 import lightning as L
 
 # from models import VAE3DLightningModule
-from thesis_code.models.vaes import LitVAE3D
-from thesis_code.models.gans import LitKwonGan
-from thesis_code.models.gans import LitHAGAN
+from thesis_code.models import LitKwonGan, LitHAGAN, LitWGANGP, LitAlphaGAN, LitVAE3D
 from thesis_code.dataloading.mri_datamodule import MRIDataModule, MRIAllTrainDataModule
 from thesis_code.dataloading.transforms import (
     MRITransform,
@@ -190,7 +188,9 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-MODEL_NAME = Literal["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan", "hagan"]
+MODEL_NAME = Literal[
+    "cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan", "wgan_gp", "alpha_gan", "hagan"
+]
 
 
 def get_model(
@@ -220,6 +220,10 @@ def get_model(
             max_beta=4.0,
             warmup_epochs=25,
         )
+    elif model_name == "alpha-gan":
+        return LitAlphaGAN(latent_dim=latent_dim)
+    elif model_name == "wgan-gp":
+        return LitWGANGP(latent_dim=latent_dim)
     elif model_name == "kwon_gan":
         return LitKwonGan(
             latent_dim=latent_dim,
