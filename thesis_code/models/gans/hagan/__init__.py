@@ -5,7 +5,6 @@ from .hagan import (
     compute_sub_e_loss,
     prepare_data,
     save_mri,
-    safe_sample,
 )
 
 __all__ = [
@@ -15,5 +14,4 @@ __all__ = [
     "compute_sub_e_loss",
     "prepare_data",
     "save_mri",
-    "safe_sample",
 ]
