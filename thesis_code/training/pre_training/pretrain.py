@@ -29,7 +29,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--model-name",
         required=True,
-        choices=["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan", "hagan"],
+        choices=[
+            "cicek_3d_vae_64",
+            "cicek_3d_vae_256",
+            "kwon_gan",
+            "wgan_gp",
+            "alpha_gan",
+            "hagan",
+        ],
         help="Name of the model to train",
     )
     parser.add_argument(
@@ -220,9 +227,9 @@ def get_model(
             max_beta=4.0,
             warmup_epochs=25,
         )
-    elif model_name == "alpha-gan":
+    elif model_name == "alpha_gan":
         return LitAlphaGAN(latent_dim=latent_dim)
-    elif model_name == "wgan-gp":
+    elif model_name == "wgan_gp":
         return LitWGANGP(latent_dim=latent_dim)
     elif model_name == "kwon_gan":
         return LitKwonGan(

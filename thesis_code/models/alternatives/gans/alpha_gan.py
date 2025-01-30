@@ -132,19 +132,19 @@ class Generator(nn.Module):
         h = self.tp_conv1(z)
         h = self.relu(self.bn1(h))
 
-        h = F.upsample(h, scale_factor=2)
+        h = F.interpolate(h, scale_factor=2)
         h = self.tp_conv2(h)
         h = self.relu(self.bn2(h))
 
-        h = F.upsample(h, scale_factor=2)
+        h = F.interpolate(h, scale_factor=2)
         h = self.tp_conv3(h)
         h = self.relu(self.bn3(h))
 
-        h = F.upsample(h, scale_factor=2)
+        h = F.interpolate(h, scale_factor=2)
         h = self.tp_conv4(h)
         h = self.relu(self.bn4(h))
 
-        h = F.upsample(h, scale_factor=2)
+        h = F.interpolate(h, scale_factor=2)
         h = self.tp_conv5(h)
 
         h = F.tanh(h)
@@ -159,6 +159,7 @@ class LitAlphaGAN(L.LightningModule):
         lambda_recon: float = 10.0,
     ):
         super().__init__()
+        self.latent_dim = latent_dim
         self.generator = Generator(noise=latent_dim)
         self.discriminator = Discriminator()
         self.code_discriminator = Code_Discriminator(code_size=latent_dim)
@@ -167,6 +168,8 @@ class LitAlphaGAN(L.LightningModule):
         self.automatic_optimization = False  # Manual optimization
         self.bce_loss = nn.BCELoss()
         self.l1_loss = nn.L1Loss()
+
+        self.automatic_optimization = False  # Manual optimization
 
     def sample_z(self, batch_size):
         return torch.randn(batch_size, self.latent_dim, device=self.device)
@@ -177,12 +180,13 @@ class LitAlphaGAN(L.LightningModule):
     def forward(self, z):
         return self.generator(z)
 
-    def discriminator_loss(
-        self,
-        real_data: Tensor,
-        fake_data: Tensor,
-        latent_data: Tensor,
-    ) -> Tensor:
+    def discriminator_loss(self, real_data: Tensor) -> Tensor:
+        fake_codes = self.encoder(real_data)
+        fake_data = self.generator(fake_codes)  # From encoded data
+        batch_size = real_data.size(0)
+        latent_codes = self.sample_z(batch_size)
+        latent_data = self.generator(latent_codes)  # From random distribution
+
         disc_real = self.discriminator(real_data)
         real_labels = torch.ones_like(disc_real)
         real_loss = F.binary_cross_entropy(disc_real, real_labels)
@@ -197,25 +201,24 @@ class LitAlphaGAN(L.LightningModule):
 
         return 2 * real_loss + fake_loss + latent_loss
 
-    def code_discriminator_loss(
-        self, latent_codes: Tensor, fake_codes: Tensor
-    ) -> Tensor:
+    def code_discriminator_loss(self, real_data: Tensor) -> Tensor:
+        batch_size = real_data.size(0)
+        fake_codes = self.encoder(real_data)
+        latent_codes = self.sample_z(batch_size)
+
         c_disc_latent = self.code_discriminator(latent_codes)
         latent_labels = torch.ones_like(c_disc_latent)
         latent_loss = self.bce_loss(c_disc_latent, latent_labels)
 
-        c_disc_fake = self.code_discriminator()
+        c_disc_fake = self.code_discriminator(fake_codes)
         fake_labels = torch.zeros_like(c_disc_fake)
         fake_loss = self.bce_loss(c_disc_fake, fake_labels)
 
         return latent_loss + fake_loss
 
-    def encoder_loss(
-        self,
-        real_data: Tensor,
-        fake_data: Tensor,
-        fake_codes: Tensor,
-    ) -> Tensor:
+    def encoder_loss(self, real_data: Tensor) -> Tensor:
+        fake_codes = self.encoder(real_data)
+        fake_data = self.generator(fake_codes)  # From encoded data
         code_disc_latent = self.code_discriminator(fake_codes)
         latent_labels = torch.ones_like(code_disc_latent)
 
@@ -226,9 +229,13 @@ class LitAlphaGAN(L.LightningModule):
         )
         return recon_loss + code_loss
 
-    def generator_loss(
-        self, real_data: Tensor, latent_data: Tensor, fake_data: Tensor
-    ) -> Tensor:
+    def generator_loss(self, real_data: Tensor) -> Tensor:
+        fake_codes = self.encoder(real_data)
+        fake_data = self.generator(fake_codes)  # From encoded data
+        batch_size = real_data.size(0)
+        latent_codes = self.sample_z(batch_size)
+        latent_data = self.generator(latent_codes)  # From random distribution
+
         recon_loss = self.l1_loss(real_data, fake_data)
 
         disc_latent = self.discriminator(latent_data)
@@ -249,49 +256,40 @@ class LitAlphaGAN(L.LightningModule):
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         real_data = batch
-        batch_size = real_data.size(0)
-        device = real_data.device
 
         # Optimizers
         opt_g, opt_d, opt_c, opt_e = self.optimizers()  # type: ignore
 
         # Sample noise and latent codes
-        latent_codes = torch.randn(batch_size, self.generator.latent_dim, device=device)
-        fake_codes = self.encoder(real_data)
+        batch_size = real_data.size(0)
+        latent_codes = self.sample_z(batch_size)
         latent_data = self.generator(latent_codes)  # From random distribution
+        fake_codes = self.encoder(real_data)
         fake_data = self.generator(fake_codes)  # From encoded data
 
         # Encoder loss and optimization
+        e_loss = self.encoder_loss(real_data=real_data)
         opt_e.zero_grad()
-        e_loss = self.encoder_loss(
-            real_data=real_data, fake_data=fake_data, fake_codes=fake_codes
-        )
         self.manual_backward(e_loss)
         opt_e.step()
 
         # Generator loss and optimization
+        g_loss = self.generator_loss(real_data=real_data)
         opt_g.zero_grad()
-        g_loss = self.generator_loss(
-            real_data=real_data, fake_data=fake_data, latent_data=latent_data
-        )
         self.manual_backward(g_loss)
         # Two because they do so - they offer no reason.
         opt_g.step()
         opt_g.step()
 
         # Discriminator loss and optimization
+        d_loss = self.discriminator_loss(real_data=real_data)
         opt_d.zero_grad()
-        d_loss = self.discriminator_loss(
-            real_data=real_data, fake_data=fake_data, latent_data=latent_codes
-        )
         self.manual_backward(d_loss)
         opt_d.step()
 
         # Code discriminator loss and optimization
+        c_loss = self.code_discriminator_loss(real_data=real_data)
         opt_c.zero_grad()
-        c_loss = self.code_discriminator_loss(
-            latent_codes=latent_codes, fake_codes=fake_codes
-        )
         self.manual_backward(c_loss)
         opt_c.step()
 
@@ -314,7 +312,7 @@ class LitAlphaGAN(L.LightningModule):
         device = real_data.device
 
         # Sample noise and latent codes
-        latent_codes = torch.randn(batch_size, self.generator.latent_dim, device=device)
+        latent_codes = torch.randn(batch_size, self.latent_dim, device=device)
         fake_codes = self.encoder(real_data)
         latent_data = self.generator(latent_codes)  # From random distribution
         fake_data = self.generator(fake_codes)  # From encoded data
@@ -322,24 +320,16 @@ class LitAlphaGAN(L.LightningModule):
         # Enable gradient computation for gradient penalty calculation
         with torch.enable_grad():
             # Encoder loss and optimization
-            e_loss = self.encoder_loss(
-                real_data=real_data, fake_data=fake_data, fake_codes=fake_codes
-            )
+            e_loss = self.encoder_loss(real_data=real_data)
 
             # Generator loss and optimization
-            g_loss = self.generator_loss(
-                real_data=real_data, latent_data=latent_data, fake_data=fake_data
-            )
+            g_loss = self.generator_loss(real_data=real_data)
 
             # Critic loss and optimization
-            d_loss = self.discriminator_loss(
-                real_data=real_data, fake_data=fake_data, latent_data=latent_codes
-            )
+            d_loss = self.discriminator_loss(real_data=real_data)
 
             # Code critic loss and optimization
-            c_loss = self.code_discriminator_loss(
-                latent_codes=latent_codes, fake_codes=fake_codes
-            )
+            c_loss = self.code_discriminator_loss(real_data=real_data)
 
         if batch_idx == 0:
             # Save validation data
@@ -360,10 +350,11 @@ class LitAlphaGAN(L.LightningModule):
         fake_data = self.generator(self.sample_z(batch_size))
         # Logging accuracy of discriminator with respect to cropped and small images simultaneously
         d_accuracy = (
-            torch.mean(self.critic(real_data)) + torch.mean(self.critic(fake_data))
+            torch.mean(self.discriminator(real_data))
+            + torch.mean(self.discriminator(fake_data))
         ) / 2
 
-        elapsed_time = time.time() - self.start_time
+        # elapsed_time = time.time() - self.start_time
 
         # Log losses
         self.log_dict(
@@ -374,7 +365,7 @@ class LitAlphaGAN(L.LightningModule):
                 "val_e_loss": e_loss,
                 "val_total_loss": d_loss + g_loss + c_loss + e_loss,
                 "val_d_accuracy": d_accuracy,
-                "elapsed_time": elapsed_time,
+                # "elapsed_time": elapsed_time,
             },
             logger=True,
             sync_dist=True,

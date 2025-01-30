@@ -293,7 +293,7 @@ def calc_gradient_penalty(
     device: str = "cuda",
     lambda_: float = 10.0,
 ):
-    alpha = torch.rand(real_data.size(0), 1, 1, 1, 1)
+    alpha = torch.rand(real_data.size(0), *([1] * len(real_data.shape[1:])))
     alpha = alpha.expand(real_data.size())
     alpha = alpha.to(device)
 
@@ -312,8 +312,9 @@ def calc_gradient_penalty(
         only_inputs=True,
     )[0]
 
+    gradients = gradients.view(gradients.size(0), -1)
     # Norm with added epsilon to avoid division by zero
-    gradient_norms = ((gradients * gradients + 1e-12).sum((-3, -2, -1))).sqrt()
+    gradient_norms = ((gradients * gradients + 1e-12).sum(-1)).sqrt()
     # Compute the gradient penalty
 
     return ((gradient_norms - 1) ** 2).mean()
