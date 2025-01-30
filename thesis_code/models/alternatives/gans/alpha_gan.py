@@ -260,13 +260,6 @@ class LitAlphaGAN(L.LightningModule):
         # Optimizers
         opt_g, opt_d, opt_c, opt_e = self.optimizers()  # type: ignore
 
-        # Sample noise and latent codes
-        batch_size = real_data.size(0)
-        latent_codes = self.sample_z(batch_size)
-        latent_data = self.generator(latent_codes)  # From random distribution
-        fake_codes = self.encoder(real_data)
-        fake_data = self.generator(fake_codes)  # From encoded data
-
         # Encoder loss and optimization
         e_loss = self.encoder_loss(real_data=real_data)
         opt_e.zero_grad()
@@ -309,13 +302,6 @@ class LitAlphaGAN(L.LightningModule):
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         real_data = batch
         batch_size = real_data.size(0)
-        device = real_data.device
-
-        # Sample noise and latent codes
-        latent_codes = torch.randn(batch_size, self.latent_dim, device=device)
-        fake_codes = self.encoder(real_data)
-        latent_data = self.generator(latent_codes)  # From random distribution
-        fake_data = self.generator(fake_codes)  # From encoded data
 
         # Enable gradient computation for gradient penalty calculation
         with torch.enable_grad():

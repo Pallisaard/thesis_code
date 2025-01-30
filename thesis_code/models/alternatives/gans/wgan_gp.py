@@ -1,8 +1,6 @@
-import time
 from pathlib import Path
 
 import torch
-from torch import autograd
 import torch.nn as nn
 import torch.nn.functional as F
 import lightning as L
@@ -107,9 +105,9 @@ class LitWGANGP(L.LightningModule):
 
     def verify_models(self, x):
         z = self.sample_z(x.size(0))
-        assert (
-            self.generator(z).shape == x.shape
-        ), f"{self.generator(z).shape} != {x.shape}"
+        assert self.generator(z).shape == x.shape, (
+            f"{self.generator(z).shape} != {x.shape}"
+        )
         assert self.critic(x).shape == (
             x.shape[0],
             1,
@@ -263,4 +261,4 @@ def calc_gradient_penalty(
     gradient_norms = ((gradients * gradients + 1e-12).sum(-1)).sqrt()
     # Compute the gradient penalty
 
-    return ((gradient_norms - 1) ** 2).mean()
+    return lambda_ * ((gradient_norms - 1) ** 2).mean()
