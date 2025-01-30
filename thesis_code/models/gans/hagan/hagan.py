@@ -231,7 +231,7 @@ class LitHAGAN(L.LightningModule):
             # Save validation data
             log_dir = Path(self.logger.log_dir)  # type: ignore
 
-            fake_images = self.safe_sample(batch_size)
+            fake_images = self.sample(batch_size)
             synthetic_example_save_path = (
                 log_dir / f"synthetic_example_{self.current_epoch}.nii.gz"
             )
@@ -271,17 +271,8 @@ class LitHAGAN(L.LightningModule):
         out = self.G.generate(noise)
         return out
 
-    def safe_sample(self, num_samples: int) -> torch.Tensor:
-        noise = torch.randn((num_samples, self.latent_dim), device=self.device)
-        out_list = []
-        for noise_slice in noise:
-            out = self.generate_from_noise(noise_slice.unsqueeze(0))
-            out_list.append(out)
-        out = torch.cat(out_list, dim=0)
-        return out
-
     def sample(self, num_samples: int) -> torch.Tensor:
-        out = self.safe_sample(num_samples)
+        out = self.sample_large(num_samples)
         return out
 
     def sample_small(self, num_samples: int) -> torch.Tensor:
@@ -307,16 +298,6 @@ class LitHAGAN(L.LightningModule):
         encoded_crops = self.encode_to_small(x)
         z_hat = self.Sub_E(encoded_crops)
         return z_hat
-
-
-def safe_sample(num_samples: int, G: nn.Module, latent_dim: int, device: str):
-    noise = torch.randn((num_samples, latent_dim), device=device)
-    out_list = []
-    for noise_slice in noise:
-        out = G.generate(noise_slice.unsqueeze(0))
-        out_list.append(out)
-    out = torch.cat(out_list, dim=0)
-    return out
 
 
 # Loss Functions
