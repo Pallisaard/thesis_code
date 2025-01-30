@@ -71,7 +71,6 @@ class LitKwonGan(L.LightningModule):
     def generator_loss(
         self,
         real_data: torch.Tensor,
-        latent_dim: int,
     ) -> torch.Tensor:
         batch_size = real_data.size(0)
         random_codes = self.sample_z(batch_size)
@@ -117,7 +116,6 @@ class LitKwonGan(L.LightningModule):
     def critic_loss(
         self,
         real_data: torch.Tensor,
-        latent_dim: int,
     ) -> torch.Tensor:
         batch_size = real_data.size(0)
         random_codes = self.sample_z(batch_size)
@@ -145,7 +143,6 @@ class LitKwonGan(L.LightningModule):
     def code_critic_loss(
         self,
         real_data: torch.Tensor,
-        latent_dim: int,
     ) -> torch.Tensor:
         batch_size = real_data.size(0)
         random_codes = self.sample_z(batch_size)
@@ -168,7 +165,6 @@ class LitKwonGan(L.LightningModule):
         opt_g, opt_d, opt_c, opt_e = self.optimizers()  # type: ignore
 
         real_data = batch
-        latent_dim = self.generator.latent_dim
 
         # Encoder loss and optimization
         e_loss = self.encoder_loss(real_data=real_data)
@@ -177,7 +173,7 @@ class LitKwonGan(L.LightningModule):
         opt_e.step()
 
         # Generator loss and optimization
-        g_loss = self.generator_loss(real_data=real_data, latent_dim=latent_dim)
+        g_loss = self.generator_loss(real_data=real_data)
         opt_g.zero_grad()
         self.manual_backward(g_loss)
         opt_g.step()
@@ -192,13 +188,13 @@ class LitKwonGan(L.LightningModule):
         # opt_g.step()
 
         # critic loss and optimization
-        d_loss = self.critic_loss(real_data=real_data, latent_dim=latent_dim)
+        d_loss = self.critic_loss(real_data=real_data)
         opt_d.zero_grad()
         self.manual_backward(d_loss)
         opt_d.step()
 
         # Code critic loss and optimization
-        c_loss = self.code_critic_loss(real_data=real_data, latent_dim=latent_dim)
+        c_loss = self.code_critic_loss(real_data=real_data)
         opt_c.zero_grad()
         self.manual_backward(c_loss)
         opt_c.step()
@@ -221,7 +217,6 @@ class LitKwonGan(L.LightningModule):
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         real_data = batch
-        latent_dim = self.generator.latent_dim
         batch_size = real_data.size(0)
 
         # Enable gradient computation for gradient penalty calculation
@@ -230,13 +225,13 @@ class LitKwonGan(L.LightningModule):
             e_loss = self.encoder_loss(real_data=real_data)
 
             # Generator loss and optimization
-            g_loss = self.generator_loss(real_data=real_data, latent_dim=latent_dim)
+            g_loss = self.generator_loss(real_data=real_data)
 
             # Critic loss and optimization
-            d_loss = self.critic_loss(real_data=real_data, latent_dim=latent_dim)
+            d_loss = self.critic_loss(real_data=real_data)
 
             # Code critic loss and optimization
-            c_loss = self.code_critic_loss(real_data=real_data, latent_dim=latent_dim)
+            c_loss = self.code_critic_loss(real_data=real_data)
 
         if batch_idx == 0:
             # Save validation data
