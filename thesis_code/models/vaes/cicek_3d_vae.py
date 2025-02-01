@@ -292,9 +292,6 @@ class LitVAE3D(L.LightningModule):
             warmup_epochs=warmup_epochs,
         )
 
-        # Use xavier initialization for weights
-        self.model.apply(self.init_weights)
-
         self.ssim = StructuralSimilarityIndexMeasure(
             gaussian_kernel=True,
             kernel_size=11,
