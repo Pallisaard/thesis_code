@@ -169,10 +169,18 @@ class LitWGANGP(L.LightningModule):
             g_opt.step()
             generator_mean_loss.append(generator_loss.detach())
 
-        return {
-            "critic_loss": torch.mean(torch.stack(critics_mean_loss)),
-            "generator_loss": torch.mean(torch.stack(generator_mean_loss)),
-        }
+        c_loss = torch.mean(torch.stack(critics_mean_loss))
+        g_loss = torch.mean(torch.stack(generator_mean_loss))
+
+        self.log_dict(
+            {
+                "c_loss": c_loss,
+                "g_loss": g_loss,
+                "total_loss": c_loss + g_loss,
+            },
+            logger=True,
+            sync_dist=True,
+        )
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         real_data = batch
