@@ -157,7 +157,7 @@ class LitWGANGP(L.LightningModule):
         for _ in range(self.n_critic_steps):
             self.critic.zero_grad()
             critic_loss, gp_loss = self.critic_loss(real_data=real_data)
-            critic_loss.backward()
+            self.manual_backward(critic_loss)
             c_opt.step()
             critics_mean_loss.append(critic_loss.detach())
             gp_mean_loss.append(gp_loss.detach())
@@ -168,7 +168,7 @@ class LitWGANGP(L.LightningModule):
         for _ in range(self.n_generator_steps):
             self.generator.zero_grad()
             generator_loss = self.generator_loss(real_data=real_data)
-            generator_loss.backward()
+            self.manual_backward(generator_loss)
             g_opt.step()
             generator_mean_loss.append(generator_loss.detach())
 
