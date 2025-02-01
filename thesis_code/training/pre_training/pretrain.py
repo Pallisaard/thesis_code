@@ -230,7 +230,7 @@ def get_model(
     elif model_name == "alpha_gan":
         return LitAlphaGAN(latent_dim=latent_dim)
     elif model_name == "wgan_gp":
-        return LitWGANGP(latent_dim=latent_dim)
+        return LitWGANGP(latent_dim=latent_dim, n_critic_steps=5, n_generator_steps=1)
     elif model_name == "kwon_gan":
         return LitKwonGan(
             latent_dim=latent_dim,

@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Tuple
 
 import torch
 import torch.nn as nn
@@ -122,7 +123,7 @@ class LitWGANGP(L.LightningModule):
     def forward(self, z):
         return self.generator(z)
 
-    def critic_loss(self, real_data: torch.Tensor) -> torch.Tensor:
+    def critic_loss(self, real_data: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         batch_size = real_data.size(0)
         z = self.sample_z(batch_size)
         fake_data = self.generator(z)
@@ -135,7 +136,7 @@ class LitWGANGP(L.LightningModule):
         )
 
         # Equivalent to: return -(critic_real_loss - critic_fake_loss) + gp_loss
-        return critic_fake_loss + critic_real_loss + gp_loss
+        return critic_fake_loss + critic_real_loss + gp_loss, gp_loss
 
     def generator_loss(self, real_data: torch.Tensor) -> torch.Tensor:
         batch_size = real_data.size(0)
@@ -151,13 +152,15 @@ class LitWGANGP(L.LightningModule):
 
         # Train critic
         critics_mean_loss: list[torch.Tensor] = []
+        gp_mean_loss: list[torch.Tensor] = []
 
         for _ in range(self.n_critic_steps):
             self.critic.zero_grad()
-            critic_loss = self.critic_loss(real_data=real_data)
+            critic_loss, gp_loss = self.critic_loss(real_data=real_data)
             critic_loss.backward()
             c_opt.step()
             critics_mean_loss.append(critic_loss.detach())
+            gp_mean_loss.append(gp_loss.detach())
 
         # Train generator
         generator_mean_loss: list[torch.Tensor] = []
@@ -170,12 +173,14 @@ class LitWGANGP(L.LightningModule):
             generator_mean_loss.append(generator_loss.detach())
 
         c_loss = torch.mean(torch.stack(critics_mean_loss))
+        gp_loss = torch.mean(torch.stack(gp_mean_loss))
         g_loss = torch.mean(torch.stack(generator_mean_loss))
 
         self.log_dict(
             {
                 "c_loss": c_loss,
                 "g_loss": g_loss,
+                "gp_loss": gp_loss,
                 "total_loss": c_loss + g_loss,
             },
             logger=True,
@@ -192,7 +197,7 @@ class LitWGANGP(L.LightningModule):
             g_loss = self.generator_loss(real_data=real_data)
 
             # Critic loss and optimization
-            c_loss = self.critic_loss(real_data=real_data)
+            c_loss, gp_loss = self.critic_loss(real_data=real_data)
 
         if batch_idx == 0:
             # Save validation data
@@ -223,6 +228,7 @@ class LitWGANGP(L.LightningModule):
             {
                 "val_c_loss": c_loss,
                 "val_g_loss": g_loss,
+                "val_gp_loss": gp_loss,
                 "val_total_loss": c_loss + g_loss,
                 "val_d_accuracy": d_accuracy,
                 # "elapsed_time": elapsed_time,
