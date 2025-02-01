@@ -123,7 +123,9 @@ class LitWGANGP(L.LightningModule):
     def forward(self, z):
         return self.generator(z)
 
-    def critic_loss(self, real_data: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def critic_loss(
+        self, real_data: torch.Tensor
+    ) -> Tuple[torch.Tensor, list[torch.Tensor]]:
         batch_size = real_data.size(0)
         z = self.sample_z(batch_size)
         fake_data = self.generator(z)
@@ -136,7 +138,8 @@ class LitWGANGP(L.LightningModule):
         )
 
         # Equivalent to: return -(critic_real_loss - critic_fake_loss) + gp_loss
-        return critic_fake_loss - critic_real_loss + gp_loss, gp_loss
+        total_loss = critic_fake_loss - critic_real_loss + gp_loss
+        return total_loss, [critic_real_loss, critic_fake_loss, gp_loss]
 
     def generator_loss(self, real_data: torch.Tensor) -> torch.Tensor:
         batch_size = real_data.size(0)
@@ -152,15 +155,21 @@ class LitWGANGP(L.LightningModule):
 
         # Train critic
         critics_mean_loss: list[torch.Tensor] = []
+        real_mean_loss: list[torch.Tensor] = []
+        fake_mean_loss: list[torch.Tensor] = []
         gp_mean_loss: list[torch.Tensor] = []
 
         for _ in range(self.n_critic_steps):
             self.critic.zero_grad()
-            critic_loss, gp_loss = self.critic_loss(real_data=real_data)
+            critic_loss, [real_loss, fake_loss, gp_loss] = self.critic_loss(
+                real_data=real_data
+            )
             self.manual_backward(critic_loss)
             c_opt.step()
             critics_mean_loss.append(critic_loss.detach())
             gp_mean_loss.append(gp_loss.detach())
+            real_mean_loss.append(real_loss.detach())
+            fake_mean_loss.append(fake_loss.detach())
 
         # Train generator
         generator_mean_loss: list[torch.Tensor] = []
@@ -173,14 +182,18 @@ class LitWGANGP(L.LightningModule):
             generator_mean_loss.append(generator_loss.detach())
 
         c_loss = torch.mean(torch.stack(critics_mean_loss))
-        gp_loss = torch.mean(torch.stack(gp_mean_loss))
+        c_real_loss = torch.mean(torch.stack(real_mean_loss))
+        c_fake_loss = torch.mean(torch.stack(fake_mean_loss))
+        c_gp_loss = torch.mean(torch.stack(gp_mean_loss))
         g_loss = torch.mean(torch.stack(generator_mean_loss))
 
         self.log_dict(
             {
                 "c_loss": c_loss,
+                "c_real_loss": c_real_loss,
+                "c_fake_loss": c_fake_loss,
+                "c_gp_loss": c_gp_loss,
                 "g_loss": g_loss,
-                "gp_loss": gp_loss,
                 "total_loss": c_loss + g_loss,
             },
             logger=True,
