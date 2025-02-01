@@ -129,14 +129,14 @@ class LitWGANGP(L.LightningModule):
         fake_data = self.generator(z)
 
         # negative sign because we want to maximize the critic loss
-        critic_real_loss = -self.critic(real_data).mean()
+        critic_real_loss = self.critic(real_data).mean()
         critic_fake_loss = self.critic(fake_data).mean()
         gp_loss = calc_gradient_penalty(
             self.critic, real_data, fake_data, lambda_=self.gp_weight
         )
 
         # Equivalent to: return -(critic_real_loss - critic_fake_loss) + gp_loss
-        return critic_fake_loss + critic_real_loss + gp_loss, gp_loss
+        return critic_fake_loss - critic_real_loss + gp_loss, gp_loss
 
     def generator_loss(self, real_data: torch.Tensor) -> torch.Tensor:
         batch_size = real_data.size(0)
@@ -228,7 +228,6 @@ class LitWGANGP(L.LightningModule):
             {
                 "val_c_loss": c_loss,
                 "val_g_loss": g_loss,
-                "val_gp_loss": gp_loss,
                 "val_total_loss": c_loss + g_loss,
                 "val_d_accuracy": d_accuracy,
                 # "elapsed_time": elapsed_time,
@@ -239,8 +238,8 @@ class LitWGANGP(L.LightningModule):
 
     def configure_optimizers(self):
         # Separate optimizers for generator, critic, and code critic
-        opt_g = torch.optim.Adam(self.generator.parameters())
-        opt_c = torch.optim.Adam(self.critic.parameters())
+        opt_g = torch.optim.Adam(self.generator.parameters(), lr=2e-4)
+        opt_c = torch.optim.Adam(self.critic.parameters(), lr=2e-4)
         return [opt_g, opt_c]
 
 
