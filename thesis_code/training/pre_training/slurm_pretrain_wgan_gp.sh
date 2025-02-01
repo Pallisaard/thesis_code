@@ -35,7 +35,7 @@ python -m thesis_code.training.pre_training.pretrain --model-name "wgan_gp" \
                 --save-top-k 3 \
                 --save-last \
                 --log-every-n-steps 50 \
-                --max-steps 100000 \
+                --max-steps 500000 \
                 --lambdas 10.0 \
                 # --fast-dev-run \
 

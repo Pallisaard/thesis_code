@@ -153,52 +153,55 @@ class LitWGANGP(L.LightningModule):
 
         real_data = batch
 
-        # Train critic
-        critics_mean_loss: list[torch.Tensor] = []
-        real_mean_loss: list[torch.Tensor] = []
-        fake_mean_loss: list[torch.Tensor] = []
-        gp_mean_loss: list[torch.Tensor] = []
-
-        for _ in range(self.n_critic_steps):
+        if batch_idx % (self.n_critic_steps) == 0:
             self.critic.zero_grad()
-            critic_loss, [real_loss, fake_loss, gp_loss] = self.critic_loss(
+            critic_loss, [c_real_loss, c_fake_loss, c_gp_loss] = self.critic_loss(
                 real_data=real_data
             )
             self.manual_backward(critic_loss)
             c_opt.step()
-            critics_mean_loss.append(critic_loss.detach())
-            gp_mean_loss.append(gp_loss.detach())
-            real_mean_loss.append(real_loss.detach())
-            fake_mean_loss.append(fake_loss.detach())
+
+            self.log_dict(
+                {
+                    "c_loss": critic_loss,
+                    "c_real_loss": c_real_loss,
+                    "c_fake_loss": c_fake_loss,
+                    "c_gp_loss": c_gp_loss,
+                },
+                logger=True,
+                sync_dist=True,
+            )
+        else:
+            critic_loss = torch.tensor(0.0)
 
         # Train generator
-        generator_mean_loss: list[torch.Tensor] = []
 
-        for _ in range(self.n_generator_steps):
+        if batch_idx % (self.n_generator_steps) == 0:
             self.generator.zero_grad()
             generator_loss = self.generator_loss(real_data=real_data)
             self.manual_backward(generator_loss)
             g_opt.step()
-            generator_mean_loss.append(generator_loss.detach())
+            self.log_dict(
+                {
+                    "g_loss": generator_loss,
+                },
+                logger=True,
+                sync_dist=True,
+            )
+        else:
+            generator_loss = torch.tensor(0.0)
 
-        c_loss = torch.mean(torch.stack(critics_mean_loss))
-        c_real_loss = torch.mean(torch.stack(real_mean_loss))
-        c_fake_loss = torch.mean(torch.stack(fake_mean_loss))
-        c_gp_loss = torch.mean(torch.stack(gp_mean_loss))
-        g_loss = torch.mean(torch.stack(generator_mean_loss))
-
-        self.log_dict(
-            {
-                "c_loss": c_loss,
-                "c_real_loss": c_real_loss,
-                "c_fake_loss": c_fake_loss,
-                "c_gp_loss": c_gp_loss,
-                "g_loss": g_loss,
-                "total_loss": c_loss + g_loss,
-            },
-            logger=True,
-            sync_dist=True,
-        )
+        if (
+            batch_idx % (self.n_critic_steps) == 0
+            and batch_idx % (self.n_generator_steps) == 0
+        ):
+            self.log_dict(
+                {
+                    "total_loss": critic_loss + generator_loss,
+                },
+                logger=True,
+                sync_dist=True,
+            )
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         real_data = batch
