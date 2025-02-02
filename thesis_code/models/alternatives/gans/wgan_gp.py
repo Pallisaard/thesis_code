@@ -161,7 +161,7 @@ class LitWGANGP(L.LightningModule):
 
         real_data = batch
 
-        if batch_idx % (self.n_critic_steps) == 0:
+        if batch_idx % (self.n_generator_steps) == 0:
             self.critic.zero_grad()
             critic_loss, [c_real_loss, c_fake_loss, c_gp_loss] = self.critic_loss(
                 real_data=real_data
@@ -184,7 +184,7 @@ class LitWGANGP(L.LightningModule):
 
         # Train generator
 
-        if batch_idx % (self.n_generator_steps) == 0:
+        if batch_idx % (self.n_critic_steps) == 0:
             self.generator.zero_grad()
             generator_loss = self.generator_loss(real_data=real_data)
             self.manual_backward(generator_loss)
