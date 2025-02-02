@@ -234,7 +234,7 @@ def get_model(
             latent_dim=latent_dim,
             n_critic_steps=10,
             n_generator_steps=1,
-            gp_weight=10.0,
+            gp_weight=50.0,
         )
     elif model_name == "kwon_gan":
         return LitKwonGan(

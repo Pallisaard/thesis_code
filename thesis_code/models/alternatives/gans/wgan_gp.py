@@ -262,14 +262,8 @@ class LitWGANGP(L.LightningModule):
 
     def configure_optimizers(self):
         # Separate optimizers for generator, critic, and code critic
-        opt_g = torch.optim.Adam(
-            self.generator.parameters(),
-            lr=2e-4,
-        )  # betas=(0.5, 0.9))
-        opt_c = torch.optim.Adam(
-            self.critic.parameters(),
-            lr=2e-4,
-        )  # betas=(0.5, 0.9))
+        opt_g = torch.optim.Adam(self.generator.parameters(), lr=1e-5, betas=(0.5, 0.9))
+        opt_c = torch.optim.Adam(self.critic.parameters(), lr=4e-4, betas=(0.5, 0.9))
         return [opt_g, opt_c]
 
 
