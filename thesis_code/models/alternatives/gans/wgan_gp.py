@@ -14,22 +14,22 @@ class Critic(nn.Module):
         n_class = 1
 
         self.conv1 = nn.Conv3d(
-            1, 128, kernel_size=4, stride=2, padding=1
+            1, 64, kernel_size=4, stride=2, padding=1
         )  # Increase filters
         self.conv2 = nn.Conv3d(
+            64, 128, kernel_size=4, stride=2, padding=1
+        )  # Increase filters
+        self.bn2 = nn.BatchNorm3d(128)
+        self.conv3 = nn.Conv3d(
             128, 256, kernel_size=4, stride=2, padding=1
         )  # Increase filters
-        self.bn2 = nn.BatchNorm3d(256)
-        self.conv3 = nn.Conv3d(
+        self.bn3 = nn.BatchNorm3d(256)
+        self.conv4 = nn.Conv3d(
             256, 512, kernel_size=4, stride=2, padding=1
         )  # Increase filters
-        self.bn3 = nn.BatchNorm3d(512)
-        self.conv4 = nn.Conv3d(
-            512, 1024, kernel_size=4, stride=2, padding=1
-        )  # Increase filters
-        self.bn4 = nn.BatchNorm3d(1024)
+        self.bn4 = nn.BatchNorm3d(512)
 
-        self.conv5 = nn.Conv3d(1024, n_class, kernel_size=4, stride=2, padding=1)
+        self.conv5 = nn.Conv3d(512, n_class, kernel_size=4, stride=2, padding=1)
 
     def forward(self, x, _return_activations=False):
         h1 = F.leaky_relu(self.conv1(x), negative_slope=0.2)
