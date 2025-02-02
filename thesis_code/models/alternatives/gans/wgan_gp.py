@@ -13,15 +13,23 @@ class Critic(nn.Module):
         super(Critic, self).__init__()
         n_class = 1
 
-        self.conv1 = nn.Conv3d(1, 64, kernel_size=4, stride=2, padding=1)
-        self.conv2 = nn.Conv3d(64, 128, kernel_size=4, stride=2, padding=1)
-        self.bn2 = nn.BatchNorm3d(128)
-        self.conv3 = nn.Conv3d(128, 256, kernel_size=4, stride=2, padding=1)
-        self.bn3 = nn.BatchNorm3d(256)
-        self.conv4 = nn.Conv3d(256, 512, kernel_size=4, stride=2, padding=1)
-        self.bn4 = nn.BatchNorm3d(512)
+        self.conv1 = nn.Conv3d(
+            1, 128, kernel_size=4, stride=2, padding=1
+        )  # Increase filters
+        self.conv2 = nn.Conv3d(
+            128, 256, kernel_size=4, stride=2, padding=1
+        )  # Increase filters
+        self.bn2 = nn.BatchNorm3d(256)
+        self.conv3 = nn.Conv3d(
+            256, 512, kernel_size=4, stride=2, padding=1
+        )  # Increase filters
+        self.bn3 = nn.BatchNorm3d(512)
+        self.conv4 = nn.Conv3d(
+            512, 1024, kernel_size=4, stride=2, padding=1
+        )  # Increase filters
+        self.bn4 = nn.BatchNorm3d(1024)
 
-        self.conv5 = nn.Conv3d(512, n_class, kernel_size=4, stride=2, padding=1)
+        self.conv5 = nn.Conv3d(1024, n_class, kernel_size=4, stride=2, padding=1)
 
     def forward(self, x, _return_activations=False):
         h1 = F.leaky_relu(self.conv1(x), negative_slope=0.2)
@@ -254,8 +262,8 @@ class LitWGANGP(L.LightningModule):
 
     def configure_optimizers(self):
         # Separate optimizers for generator, critic, and code critic
-        opt_g = torch.optim.Adam(self.generator.parameters(), lr=1e-5)
-        opt_c = torch.optim.Adam(self.critic.parameters(), lr=4e-4)
+        opt_g = torch.optim.Adam(self.generator.parameters(), lr=1e-5, betas=(0.5, 0.9))
+        opt_c = torch.optim.Adam(self.critic.parameters(), lr=4e-4, betas=(0.5, 0.9))
         return [opt_g, opt_c]
 
 
