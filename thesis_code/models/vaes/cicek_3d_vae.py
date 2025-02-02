@@ -1,6 +1,7 @@
 import abc
 from functools import reduce
 from typing import Literal, Tuple
+from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -9,6 +10,8 @@ import lightning as L
 from torchmetrics.image import (
     StructuralSimilarityIndexMeasure,
 )
+
+from thesis_code.models.gans.hagan.hagan import save_mri
 
 
 class ConvUnit(nn.Module):
@@ -302,6 +305,9 @@ class LitVAE3D(L.LightningModule):
     def forward(self, x):
         return self.model(x)
 
+    def sample_n(self, num_samples: int = 1):
+        return self.sample(num_samples)
+
     def sample(self, num_samples: int = 1):
         z = torch.randn(num_samples, self.model.latent_dim).to(self.device)
         samples = self.model.decode(z)
@@ -336,6 +342,22 @@ class LitVAE3D(L.LightningModule):
         loss, recon_loss, kld_loss, beta = self.model.calculate_loss(
             x, recon_x, mu, log_var, self.current_epoch + 1
         )
+
+        if batch_idx == 0:
+            # Save validation data
+            log_dir = Path(self.logger.log_dir)  # type: ignore
+
+            fake_images = self.sample_n(2)
+            synthetic_example_save_path = (
+                log_dir / f"synthetic_example_{self.current_epoch}.nii.gz"
+            )
+            save_mri(fake_images, synthetic_example_save_path)
+
+            # Save true data
+            true_example_save_path = (
+                log_dir / f"true_example_{self.current_epoch}.nii.gz"
+            )
+            save_mri(x, true_example_save_path)
 
         self.ssim(recon_x, x)
 
