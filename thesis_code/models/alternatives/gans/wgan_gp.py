@@ -19,15 +19,15 @@ class Critic(nn.Module):
         self.conv2 = nn.Conv3d(
             128, 256, kernel_size=4, stride=2, padding=1
         )  # Increase filters
-        self.bn2 = nn.BatchNorm3d(256)
+        self.bn2 = nn.GroupNorm(8, 256)
         self.conv3 = nn.Conv3d(
             256, 512, kernel_size=4, stride=2, padding=1
         )  # Increase filters
-        self.bn3 = nn.BatchNorm3d(512)
+        self.bn3 = nn.GroupNorm(8, 512)
         self.conv4 = nn.Conv3d(
             512, 1024, kernel_size=4, stride=2, padding=1
         )  # Increase filters
-        self.bn4 = nn.BatchNorm3d(1024)
+        self.bn4 = nn.GroupNorm(8, 1024)
 
         self.conv5 = nn.Conv3d(1024, n_class, kernel_size=4, stride=2, padding=1)
 
@@ -48,22 +48,22 @@ class Generator(nn.Module):
 
         self.latent_dim = latent_dim
         self.fc = nn.Linear(latent_dim, 512 * 4 * 4 * 4)
-        self.bn1 = nn.BatchNorm3d(512)
+        self.bn1 = nn.GroupNorm(8, 512)
 
         self.tp_conv2 = nn.Conv3d(
             512, 256, kernel_size=3, stride=1, padding=1, bias=False
         )
-        self.bn2 = nn.BatchNorm3d(256)
+        self.bn2 = nn.GroupNorm(8, 256)
 
         self.tp_conv3 = nn.Conv3d(
             256, 128, kernel_size=3, stride=1, padding=1, bias=False
         )
-        self.bn3 = nn.BatchNorm3d(128)
+        self.bn3 = nn.GroupNorm(8, 128)
 
         self.tp_conv4 = nn.Conv3d(
             128, 64, kernel_size=3, stride=1, padding=1, bias=False
         )
-        self.bn4 = nn.BatchNorm3d(64)
+        self.bn4 = nn.GroupNorm(8, 64)
 
         self.tp_conv5 = nn.Conv3d(64, 1, kernel_size=3, stride=1, padding=1, bias=False)
 
