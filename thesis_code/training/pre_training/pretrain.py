@@ -367,7 +367,9 @@ def main():
         max_time=args.max_time,
         callbacks=callbacks,
         default_root_dir=args.default_root_dir,
-        check_val_every_n_epoch=10 if args.model_name == "wgan_gp" else 1,
+        check_val_every_n_epoch=10
+        if args.model_name in ("wgan_gp", "cicek_3d_vae_64")
+        else 1,
     )
 
     print("Fitting model")
