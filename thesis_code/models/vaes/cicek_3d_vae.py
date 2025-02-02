@@ -97,7 +97,7 @@ class ConvDecoderBlock(nn.Module):
         in_out_channel_tuples = list(zip(channels[:-1], channels[1:]))
 
         self.conv_block = nn.Sequential(
-            nn.ConvTranspose3d(channels[0], channels[0], kernel_size=2, stride=1),
+            nn.ConvTranspose3d(channels[0], channels[0], kernel_size=2, stride=2),
             *[ConvUnit(in_c, out_c) for in_c, out_c in in_out_channel_tuples],
         )
 
