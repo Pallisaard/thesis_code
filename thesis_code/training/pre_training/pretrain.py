@@ -225,7 +225,7 @@ def get_model(
             latent_dim=latent_dim,
             constant_beta=1.0,
             max_beta=4.0,
-            warmup_epochs=25,
+            warmup_epochs=32 * int(args.max_steps * 1 / 2) // 2740,
         )
     elif model_name == "alpha_gan":
         return LitAlphaGAN(latent_dim=latent_dim)
