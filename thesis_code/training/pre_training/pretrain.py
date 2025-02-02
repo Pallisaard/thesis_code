@@ -232,7 +232,7 @@ def get_model(
     elif model_name == "wgan_gp":
         return LitWGANGP(
             latent_dim=latent_dim,
-            n_critic_steps=5,
+            n_critic_steps=10,
             n_generator_steps=1,
             gp_weight=10.0,
         )
