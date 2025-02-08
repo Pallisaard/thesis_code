@@ -19,7 +19,7 @@ class LitKwonGan(L.LightningModule):
         latent_dim: int,
         lambda_gp: float = 10.0,
         n_critic_steps: int = 5,
-        lambda_recon: float = 1.0,
+        lambda_recon: float = 10.0,
     ):
         super().__init__()
         # Save hyperparameters to the checkpoint
