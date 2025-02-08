@@ -6,11 +6,13 @@ import nibabel as nib
 import torch
 import numpy as np
 import tqdm
+import lightning as L
 
 from thesis_code.dataloading.transforms import normalize_to
 from thesis_code.metrics.utils import get_mri_vectorizer
 from thesis_code.models.gans import LitHAGAN
 from thesis_code.training.utils import numpy_to_nifti
+from thesis_code.models import LitKwonGan, LitWGANGP, LitAlphaGAN, LitVAE3D
 
 
 def pars_args():
@@ -51,8 +53,74 @@ def pars_args():
         choices=[512, 2048],
     )
     parser.add_argument("--use-dp-safe", action="store_true", help="Use DP safe")
+    parser.add_argument(
+        "--model-name",
+        required=True,
+        choices=[
+            "cicek_3d_vae_64",
+            "cicek_3d_vae_256",
+            "kwon_gan",
+            "wgan_gp",
+            "alpha_gan",
+            "hagan",
+        ],
+        help="Name of the model to load",
+    )
 
     return parser.parse_args()
+
+
+def get_model_from_checkpoint(
+    model_name: str,
+    checkpoint_path: str,
+    latent_dim: int = 1024,
+    lambdas: float = 1.0,
+    use_dp_safe: bool = False,
+) -> L.LightningModule:
+    """Load a model from a checkpoint file."""
+    if model_name == "cicek_3d_vae_256":
+        return LitVAE3D.load_from_checkpoint(
+            checkpoint_path=checkpoint_path,
+            in_shape=(1, 256, 256, 256),
+            encoder_out_channels_per_block=[8, 16, 32, 64],
+            decoder_out_channels_per_block=[64, 64, 16, 8, 1],
+            latent_dim=latent_dim,
+        )
+    elif model_name == "cicek_3d_vae_64":
+        return LitVAE3D.load_from_checkpoint(
+            checkpoint_path=checkpoint_path,
+            in_shape=(1, 64, 64, 64),
+            encoder_out_channels_per_block=[16, 32, 64],
+            decoder_out_channels_per_block=[64, 32, 16, 1],
+            latent_dim=latent_dim,
+        )
+    elif model_name == "alpha_gan":
+        return LitAlphaGAN.load_from_checkpoint(
+            checkpoint_path=checkpoint_path,
+            latent_dim=latent_dim,
+        )
+    elif model_name == "wgan_gp":
+        return LitWGANGP.load_from_checkpoint(
+            checkpoint_path=checkpoint_path,
+            latent_dim=latent_dim,
+        )
+    elif model_name == "kwon_gan":
+        return LitKwonGan.load_from_checkpoint(
+            checkpoint_path=checkpoint_path,
+            latent_dim=latent_dim,
+            lambda_recon=lambdas,
+            lambda_gp=lambdas,
+        )
+    elif model_name == "hagan":
+        return LitHAGAN.load_from_checkpoint(
+            checkpoint_path=checkpoint_path,
+            latent_dim=latent_dim,
+            lambda_1=lambdas,
+            lambda_2=lambdas,
+            use_dp_safe=use_dp_safe,
+        )
+    else:
+        raise ValueError(f"Model name {model_name} not recognized")
 
 
 def main():
@@ -81,11 +149,11 @@ def main():
     mri_vectorizer = get_mri_vectorizer(vectorizer_depth).eval().to(device)
     print("Loading model")
     model = (
-        LitHAGAN.load_from_checkpoint(
+        get_model_from_checkpoint(
+            model_name=args.model_name,
             checkpoint_path=args.checkpoint_path,
             latent_dim=1024,
-            lambda_1=args.lambdas,
-            lambda_2=args.lambdas,
+            lambdas=args.lambdas,
             use_dp_safe=args.use_dp_safe,
         )
         .eval()
@@ -140,10 +208,12 @@ def main():
     if args.from_authors:
         np.save(f"{args.output_dir}/generated-from-authors.npy", mri_vectorizer_out)
     else:
-        np.save(
-            f"{args.output_dir}/generated-lambda-{int(args.lambdas)}.npy",
-            mri_vectorizer_out,
+        model_name = (
+            f"hagan-l{int(args.lambdas)}"
+            if args.model_name == "hagan"
+            else args.model_name
         )
+        np.save(f"{args.output_dir}/generated-{model_name}.npy", mri_vectorizer_out)
 
     print("Finished generating samples")
 
