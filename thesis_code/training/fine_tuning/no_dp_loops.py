@@ -115,11 +115,9 @@ def no_dp_training_step(
     if isinstance(batch, list):
         if not batch or batch[0].size(0) < 1:
             return state
-        batch_size = batch[0].size(0)
     else:
         if batch.size(0) < 1:
             return state
-        batch_size = batch.size(0)
 
     generator = models.G
     discriminator = models.D

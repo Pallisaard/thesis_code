@@ -29,12 +29,17 @@ class SpectralNormConv3d(nn.Conv3d):
         spectral_norm(self)  # Apply spectral normalization to weights
 
 
-# Registering per-sample gradient computation for Opacus
-@register_grad_sampler(SpectralNormLinear)
-def grad_sampler_spectral_norm_linear(layer, activations, backprops):
-    return {layer.weight: torch.einsum("ni,nj->nij", backprops, activations)}
+def register_dp_layers():
+    """Explicitly register DP-compatible layers with Opacus"""
+
+    @register_grad_sampler(SpectralNormLinear)
+    def grad_sampler_spectral_norm_linear(layer, activations, backprops):
+        return {layer.weight: torch.einsum("ni,nj->nij", backprops, activations)}
+
+    @register_grad_sampler(SpectralNormConv3d)
+    def grad_sampler_spectral_norm_conv3d(layer, activations, backprops):
+        return {layer.weight: torch.einsum("nchwk,nchw->nchwk", backprops, activations)}
 
 
-@register_grad_sampler(SpectralNormConv3d)
-def grad_sampler_spectral_norm_conv3d(layer, activations, backprops):
-    return {layer.weight: torch.einsum("nchwk,nchw->nchwk", backprops, activations)}
+# Call the registration function immediately
+register_dp_layers()

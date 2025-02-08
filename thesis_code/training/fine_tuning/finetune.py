@@ -10,6 +10,7 @@ from thesis_code.models.gans import LitHAGAN
 from . import dp_loops
 from . import no_dp_loops
 from .utils import checkpoint_dp_model
+from thesis_code.models.gans.hagan.dp_safe_backbone.layers import register_dp_layers
 
 
 def parse_args() -> argparse.Namespace:
@@ -157,15 +158,17 @@ def check_args(args: argparse.Namespace) -> argparse.Namespace:
         print(
             "Warning: --max-steps will be ignored since --max-epsilons is set. Training will continue until all maximum epsilons are reached."
         )
-    
+
     # Sort epsilons in ascending order to ensure we hit each target
     if args.max_epsilons is not None:
         args.max_epsilons.sort()
-    
+
     return args
 
 
 def main():
+    register_dp_layers()
+
     print("Running fine-tuning script.")
     args = check_args(parse_args())
     print("Arguments:", vars(args))
@@ -240,7 +243,7 @@ def main():
             )
 
             print(f"Reached epsilon: {state.training_stats.current_epsilon}")
-            
+
             # Save checkpoint with epsilon and steps in name
             checkpoint_name = f"dp_model_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.global_step}.pth"
             checkpoint_path_full = Path(checkpoint_path) / checkpoint_name

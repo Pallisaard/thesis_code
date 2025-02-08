@@ -17,6 +17,11 @@ cd ~/projects/thesis/thesis-code
 source .venv/bin/activate
 
 
+# epsilon=2 => 1040 steps
+# epsilon=5 => 6753 steps
+# epsilon=10 => 22964 steps
+
+
 # echo devices and nvidia-smi
 echo "CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
 
