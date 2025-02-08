@@ -172,50 +172,51 @@ def main():
         desc="Generating samples",
     )
 
-    for batch_ids in outer_bar:
-        if args.use_small_model:
-            sample = model.sample_small(len(batch_ids))
-        else:
-            sample = model.sample_large(len(batch_ids))
-        sample = sample.detach().cpu().numpy()
+    with torch.no_grad():
+        for batch_ids in outer_bar:
+            if args.use_small_model:
+                sample = model.sample_small(len(batch_ids))
+            else:
+                sample = model.sample_large(len(batch_ids))
+            sample = sample.detach().cpu().numpy()
 
-        inner_bar = tqdm.tqdm(
-            enumerate(batch_ids),
-            total=len(batch_ids),
-            desc="Saving samples",
-            leave=False,
-            position=1,
-        )
-
-        for i, sample_id in inner_bar:
-            # Save MRI NIfTI sample
-            sample_i = sample[i, 0]
-            sample[i, 0] = sample_i
-            sample_mri = numpy_to_nifti(sample_i)
-            nib.save(sample_mri, f"{args.output_dir}/sample_{sample_id}.nii.gz")  # type: ignore
-
-            # Get MRI vectorizer output
-            mri_vectorizer_out[sample_id] = (
-                mri_vectorizer(
-                    torch.from_numpy(sample_i).unsqueeze(0).unsqueeze(0).to(device)
-                )
-                .detach()
-                .cpu()
-                .squeeze(0)
-                .squeeze(0)
+            inner_bar = tqdm.tqdm(
+                enumerate(batch_ids),
+                total=len(batch_ids),
+                desc="Saving samples",
+                leave=False,
+                position=1,
             )
 
-    if args.from_authors:
-        np.save(f"{args.output_dir}/generated-from-authors.npy", mri_vectorizer_out)
-    else:
-        model_name = (
-            f"hagan-l{int(args.lambdas)}"
-            if args.model_name == "hagan"
-            else args.model_name
-        )
-        np.save(f"{args.output_dir}/generated-{model_name}.npy", mri_vectorizer_out)
+            for i, sample_id in inner_bar:
+                # Save MRI NIfTI sample
+                sample_i = sample[i, 0]
+                sample[i, 0] = sample_i
+                sample_mri = numpy_to_nifti(sample_i)
+                nib.save(sample_mri, f"{args.output_dir}/sample_{sample_id}.nii.gz")  # type: ignore
 
-    print("Finished generating samples")
+                # Get MRI vectorizer output
+                mri_vectorizer_out[sample_id] = (
+                    mri_vectorizer(
+                        torch.from_numpy(sample_i).unsqueeze(0).unsqueeze(0).to(device)
+                    )
+                    .detach()
+                    .cpu()
+                    .squeeze(0)
+                    .squeeze(0)
+                )
+
+        if args.from_authors:
+            np.save(f"{args.output_dir}/generated-from-authors.npy", mri_vectorizer_out)
+        else:
+            model_name = (
+                f"hagan-l{int(args.lambdas)}"
+                if args.model_name == "hagan"
+                else args.model_name
+            )
+            np.save(f"{args.output_dir}/generated-{model_name}.npy", mri_vectorizer_out)
+
+        print("Finished generating samples")
 
 
 if __name__ == "__main__":
