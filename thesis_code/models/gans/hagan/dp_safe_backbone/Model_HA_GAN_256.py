@@ -324,6 +324,10 @@ class Generator(nn.Module):
         h_generated = self.G_H(h_latent)
         return h_generated.detach()
 
+    def sample(self, num_samples: int) -> torch.Tensor:
+        z = self.sample_z(num_samples)
+        return self.generate(z)
+
 
 def S_L(h_small: torch.Tensor, crop_idx: int) -> torch.Tensor:
     h = h_small[:, :, crop_idx // 4 : crop_idx // 4 + 8, :, :]  # Crop, out: (8, 64, 64)

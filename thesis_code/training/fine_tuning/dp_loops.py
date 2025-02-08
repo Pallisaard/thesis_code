@@ -20,7 +20,6 @@ from thesis_code.models.gans.hagan import (
     compute_sub_e_loss,
     prepare_data,
     save_mri,
-    safe_sample,
 )
 from .utils import checkpoint_dp_model
 from .types import (
@@ -174,7 +173,7 @@ def dp_training_step(
         generator.eval()
         encoder.eval()
         sub_encoder.eval()
-        
+
     discriminator.train()
     d_optimizer.zero_grad()
     d_loss = compute_d_loss(
@@ -197,7 +196,7 @@ def dp_training_step(
         discriminator.eval()
         encoder.eval()
         sub_encoder.eval()
-        
+
     generator.train()
     g_optimizer.zero_grad()
     g_loss = compute_g_loss(
@@ -217,7 +216,7 @@ def dp_training_step(
         discriminator.eval()
         encoder.eval()
         sub_encoder.eval()
-        
+
     generator.train()
     e_optimizer.zero_grad()
     e_loss = compute_e_loss(
@@ -236,7 +235,7 @@ def dp_training_step(
         discriminator.eval()
         encoder.eval()
         sub_encoder.eval()
-        
+
     generator.train()
     sub_e_optimizer.zero_grad()
     sub_e_loss = compute_sub_e_loss(
@@ -369,7 +368,7 @@ def dp_validation_step(
         save_mri(real_images, true_example_save_path)
 
         # Save a sample of the generated images
-        fake_images = safe_sample(2, generator, state.latent_dim, device=state.device)
+        fake_images = generator.sample(2).to(state.device)
         fake_example_save_path = (
             state.training_stats.log_dir
             / f"fake_example_{state.training_stats.step}.nii.gz"
@@ -395,7 +394,7 @@ def training_loop_until_epsilon(
 
     data_iter = iter(dataloaders.train)
     epoch = 0
-    
+
     with tqdm(desc="DP training progress.", dynamic_ncols=True, leave=True) as pbar:
         while state.training_stats.current_epsilon < max_epsilon:
             try:
