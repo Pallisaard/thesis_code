@@ -34,11 +34,43 @@ def register_dp_layers():
 
     @register_grad_sampler(SpectralNormLinear)
     def grad_sampler_spectral_norm_linear(layer, activations, backprops):
-        return {layer.weight: torch.einsum("ni,nj->nij", backprops, activations)}
+        ret = {layer.weight: torch.einsum("ni,nj->nij", backprops, activations)}
+        if layer.bias is not None:
+            ret[layer.bias] = torch.sum(backprops, dim=0)
+        return ret
 
     @register_grad_sampler(SpectralNormConv3d)
     def grad_sampler_spectral_norm_conv3d(layer, activations, backprops):
-        return {layer.weight: torch.einsum("nchwk,nchw->nchwk", backprops, activations)}
+        # For Conv3d, activations shape: (n, c_in, d, h, w)
+        # backprops shape: (n, c_out, d_out, h_out, w_out)
+        n = activations.shape[0]
+
+        # Unfold activations
+        activations_unf = torch.nn.functional.unfold(
+            activations.reshape(n * activations.shape[1], 1, *activations.shape[2:]),
+            kernel_size=layer.kernel_size,
+            padding=layer.padding,
+            stride=layer.stride,
+        )
+        activations_unf = activations_unf.reshape(
+            n, layer.in_channels, activations_unf.shape[-2], activations_unf.shape[-1]
+        )
+
+        # Reshape backprops
+        backprops_reshaped = backprops.reshape(n, layer.out_channels, -1)
+
+        # Calculate weight gradients
+        ret = {
+            layer.weight: torch.einsum(
+                "nkm,nilm->ikl", backprops_reshaped, activations_unf
+            ).reshape(layer.weight.shape)
+        }
+
+        # Add bias gradients if needed
+        if layer.bias is not None:
+            ret[layer.bias] = torch.sum(backprops_reshaped, dim=(0, 2))
+
+        return ret
 
 
 # Call the registration function immediately
