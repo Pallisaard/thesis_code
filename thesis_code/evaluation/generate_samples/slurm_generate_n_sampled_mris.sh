@@ -2,7 +2,7 @@
 #SBATCH --job-name=generate_n_sampled_mris
 #SBATCH --output=slurm_generate_n_sampled_mris-%j-%a.out # Name of output file
 #SBATCH --error=slurm_generate_n_sampled_mris-%j-%a.err # Name of error file
-#SBATCH --array=1-11%5
+#SBATCH --array=7-10%4
 #SBATCH --gres=gpu:1
 #SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=4

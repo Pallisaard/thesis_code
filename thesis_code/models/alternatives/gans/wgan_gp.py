@@ -128,6 +128,9 @@ class LitWGANGP(L.LightningModule):
     def sample_n(self, n) -> torch.Tensor:
         return self(self.sample_z(n))
 
+    def sample(self, n) -> torch.Tensor:
+        return self.sample_n(n)
+
     def forward(self, z):
         return self.generator(z)
 

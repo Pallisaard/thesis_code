@@ -182,7 +182,7 @@ def main():
             if args.use_small_model:
                 sample = model.sample_small(len(batch_ids))
             else:
-                sample = model.sample_large(len(batch_ids))
+                sample = model.sample(len(batch_ids))
             sample = sample.detach().cpu().numpy()
 
             inner_bar = tqdm.tqdm(
