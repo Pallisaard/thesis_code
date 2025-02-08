@@ -45,16 +45,17 @@ def parse_args() -> argparse.Namespace:
         help="What device to use. Default is cuda if available, else cpu.",
     )
     parser.add_argument(
-        "--max-epsilon",
+        "--max-epsilons",
+        nargs="+",
         type=float,
         default=None,
-        help="Train until we achieve a maximum epsilon measured by RDP in Opacus. Will override --max-steps.",
+        help="Train until we achieve each maximum epsilon (in ascending order) measured by RDP in Opacus. Will override --max-steps.",
     )
     parser.add_argument(
         "--max-steps",
         type=int,
         default=-1,
-        help="Maximum number of steps to train for. Will only be used if --max-epsilon is not set.",
+        help="Maximum number of steps to train for. Will only be used if --max-epsilons is not set.",
     )
     parser.add_argument(
         "--checkpoint-path",
@@ -144,19 +145,23 @@ def get_model(
 
 def check_args(args: argparse.Namespace) -> argparse.Namespace:
     """Checks the arguments for consistency and raises an error if they are not. returns the args without modifications."""
-    if args.use_dp and args.max_epsilon is None:
+    if args.use_dp and args.max_epsilons is None:
         raise ValueError(
-            "If using differential privacy, you must set a maximum epsilon value."
+            "If using differential privacy, you must set maximum epsilon values."
         )
-    if args.max_epsilon is None and args.max_steps == -1:
+    if args.max_epsilons is None and args.max_steps == -1:
         raise ValueError(
-            "You must set either --max-epsilon or --max-steps. If both are set, --max-epsilon will be used."
+            "You must set either --max-epsilons or --max-steps. If both are set, --max-epsilons will be used."
         )
     if args.use_dp and args.max_steps != -1:
         print(
-            "Warning: --max-steps will be ignored since --max-epsilon is set. Training will continue until the maximum epsilon is reached."
+            "Warning: --max-steps will be ignored since --max-epsilons is set. Training will continue until all maximum epsilons are reached."
         )
-
+    
+    # Sort epsilons in ascending order to ensure we hit each target
+    if args.max_epsilons is not None:
+        args.max_epsilons.sort()
+    
     return args
 
 
@@ -199,8 +204,8 @@ def main():
     print("training dataset size:", len(train_ds))
     print("validation dataset size:", len(val_ds))
 
-    if args.max_epsilon is not None:
-        print("Will train until epsilon is", args.max_epsilon)
+    if args.max_epsilons is not None:
+        print("Will train until epsilon is", args.max_epsilons)
     else:
         print("Will train for", args.max_steps, "steps")
 
@@ -222,23 +227,35 @@ def main():
         )
 
         print("Starting DP training")
-        state = dp_loops.training_loop_until_epsilon(
-            models=models,
-            optimizers=optimizers,
-            dataloaders=dataloaders,
-            state=state,
-            loss_fns=loss_fns,
-            max_epsilon=args.max_epsilon,
-            checkpoint_path=args.checkpoint_path,
-        )
+        for target_epsilon in args.max_epsilons:
+            print(f"Training until epsilon = {target_epsilon}")
+            state = dp_loops.training_loop_until_epsilon(
+                models=models,
+                optimizers=optimizers,
+                dataloaders=dataloaders,
+                state=state,
+                loss_fns=loss_fns,
+                max_epsilon=target_epsilon,
+                checkpoint_path=args.checkpoint_path,
+            )
 
-        print(f"Final epsilon: {state.training_stats.current_epsilon}")
+            print(f"Reached epsilon: {state.training_stats.current_epsilon}")
+            
+            # Save checkpoint with epsilon and steps in name
+            checkpoint_name = f"dp_model_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.global_step}.pth"
+            checkpoint_path_full = Path(checkpoint_path) / checkpoint_name
+            print(f"Saving checkpoint: {checkpoint_path_full}")
+            checkpoint_dp_model(
+                models,
+                state,
+                str(checkpoint_path_full),
+            )
 
         print("Final checkpoint")
         checkpoint_dp_model(
             models,
             state,
-            f"{checkpoint_path}/dp_model_final_epsilon={state.training_stats.current_epsilon}.pth",
+            f"{checkpoint_path}/dp_model_final_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.global_step}.pth",
         )
 
     else:
@@ -257,7 +274,7 @@ def main():
             )
         )
 
-        if args.max_epsilon is not None:
+        if args.max_epsilons is not None:
             print("Starting DP training")
             state = no_dp_loops.training_loop_until_epsilon(
                 models=models,
@@ -265,7 +282,7 @@ def main():
                 dataloaders=dataloaders,
                 state=state,
                 loss_fns=loss_fns,
-                max_epsilon=args.max_epsilon,
+                max_epsilon=args.max_epsilons[-1],
                 checkpoint_path=args.checkpoint_path,
             )
 

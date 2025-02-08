@@ -131,7 +131,6 @@ def dp_training_step(
     loss_fns: LossFNs,
     state: DPState,
     batch: torch.Tensor,
-    val_every_n_steps: Optional[int] = None,
 ) -> DPState:
     generator = models.G
     discriminator = models.D
@@ -144,8 +143,14 @@ def dp_training_step(
     l1_loss = loss_fns.l1
     bce_loss = loss_fns.bce
 
-    if isinstance(batch, list) and batch[0].size(0) < 1:
-        return state
+    if isinstance(batch, list):
+        if not batch or batch[0].size(0) < 1:
+            return state
+        batch_size = batch[0].size(0)
+    else:
+        if batch.size(0) < 1:
+            return state
+        batch_size = batch.size(0)
 
     # print("batch_size:", len(batch))
     # if isinstance(batch, list):
@@ -165,10 +170,12 @@ def dp_training_step(
     fake_labels = data_dict["fake_labels"]
 
     # Train Discriminator (D^H, D^L)
-    # generator.requires_grad_(False)
-    # discriminator.requires_grad_(True)
-    # encoder.requires_grad_(False)
-    # sub_encoder.requires_grad_(False)
+    with torch.set_grad_enabled(False):
+        generator.eval()
+        encoder.eval()
+        sub_encoder.eval()
+        
+    discriminator.train()
     d_optimizer.zero_grad()
     d_loss = compute_d_loss(
         D=discriminator,
@@ -186,10 +193,12 @@ def dp_training_step(
     d_loss_metric = d_loss.detach().cpu().item()
 
     # Train Generator
-    # generator.requires_grad_(True)
-    # discriminator.requires_grad_(False)
-    # encoder.requires_grad_(False)
-    # sub_encoder.requires_grad_(False)
+    with torch.set_grad_enabled(False):
+        discriminator.eval()
+        encoder.eval()
+        sub_encoder.eval()
+        
+    generator.train()
     g_optimizer.zero_grad()
     g_loss = compute_g_loss(
         G=generator,
@@ -204,10 +213,12 @@ def dp_training_step(
     g_loss_metric = g_loss.detach().cpu().item()
 
     # Train Encoder
-    # generator.requires_grad_(False)
-    # discriminator.requires_grad_(False)
-    # encoder.requires_grad_(True)
-    # sub_encoder.requires_grad_(False)
+    with torch.set_grad_enabled(False):
+        discriminator.eval()
+        encoder.eval()
+        sub_encoder.eval()
+        
+    generator.train()
     e_optimizer.zero_grad()
     e_loss = compute_e_loss(
         E=encoder,
@@ -221,10 +232,12 @@ def dp_training_step(
     e_loss_metric = e_loss.detach().cpu().item()
 
     # Train Sub-Encoder
-    # generator.requires_grad_(False)
-    # discriminator.requires_grad_(False)
-    # encoder.requires_grad_(False)
-    # sub_encoder.requires_grad_(True)
+    with torch.set_grad_enabled(False):
+        discriminator.eval()
+        encoder.eval()
+        sub_encoder.eval()
+        
+    generator.train()
     sub_e_optimizer.zero_grad()
     sub_e_loss = compute_sub_e_loss(
         E=encoder,
@@ -250,6 +263,7 @@ def dp_training_step(
     )
     state.training_stats.train_metrics.total_loss.append(total_loss_metric)
 
+    # Move privacy accounting here after successful training
     state.privacy_accountant.step(
         noise_multiplier=state.noise_multiplier, sample_rate=state.sample_rate
     )
@@ -380,26 +394,33 @@ def training_loop_until_epsilon(
     )
 
     data_iter = iter(dataloaders.train)
+    epoch = 0
+    
     with tqdm(desc="DP training progress.", dynamic_ncols=True, leave=True) as pbar:
         while state.training_stats.current_epsilon < max_epsilon:
             try:
                 batch = next(data_iter)
             except StopIteration:
-                # Reinitialize the iterator if the previous one is exhausted
+                epoch += 1
+                print(f"\nStarting epoch {epoch}")
                 data_iter = iter(dataloaders.train)
                 batch = next(data_iter)
 
-            state = dp_training_step(
-                models=models,
-                optimizers=optimizers,
-                loss_fns=loss_fns,
-                state=state,
-                batch=batch,
-            )
+            try:
+                state = dp_training_step(
+                    models=models,
+                    optimizers=optimizers,
+                    loss_fns=loss_fns,
+                    state=state,
+                    batch=batch,
+                )
+            except RuntimeError as e:
+                print(f"Error during training step: {e}")
+                continue
 
-            val_every_n_steps = state.training_stats.val_every_n_steps
-            checkpoint_every_n_steps = state.training_stats.checkpoint_every_n_steps
+            # Validation logic
             step = state.training_stats.step
+            val_every_n_steps = state.training_stats.val_every_n_steps
             if val_every_n_steps is not None and step % val_every_n_steps == 0:
                 for i, val_batch in enumerate(dataloaders.val):
                     state = dp_validation_step(
@@ -407,12 +428,12 @@ def training_loop_until_epsilon(
                         loss_fns=loss_fns,
                         state=state,
                         batch=val_batch,
-                        save_mris=i == 0,
+                        save_mris=i == 0,  # Only save MRIs for first batch
                     )
 
             if (
-                checkpoint_every_n_steps is not None
-                and step % checkpoint_every_n_steps == 0
+                state.training_stats.checkpoint_every_n_steps is not None
+                and step % state.training_stats.checkpoint_every_n_steps == 0
             ):
                 checkpoint_dp_model(
                     models,

@@ -27,15 +27,15 @@ echo "start time: $(date)"
 python -m thesis_code.training.fine_tuning.finetune  --latent-dim 1024 \
                 --data-path ../data/fine-tuning/brain-masked-zerosliced \
                 --use-all-data-for-training \
-                --max-epsilon 10.0 \
+                --max-epsilons 2.0 5.0 10.0 \
                 --lambdas 5.0 \
                 --batch-size 4 \
                 --num-workers 8 \
                 --device auto \
-                --load-from-checkpoint ../checkpoints/pretrained/all-data/HAGAN_l5_320k.ckpt \
+                --load-from-checkpoint ../checkpoints/pretrained/hagan-l5-1.ckpt \
                 --val-every-n-steps 1000 \
                 --checkpoint-every-n-steps 2500 \
-                --checkpoint-path checkpoints/finetuned/no_dp \
+                --checkpoint-path checkpoints/finetuned/no-dp \
                 --alphas 1.1 2 3 5 10 20 50 100 \
                 --noise-multiplier 1.0 \
                 --delta 1e-5 \

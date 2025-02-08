@@ -113,6 +113,15 @@ def no_dp_training_step(
     state: DPState,
     batch: torch.Tensor,
 ) -> DPState:
+    if isinstance(batch, list):
+        if not batch or batch[0].size(0) < 1:
+            return state
+        batch_size = batch[0].size(0)
+    else:
+        if batch.size(0) < 1:
+            return state
+        batch_size = batch.size(0)
+
     generator = models.G
     discriminator = models.D
     encoder = models.E
@@ -129,7 +138,6 @@ def no_dp_training_step(
         prepare_data(batch=batch, latent_dim=state.latent_dim),
     )  # Send to device
     real_images = data_dict["real_images"]
-    _batch_size = data_dict["batch_size"]
     real_images_small = data_dict["real_images_small"]
     crop_idx = data_dict["crop_idx"]
     real_images_crop = data_dict["real_images_crop"]
@@ -138,10 +146,12 @@ def no_dp_training_step(
     fake_labels = data_dict["fake_labels"]
 
     # Train Discriminator
-    generator.requires_grad_(False)
-    discriminator.requires_grad_(True)
-    encoder.requires_grad_(False)
-    sub_encoder.requires_grad_(False)
+    with torch.set_grad_enabled(False):
+        generator.eval()
+        encoder.eval()
+        sub_encoder.eval()
+    
+    discriminator.train()
     d_optimizer.zero_grad()
     d_loss = compute_d_loss(
         D=discriminator,
@@ -159,10 +169,12 @@ def no_dp_training_step(
     d_loss_metric = d_loss.detach().cpu().item()
 
     # Train Generator
-    generator.requires_grad_(True)
-    discriminator.requires_grad_(False)
-    encoder.requires_grad_(False)
-    sub_encoder.requires_grad_(False)
+    with torch.set_grad_enabled(False):
+        discriminator.eval()
+        encoder.eval()
+        sub_encoder.eval()
+        
+    generator.train()
     g_optimizer.zero_grad()
     g_loss = compute_g_loss(
         G=generator,
@@ -177,10 +189,12 @@ def no_dp_training_step(
     g_loss_metric = g_loss.detach().cpu().item()
 
     # Train Encoder
-    generator.requires_grad_(False)
-    discriminator.requires_grad_(False)
-    encoder.requires_grad_(True)
-    sub_encoder.requires_grad_(False)
+    with torch.set_grad_enabled(False):
+        generator.eval()
+        discriminator.eval()
+        sub_encoder.eval()
+        
+    encoder.train()
     e_optimizer.zero_grad()
     e_loss = compute_e_loss(
         E=encoder,
@@ -194,10 +208,12 @@ def no_dp_training_step(
     e_loss_metric = e_loss.detach().cpu().item()
 
     # Train Sub-Encoder
-    generator.requires_grad_(False)
-    discriminator.requires_grad_(False)
-    encoder.requires_grad_(False)
-    sub_encoder.requires_grad_(True)
+    with torch.set_grad_enabled(False):
+        generator.eval()
+        discriminator.eval()
+        encoder.eval()
+        
+    sub_encoder.train()
     sub_e_optimizer.zero_grad()
     sub_e_loss = compute_sub_e_loss(
         E=encoder,
@@ -254,7 +270,6 @@ def no_dp_validation_step(
     )  # Send to device
 
     real_images = data_dict["real_images"]
-    _batch_size = data_dict["batch_size"]
     real_images_small = data_dict["real_images_small"]
     crop_idx = data_dict["crop_idx"]
     real_images_crop = data_dict["real_images_crop"]
@@ -358,46 +373,55 @@ def no_dp_training_loop_for_n_steps(
     ```
     """
     data_iter = iter(dataloaders.train)
-    while state.training_stats.step < n_steps:
-        state.training_stats.step += 1
-        try:
-            batch = next(data_iter)
-        except StopIteration:
-            # Reinitialize the iterator if the previous one is exhausted
-            data_iter = iter(dataloaders.train)
-            batch = next(data_iter)
+    epoch = 0
+    
+    with tqdm(desc="Training progress", dynamic_ncols=True, leave=True) as pbar:
+        while state.training_stats.step < n_steps:
+            try:
+                batch = next(data_iter)
+            except StopIteration:
+                epoch += 1
+                print(f"\nStarting epoch {epoch}")
+                data_iter = iter(dataloaders.train)
+                batch = next(data_iter)
 
-        state = no_dp_training_step(
-            models=models,
-            optimizers=optimizers,
-            loss_fns=loss_fns,
-            state=state,
-            batch=batch,
-        )
-
-        val_every_n_steps = state.training_stats.val_every_n_steps
-        checkpoint_every_n_steps = state.training_stats.checkpoint_every_n_steps
-        step = state.training_stats.step
-        if val_every_n_steps is not None and step % val_every_n_steps == 0:
-            for i, val_batch in enumerate(dataloaders.val):
-                state = no_dp_validation_step(
+            try:
+                state = no_dp_training_step(
                     models=models,
+                    optimizers=optimizers,
                     loss_fns=loss_fns,
                     state=state,
-                    batch=val_batch,
-                    save_mris=i == 0,
+                    batch=batch,
+                )
+            except RuntimeError as e:
+                print(f"Error during training step: {e}")
+                continue
+
+            val_every_n_steps = state.training_stats.val_every_n_steps
+            checkpoint_every_n_steps = state.training_stats.checkpoint_every_n_steps
+            step = state.training_stats.step
+
+            if val_every_n_steps is not None and step % val_every_n_steps == 0:
+                for i, val_batch in enumerate(dataloaders.val):
+                    state = no_dp_validation_step(
+                        models=models,
+                        loss_fns=loss_fns,
+                        state=state,
+                        batch=val_batch,
+                        save_mris=i == 0,
+                    )
+
+            if checkpoint_every_n_steps is not None and step % checkpoint_every_n_steps == 0:
+                checkpoint_dp_model(
+                    models,
+                    state,
+                    f"{checkpoint_path}/no_dp_model_step={step}.pth",
                 )
 
-        if (
-            checkpoint_every_n_steps is not None
-            and step % checkpoint_every_n_steps == 0
-        ):
-            checkpoint_dp_model(
-                models,
-                state,
-                f"{checkpoint_path}/no_dp_model_step={state.training_stats.step}.pth",
-            )
+            pbar.set_postfix_str(f"Step: {step}/{n_steps}")
+            pbar.update(1)
 
+    # Final checkpoint
     checkpoint_dp_model(
         models,
         state,
@@ -420,14 +444,13 @@ def training_loop_until_epsilon(
     state.training_stats.current_epsilon = state.privacy_accountant.get_epsilon(
         state.delta, alphas=alphas
     )
+    
     data_iter = iter(dataloaders.train)
     with tqdm(desc="non-DP training progress.", dynamic_ncols=True, leave=True) as pbar:
         while state.training_stats.current_epsilon < max_epsilon:
-            state.training_stats.step += 1
             try:
                 batch = next(data_iter)
             except StopIteration:
-                # Reinitialize the iterator if the previous one is exhausted
                 data_iter = iter(dataloaders.train)
                 batch = next(data_iter)
 
@@ -439,9 +462,9 @@ def training_loop_until_epsilon(
                 batch=batch,
             )
 
-            val_every_n_steps = state.training_stats.val_every_n_steps
-            checkpoint_every_n_steps = state.training_stats.checkpoint_every_n_steps
+            # Validation logic moved here
             step = state.training_stats.step
+            val_every_n_steps = state.training_stats.val_every_n_steps
             if val_every_n_steps is not None and step % val_every_n_steps == 0:
                 for i, val_batch in enumerate(dataloaders.val):
                     state = no_dp_validation_step(
@@ -449,9 +472,11 @@ def training_loop_until_epsilon(
                         loss_fns=loss_fns,
                         state=state,
                         batch=val_batch,
-                        save_mris=i == 0,
+                        save_mris=i == 0,  # Only save MRIs for first batch
                     )
 
+            # Save checkpoint
+            checkpoint_every_n_steps = state.training_stats.checkpoint_every_n_steps
             if (
                 checkpoint_every_n_steps is not None
                 and step % checkpoint_every_n_steps == 0
