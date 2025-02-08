@@ -2,7 +2,6 @@ from typing import Tuple
 import torch
 from torch import nn
 from torch.nn import functional as F
-from .layers import Conv3d, Linear
 
 
 class Code_Discriminator(nn.Module):
@@ -10,12 +9,12 @@ class Code_Discriminator(nn.Module):
         super(Code_Discriminator, self).__init__()
 
         self.l1 = nn.Sequential(
-            Linear(code_size, num_units), nn.LeakyReLU(0.2, inplace=True)
+            nn.Linear(code_size, num_units), nn.LeakyReLU(0.2, inplace=True)
         )
         self.l2 = nn.Sequential(
-            Linear(num_units, num_units), nn.LeakyReLU(0.2, inplace=True)
+            nn.Linear(num_units, num_units), nn.LeakyReLU(0.2, inplace=True)
         )
-        self.l3 = Linear(num_units, 1)
+        self.l3 = nn.Linear(num_units, 1)
 
     def forward(self, x):
         x = self.l1(x)
@@ -30,23 +29,23 @@ class Sub_Encoder(nn.Module):
         super(Sub_Encoder, self).__init__()
 
         self.relu = nn.ReLU()
-        self.conv1 = nn.Conv3d(
+        self.conv1 = nn.nn.Conv3d(
             channel // 4, channel // 8, kernel_size=4, stride=2, padding=1
         )  # in:[64,64,64], out:[32,32,32]
         self.bn1 = nn.GroupNorm(8, channel // 8)
-        self.conv2 = nn.Conv3d(
+        self.conv2 = nn.nn.Conv3d(
             channel // 8, channel // 4, kernel_size=4, stride=2, padding=1
         )  # out:[16,16,16]
         self.bn2 = nn.GroupNorm(8, channel // 4)
-        self.conv3 = nn.Conv3d(
+        self.conv3 = nn.nn.Conv3d(
             channel // 4, channel // 2, kernel_size=4, stride=2, padding=1
         )  # out:[8,8,8]
         self.bn3 = nn.GroupNorm(8, channel // 2)
-        self.conv4 = nn.Conv3d(
+        self.conv4 = nn.nn.Conv3d(
             channel // 2, channel, kernel_size=4, stride=2, padding=1
         )  # out:[4,4,4]
         self.bn4 = nn.GroupNorm(8, channel)
-        self.conv5 = nn.Conv3d(
+        self.conv5 = nn.nn.Conv3d(
             channel, latent_dim, kernel_size=4, stride=1, padding=0
         )  # out:[1,1,1,1]
 
@@ -68,15 +67,15 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
 
         self.relu = nn.ReLU()
-        self.conv1 = nn.Conv3d(
+        self.conv1 = nn.nn.Conv3d(
             1, channel // 2, kernel_size=4, stride=2, padding=1
         )  # in:[32,256,256], out:[16,128,128]
         self.bn1 = nn.GroupNorm(8, channel // 2)
-        self.conv2 = nn.Conv3d(
+        self.conv2 = nn.nn.Conv3d(
             channel // 2, channel // 2, kernel_size=3, stride=1, padding=1
         )  # out:[16,128,128]
         self.bn2 = nn.GroupNorm(8, channel // 2)
-        self.conv3 = nn.Conv3d(
+        self.conv3 = nn.nn.Conv3d(
             channel // 2, channel, kernel_size=4, stride=2, padding=1
         )  # out:[8,64,64]
         self.bn3 = nn.GroupNorm(8, channel)
@@ -99,19 +98,19 @@ class Sub_Discriminator(nn.Module):
         super(Sub_Discriminator, self).__init__()
         self.channel = channel
 
-        self.conv1 = Conv3d(
+        self.conv1 = nn.Conv3d(
             1, channel // 8, kernel_size=4, stride=2, padding=1
         )  # in:[64,64,64], out:[32,32,32]
-        self.conv2 = Conv3d(
+        self.conv2 = nn.Conv3d(
             channel // 8, channel // 4, kernel_size=4, stride=2, padding=1
         )  # out:[16,16,16]
-        self.conv3 = Conv3d(
+        self.conv3 = nn.Conv3d(
             channel // 4, channel // 2, kernel_size=4, stride=2, padding=1
         )  # out:[8,8,8]
-        self.conv4 = Conv3d(
+        self.conv4 = nn.Conv3d(
             channel // 2, channel, kernel_size=4, stride=2, padding=1
         )  # out:[4,4,4]
-        self.conv5 = Conv3d(
+        self.conv5 = nn.Conv3d(
             channel, 1, kernel_size=4, stride=1, padding=0
         )  # out:[1,1,1,1]
 
@@ -130,41 +129,41 @@ class Discriminator(nn.Module):
         self.channel = channel
 
         # D^H
-        self.conv1 = Conv3d(
+        self.conv1 = nn.Conv3d(
             1, channel // 32, kernel_size=4, stride=2, padding=1
         )  # in:[32,256,256], out:[16,128,128]
-        self.conv2 = Conv3d(
+        self.conv2 = nn.Conv3d(
             channel // 32, channel // 16, kernel_size=4, stride=2, padding=1
         )  # out:[8,64,64,64]
-        self.conv3 = Conv3d(
+        self.conv3 = nn.Conv3d(
             channel // 16, channel // 8, kernel_size=4, stride=2, padding=1
         )  # out:[4,32,32,32]
-        self.conv4 = Conv3d(
+        self.conv4 = nn.Conv3d(
             channel // 8,
             channel // 4,
             kernel_size=(2, 4, 4),
             stride=(2, 2, 2),
             padding=(0, 1, 1),
         )  # out:[2,16,16,16]
-        self.conv5 = Conv3d(
+        self.conv5 = nn.Conv3d(
             channel // 4,
             channel // 2,
             kernel_size=(2, 4, 4),
             stride=(2, 2, 2),
             padding=(0, 1, 1),
         )  # out:[1,8,8,8]
-        self.conv6 = Conv3d(
+        self.conv6 = nn.Conv3d(
             channel // 2,
             channel,
             kernel_size=(1, 4, 4),
             stride=(1, 2, 2),
             padding=(0, 1, 1),
         )  # out:[1,4,4,4]
-        self.conv7 = Conv3d(
+        self.conv7 = nn.Conv3d(
             channel, channel // 4, kernel_size=(1, 4, 4), stride=1, padding=0
         )  # out:[1,1,1,1]
-        self.fc1 = Linear(channel // 4 + 1, channel // 8)
-        self.fc2 = Linear(channel // 8, 1)
+        self.fc1 = nn.Linear(channel // 4 + 1, channel // 8)
+        self.fc2 = nn.Linear(channel // 8, 1)
 
         # D^L
         self.sub_D = Sub_Discriminator()
@@ -196,17 +195,19 @@ class Sub_Generator(nn.Module):
         _c = channel
 
         self.relu = nn.ReLU()
-        self.tp_conv1 = nn.Conv3d(
+        self.tp_conv1 = nn.nn.Conv3d(
             _c * 4, _c * 2, kernel_size=3, stride=1, padding=1, bias=True
         )
         self.bn1 = nn.GroupNorm(8, _c * 2)
 
-        self.tp_conv2 = nn.Conv3d(
+        self.tp_conv2 = nn.nn.Conv3d(
             _c * 2, _c, kernel_size=3, stride=1, padding=1, bias=True
         )
         self.bn2 = nn.GroupNorm(8, _c)
 
-        self.tp_conv3 = nn.Conv3d(_c, 1, kernel_size=3, stride=1, padding=1, bias=True)
+        self.tp_conv3 = nn.nn.Conv3d(
+            _c, 1, kernel_size=3, stride=1, padding=1, bias=True
+        )
 
     def forward(self, h):
         h = self.tp_conv1(h)
@@ -228,39 +229,41 @@ class Generator(nn.Module):
         self.relu = nn.ReLU()
 
         # G^A and G^H
-        self.fc1 = nn.Linear(latent_dim, 4 * 4 * 4 * _c * 16)
+        self.fc1 = nn.nn.Linear(latent_dim, 4 * 4 * 4 * _c * 16)
 
-        self.tp_conv1 = nn.Conv3d(
+        self.tp_conv1 = nn.nn.Conv3d(
             _c * 16, _c * 16, kernel_size=3, stride=1, padding=1, bias=True
         )
         self.bn1 = nn.GroupNorm(8, _c * 16)
 
-        self.tp_conv2 = nn.Conv3d(
+        self.tp_conv2 = nn.nn.Conv3d(
             _c * 16, _c * 16, kernel_size=3, stride=1, padding=1, bias=True
         )
         self.bn2 = nn.GroupNorm(8, _c * 16)
 
-        self.tp_conv3 = nn.Conv3d(
+        self.tp_conv3 = nn.nn.Conv3d(
             _c * 16, _c * 8, kernel_size=3, stride=1, padding=1, bias=True
         )
         self.bn3 = nn.GroupNorm(8, _c * 8)
 
-        self.tp_conv4 = nn.Conv3d(
+        self.tp_conv4 = nn.nn.Conv3d(
             _c * 8, _c * 4, kernel_size=3, stride=1, padding=1, bias=True
         )
         self.bn4 = nn.GroupNorm(8, _c * 4)
 
-        self.tp_conv5 = nn.Conv3d(
+        self.tp_conv5 = nn.nn.Conv3d(
             _c * 4, _c * 2, kernel_size=3, stride=1, padding=1, bias=True
         )
         self.bn5 = nn.GroupNorm(8, _c * 2)
 
-        self.tp_conv6 = nn.Conv3d(
+        self.tp_conv6 = nn.nn.Conv3d(
             _c * 2, _c, kernel_size=3, stride=1, padding=1, bias=True
         )
         self.bn6 = nn.GroupNorm(8, _c)
 
-        self.tp_conv7 = nn.Conv3d(_c, 1, kernel_size=3, stride=1, padding=1, bias=True)
+        self.tp_conv7 = nn.nn.Conv3d(
+            _c, 1, kernel_size=3, stride=1, padding=1, bias=True
+        )
 
         # G^L
         self.sub_G = Sub_Generator(channel=_c // 2)
