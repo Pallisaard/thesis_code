@@ -2,7 +2,7 @@
 #SBATCH --job-name=finetune_dp_e10 # Name of the job
 #SBATCH --output=slurm_finetune_dp_e10-%j.out # Name of output file
 #SBATCH --error=slurm_finetune_dp_e10-%j.err # Name of error file
-#SBATCH --gres=gpu:l40s:1       # Request 4 GPU per job
+#SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
 #SBATCH --time=2-00:00:00       # Time limit day-hrs:min:sec
 #SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
 #SBATCH --mem=16G        # Memory request
