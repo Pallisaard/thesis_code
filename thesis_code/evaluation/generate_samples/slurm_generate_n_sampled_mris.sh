@@ -2,7 +2,7 @@
 #SBATCH --job-name=generate_n_sampled_mris
 #SBATCH --output=slurm_generate_n_sampled_mris-%j-%a.out # Name of output file
 #SBATCH --error=slurm_generate_n_sampled_mris-%j-%a.err # Name of error file
-#SBATCH --array=7-10%4
+#SBATCH --array=2-2%1
 #SBATCH --gres=gpu:1
 #SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=4
@@ -38,7 +38,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
                     --n-samples 1000 \
                     --use-dp-safe \
                     --checkpoint-path ../checkpoints/pretrained/hagan-l5-1.ckpt \
-                    --lambdas 1 \
+                    --lambdas 5 \
                     --device auto \
                     --batch-size 2 \
                     --vectorizer-dim 2048 \
