@@ -3,12 +3,12 @@
 #SBATCH --output=slurm_generate_n_sampled_mris-%j-%a.out # Name of output file
 #SBATCH --error=slurm_generate_n_sampled_mris-%j-%a.err # Name of error file
 #SBATCH --array=1-11%5
-#SBATCH --gres=gpu:a100:1|gpu:l40s:1
-#SBATCH --time=01:15:00    # Time limit hrs:min:sec
-#SBATCH --cpus-per-task=4  # Number of CPUs for each gpu
-#SBATCH --mem=32G        # Memory request
+#SBATCH --gres=gpu:titanrtx:1
+#SBATCH --time=01:15:00
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
-#SBATCH --mail-user=rpa@di.ku.dk # Email
+#SBATCH --mail-user=rpa@di.ku.dk
 
 module load cuda/11.8
 module load cudnn/8.6.0
