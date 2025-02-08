@@ -16,7 +16,6 @@ from thesis_code.models.gans.hagan import (
     compute_sub_e_loss,
     prepare_data,
     save_mri,
-    safe_sample,
 )
 from .utils import checkpoint_dp_model
 from .types import (
@@ -150,7 +149,7 @@ def no_dp_training_step(
         generator.eval()
         encoder.eval()
         sub_encoder.eval()
-    
+
     discriminator.train()
     d_optimizer.zero_grad()
     d_loss = compute_d_loss(
@@ -173,7 +172,7 @@ def no_dp_training_step(
         discriminator.eval()
         encoder.eval()
         sub_encoder.eval()
-        
+
     generator.train()
     g_optimizer.zero_grad()
     g_loss = compute_g_loss(
@@ -193,7 +192,7 @@ def no_dp_training_step(
         generator.eval()
         discriminator.eval()
         sub_encoder.eval()
-        
+
     encoder.train()
     e_optimizer.zero_grad()
     e_loss = compute_e_loss(
@@ -212,7 +211,7 @@ def no_dp_training_step(
         generator.eval()
         discriminator.eval()
         encoder.eval()
-        
+
     sub_encoder.train()
     sub_e_optimizer.zero_grad()
     sub_e_loss = compute_sub_e_loss(
@@ -343,7 +342,7 @@ def no_dp_validation_step(
         save_mri(real_images, true_example_save_path)
 
         # Save a sample of the generated images
-        fake_images = safe_sample(2, generator, state.latent_dim, device=state.device)
+        fake_images = generator.sample(2).to(state.device)
         fake_example_save_path = (
             state.training_stats.log_dir
             / f"fake_example_{state.training_stats.step}.nii.gz"
@@ -374,7 +373,7 @@ def no_dp_training_loop_for_n_steps(
     """
     data_iter = iter(dataloaders.train)
     epoch = 0
-    
+
     with tqdm(desc="Training progress", dynamic_ncols=True, leave=True) as pbar:
         while state.training_stats.step < n_steps:
             try:
@@ -411,7 +410,10 @@ def no_dp_training_loop_for_n_steps(
                         save_mris=i == 0,
                     )
 
-            if checkpoint_every_n_steps is not None and step % checkpoint_every_n_steps == 0:
+            if (
+                checkpoint_every_n_steps is not None
+                and step % checkpoint_every_n_steps == 0
+            ):
                 checkpoint_dp_model(
                     models,
                     state,
@@ -444,7 +446,7 @@ def training_loop_until_epsilon(
     state.training_stats.current_epsilon = state.privacy_accountant.get_epsilon(
         state.delta, alphas=alphas
     )
-    
+
     data_iter = iter(dataloaders.train)
     with tqdm(desc="non-DP training progress.", dynamic_ncols=True, leave=True) as pbar:
         while state.training_stats.current_epsilon < max_epsilon:
