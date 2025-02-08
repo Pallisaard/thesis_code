@@ -66,6 +66,11 @@ def pars_args():
         ],
         help="Name of the model to load",
     )
+    parser.add_argument(
+        "--skip-mri-save",
+        action="store_true",
+        help="Skip saving MRI files and only save vectorized outputs",
+    )
 
     return parser.parse_args()
 
@@ -192,8 +197,10 @@ def main():
                 # Save MRI NIfTI sample
                 sample_i = sample[i, 0]
                 sample[i, 0] = sample_i
-                sample_mri = numpy_to_nifti(sample_i)
-                nib.save(sample_mri, f"{args.output_dir}/sample_{sample_id}.nii.gz")  # type: ignore
+                
+                if not args.skip_mri_save:
+                    sample_mri = numpy_to_nifti(sample_i)
+                    nib.save(sample_mri, f"{args.output_dir}/sample_{sample_id}.nii.gz")  # type: ignore
 
                 # Get MRI vectorizer output
                 mri_vectorizer_out[sample_id] = (
