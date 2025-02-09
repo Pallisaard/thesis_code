@@ -22,6 +22,13 @@ def parse_args():
     parser.add_argument(
         "--output-file", required=True, type=str, help="Path to save the MS-SSIM scores"
     )
+    parser.add_argument(
+        "--resolution",
+        type=int,
+        choices=[64, 256],
+        required=True,
+        help="Resolution of the MRI volumes (64 or 256)",
+    )
 
     return parser.parse_args()
 
@@ -31,8 +38,9 @@ def main():
     print("Computing MS-SSIM diversity scores")
     print(vars(args))
 
-    # Setup metric
-    ms_ssim = MultiScaleSSIMMetric(spatial_dims=3)
+    # Setup metric with kernel size based on resolution
+    kernel_size = 7 if args.resolution == 64 else 11
+    ms_ssim = MultiScaleSSIMMetric(spatial_dims=3, kernel_size=kernel_size)
 
     # Get all sample files
     sample_files = sorted(Path(args.input_dir).glob("sample_*.nii.gz"))
