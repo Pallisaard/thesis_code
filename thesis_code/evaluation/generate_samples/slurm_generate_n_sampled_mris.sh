@@ -2,8 +2,8 @@
 #SBATCH --job-name=generate_n_sampled_mris
 #SBATCH --output=slurm_generate_n_sampled_mris-%j-%a.out # Name of output file
 #SBATCH --error=slurm_generate_n_sampled_mris-%j-%a.err # Name of error file
-#SBATCH --array=2-2%1
-#SBATCH --gres=gpu:1
+#SBATCH --array=2-6%5
+#SBATCH --gres=gpu:a100:1
 #SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
@@ -34,7 +34,7 @@ if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
     echo "HAGAN lambda 5-1"
-    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-5-1 \
+    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-hagan-l5-1 \
                     --n-samples 1000 \
                     --use-dp-safe \
                     --checkpoint-path ../checkpoints/pretrained/hagan-l5-1.ckpt \
@@ -46,7 +46,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
     echo "HAGAN lambda 5-2"
-    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-5-2 \
+    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-hagan-l5-2 \
                     --n-samples 1000 \
                     --use-dp-safe \
                     --checkpoint-path ../checkpoints/pretrained/hagan-l5-2.ckpt \
@@ -59,7 +59,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
     echo "HAGAN lambda 5-3"
-    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-5-3 \
+    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-hagan-l5-3 \
                     --n-samples 1000 \
                     --use-dp-safe \
                     --checkpoint-path ../checkpoints/pretrained/hagan-l5-3.ckpt \
@@ -72,7 +72,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 5 ]; then
     echo "HAGAN lambda 5-4"
-        python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-5-4 \
+    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-hagan-l5-4 \
                     --n-samples 1000 \
                     --use-dp-safe \
                     --checkpoint-path ../checkpoints/pretrained/hagan-l5-4.ckpt \
@@ -85,7 +85,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 5 ]; then
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 6 ]; then
     echo "HAGAN lambda 5-5"
-    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-lambda-5-5 \
+    python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-hagan-l5-5 \
                     --n-samples 1000 \
                     --use-dp-safe \
                     --checkpoint-path ../checkpoints/pretrained/hagan-l5-5.ckpt \
