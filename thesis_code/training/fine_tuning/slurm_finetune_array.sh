@@ -2,7 +2,7 @@
 #SBATCH --job-name=finetune_dp_array
 #SBATCH --output=slurm_finetune_dp_array-%A_%a.out
 #SBATCH --error=slurm_finetune_dp_array-%A_%a.err
-#SBATCH --array=0-1%1
+#SBATCH --array=1-1%1
 #SBATCH --gres=gpu:a100:1
 #SBATCH --time=36:00:00
 #SBATCH --cpus-per-task=16
