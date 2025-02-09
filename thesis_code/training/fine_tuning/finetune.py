@@ -105,6 +105,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--size_limit", type=int, default=None, help="Limit the size of the dataset"
     )
+    parser.add_argument(
+        "--n-accountant-steps",
+        type=int,
+        default=1,
+        help="Number of steps between each privacy accountant check",
+    )
     return parser.parse_args()
 
 
@@ -240,6 +246,7 @@ def main():
                 loss_fns=loss_fns,
                 max_epsilon=target_epsilon,
                 checkpoint_path=args.checkpoint_path,
+                n_accountant_steps=args.n_accountant_steps,
             )
 
             print(f"Reached epsilon: {state.training_stats.current_epsilon}")
@@ -254,12 +261,12 @@ def main():
                 str(checkpoint_path_full),
             )
 
-        print("Final checkpoint")
-        checkpoint_dp_model(
-            models,
-            state,
-            f"{checkpoint_path}/dp_model_final_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.global_step}.pth",
-        )
+        # print("Final checkpoint")
+        # checkpoint_dp_model(
+        #     models,
+        #     state,
+        #     f"{checkpoint_path}/dp_model_final_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.global_step}.pth",
+        # )
 
     else:
         print("Setting up non-DP training")
@@ -287,6 +294,7 @@ def main():
                 loss_fns=loss_fns,
                 max_epsilon=args.max_epsilons[-1],
                 checkpoint_path=args.checkpoint_path,
+                n_accountant_steps=args.n_accountant_steps,
             )
 
             print(f"Final epsilon: {state.training_stats.current_epsilon}")

@@ -41,11 +41,12 @@ python -m thesis_code.training.fine_tuning.finetune  --latent-dim 1024 \
                 --load-from-checkpoint ../checkpoints/pretrained/hagan-l5-1.ckpt \
                 --val-every-n-steps 1000 \
                 --checkpoint-every-n-steps 2500 \
-                --checkpoint-path checkpoints/finetuned/dp-epsilon \
-                --alphas 1.1 2 3 5 10 20 50 100 \
+                --checkpoint-path checkpoints/finetuned/dp-n1-c0,75-s-3 \
+                --alphas 1.1 2 3 5 10 20 50 100 200 500 1000 \
                 --noise-multiplier 1.0 \
-                --delta 1e-5 \
+                --delta 1e-3 \
                 --max-grad-norm 1.0 \
+                --n-accountant-steps 10
 
 # echo time at end
 echo "end time: $(date)"
