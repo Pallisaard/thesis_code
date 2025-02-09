@@ -39,7 +39,7 @@ def main():
     print(vars(args))
 
     # Setup metric with kernel size based on resolution
-    kernel_size = 7 if args.resolution == 64 else 11
+    kernel_size = 5 if args.resolution == 64 else 11
     ms_ssim = MultiScaleSSIMMetric(spatial_dims=3, kernel_size=kernel_size)
 
     # Get all sample files

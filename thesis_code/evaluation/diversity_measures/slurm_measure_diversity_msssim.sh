@@ -38,38 +38,6 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
         --resolution 256 \
         --output-file "$BASE_DIR/generated-examples-hagan-l5-1/msssim_scores.pt" || { echo "Task 2 failed"; exit 1; }
 
-elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
-    echo "HAGAN lambda 5-2"
-    python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
-        --input-dir "$BASE_DIR/generated-examples-hagan-l5-2" \
-        --device cuda \
-        --resolution 256 \
-        --output-file "$BASE_DIR/generated-examples-hagan-l5-2/msssim_scores.pt" || { echo "Task 3 failed"; exit 1; }
-
-elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
-    echo "HAGAN lambda 5-3"
-    python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
-        --input-dir "$BASE_DIR/generated-examples-hagan-l5-3" \
-        --device cuda \
-        --resolution 256 \
-        --output-file "$BASE_DIR/generated-examples-hagan-l5-3/msssim_scores.pt" || { echo "Task 4 failed"; exit 1; }
-
-elif [ $SLURM_ARRAY_TASK_ID -eq 5 ]; then
-    echo "HAGAN lambda 5-4"
-    python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
-        --input-dir "$BASE_DIR/generated-examples-hagan-l5-4" \
-        --device cuda \
-        --resolution 256 \
-        --output-file "$BASE_DIR/generated-examples-hagan-l5-4/msssim_scores.pt" || { echo "Task 5 failed"; exit 1; }
-
-elif [ $SLURM_ARRAY_TASK_ID -eq 6 ]; then
-    echo "HAGAN lambda 5-5"
-    python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
-        --input-dir "$BASE_DIR/generated-examples-hagan-l5-5" \
-        --device cuda \
-        --resolution 256 \
-        --output-file "$BASE_DIR/generated-examples-hagan-l5-5/msssim_scores.pt" || { echo "Task 6 failed"; exit 1; }
-
 elif [ $SLURM_ARRAY_TASK_ID -eq 7 ]; then
     echo "WGAN-GP"
     python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
