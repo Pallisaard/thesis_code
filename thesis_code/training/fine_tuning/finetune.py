@@ -173,8 +173,6 @@ def check_args(args: argparse.Namespace) -> argparse.Namespace:
 
 
 def main():
-    register_dp_layers()
-
     print("Running fine-tuning script.")
     args = check_args(parse_args())
     print("Arguments:", vars(args))
@@ -191,6 +189,10 @@ def main():
         args.device
         if args.device != "auto"
         else ("cuda" if torch.cuda.is_available() else "cpu")
+    )
+    print(
+        "devices:",
+        [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())],
     )
 
     print("Creating model")
