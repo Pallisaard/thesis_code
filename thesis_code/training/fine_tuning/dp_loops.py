@@ -151,10 +151,6 @@ def dp_training_step(
             return state
         batch_size = batch.size(0)
 
-    # print("batch_size:", len(batch))
-    # if isinstance(batch, list):
-    #     print(batch)
-
     data_dict = tree_map(
         lambda x: x.to(state.device) if isinstance(x, torch.Tensor) else x,
         prepare_data(batch=batch, latent_dim=state.latent_dim),
@@ -169,12 +165,11 @@ def dp_training_step(
     fake_labels = data_dict["fake_labels"]
 
     # Train Discriminator (D^H, D^L)
-    with torch.set_grad_enabled(False):
-        generator.eval()
-        encoder.eval()
-        sub_encoder.eval()
+    generator.requires_grad_(False)
+    encoder.requires_grad_(False)
+    sub_encoder.requires_grad_(False)
+    discriminator.requires_grad_(True)
 
-    discriminator.train()
     d_optimizer.zero_grad()
     d_loss = compute_d_loss(
         D=discriminator,
@@ -192,12 +187,11 @@ def dp_training_step(
     d_loss_metric = d_loss.detach().cpu().item()
 
     # Train Generator
-    with torch.set_grad_enabled(False):
-        discriminator.eval()
-        encoder.eval()
-        sub_encoder.eval()
+    discriminator.requires_grad_(False)
+    encoder.requires_grad_(False)
+    sub_encoder.requires_grad_(False)
+    generator.requires_grad_(True)
 
-    generator.train()
     g_optimizer.zero_grad()
     g_loss = compute_g_loss(
         G=generator,
@@ -212,12 +206,11 @@ def dp_training_step(
     g_loss_metric = g_loss.detach().cpu().item()
 
     # Train Encoder
-    with torch.set_grad_enabled(False):
-        discriminator.eval()
-        encoder.eval()
-        sub_encoder.eval()
+    discriminator.requires_grad_(False)
+    encoder.requires_grad_(True)
+    sub_encoder.requires_grad_(False)
+    generator.requires_grad_(True)
 
-    generator.train()
     e_optimizer.zero_grad()
     e_loss = compute_e_loss(
         E=encoder,
@@ -231,12 +224,11 @@ def dp_training_step(
     e_loss_metric = e_loss.detach().cpu().item()
 
     # Train Sub-Encoder
-    with torch.set_grad_enabled(False):
-        discriminator.eval()
-        encoder.eval()
-        sub_encoder.eval()
+    discriminator.requires_grad_(False)
+    encoder.requires_grad_(False)
+    sub_encoder.requires_grad_(True)
+    generator.requires_grad_(True)
 
-    generator.train()
     sub_e_optimizer.zero_grad()
     sub_e_loss = compute_sub_e_loss(
         E=encoder,

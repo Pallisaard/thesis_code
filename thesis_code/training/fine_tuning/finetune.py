@@ -204,11 +204,6 @@ def main():
     encoder = model.E.to(device)
     sub_encoder = model.Sub_E.to(device)
 
-    print(
-        "devices:",
-        [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())],
-    )
-
     train_ds, val_ds = get_datasets(
         args.data_path, args.size_limit, args.use_all_data_for_training
     )
