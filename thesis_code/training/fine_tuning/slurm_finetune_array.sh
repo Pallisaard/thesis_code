@@ -3,9 +3,9 @@
 #SBATCH --output=slurm_finetune_dp_array-%A_%a.out
 #SBATCH --error=slurm_finetune_dp_array-%A_%a.err
 #SBATCH --array=1-1%1
-#SBATCH --gres=gpu:a100:1
+#SBATCH --gres=gpu:1
 #SBATCH --time=36:00:00
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
 #SBATCH --mail-type=END
 #SBATCH --mail-user=rpa@di.ku.dk
@@ -62,8 +62,8 @@ cmd="python -m thesis_code.training.fine_tuning.finetune \
     --use-all-data-for-training \
     --max-epsilons 2.0 5.0 10.0 \
     --lambdas 5.0 \
-    --batch-size 4 \
-    --num-workers 14 \
+    --batch-size 2 \
+    --num-workers 4 \
     --device auto \
     --load-from-checkpoint ../checkpoints/pretrained/hagan-l5-1.ckpt \
     --val-every-n-steps 1000 \
