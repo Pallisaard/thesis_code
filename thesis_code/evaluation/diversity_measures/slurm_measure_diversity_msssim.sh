@@ -38,37 +38,37 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
         --resolution 256 \
         --output-file "$BASE_DIR/generated-examples-hagan-l5-1/msssim_scores.pt" || { echo "Task 2 failed"; exit 1; }
 
-elif [ $SLURM_ARRAY_TASK_ID -eq 7 ]; then
+elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
     echo "WGAN-GP"
     python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
         --input-dir "$BASE_DIR/generated-examples-wgan-gp" \
         --device cuda \
         --resolution 64 \
-        --output-file "$BASE_DIR/generated-examples-wgan-gp/msssim_scores.pt" || { echo "Task 7 failed"; exit 1; }
+        --output-file "$BASE_DIR/generated-examples-wgan-gp/msssim_scores.pt" || { echo "Task 3 failed"; exit 1; }
 
-elif [ $SLURM_ARRAY_TASK_ID -eq 8 ]; then
+elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
     echo "Alpha-GAN"
     python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
         --input-dir "$BASE_DIR/generated-examples-alpha-gan" \
         --device cuda \
         --resolution 64 \
-        --output-file "$BASE_DIR/generated-examples-alpha-gan/msssim_scores.pt" || { echo "Task 8 failed"; exit 1; }
+        --output-file "$BASE_DIR/generated-examples-alpha-gan/msssim_scores.pt" || { echo "Task 4 failed"; exit 1; }
 
-elif [ $SLURM_ARRAY_TASK_ID -eq 9 ]; then
+elif [ $SLURM_ARRAY_TASK_ID -eq 5 ]; then
     echo "Kwon-GAN"
     python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
         --input-dir "$BASE_DIR/generated-examples-kwon-gan" \
         --device cuda \
         --resolution 64 \
-        --output-file "$BASE_DIR/generated-examples-kwon-gan/msssim_scores.pt" || { echo "Task 9 failed"; exit 1; }
+        --output-file "$BASE_DIR/generated-examples-kwon-gan/msssim_scores.pt" || { echo "Task 5 failed"; exit 1; }
 
-elif [ $SLURM_ARRAY_TASK_ID -eq 10 ]; then
+elif [ $SLURM_ARRAY_TASK_ID -eq 6 ]; then
     echo "VAE-64"
     python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
         --input-dir "$BASE_DIR/generated-examples-vae-64" \
         --device cuda \
         --resolution 64 \
-        --output-file "$BASE_DIR/generated-examples-vae-64/msssim_scores.pt" || { echo "Task 10 failed"; exit 1; }
+        --output-file "$BASE_DIR/generated-examples-vae-64/msssim_scores.pt" || { echo "Task 6 failed"; exit 1; }
 
 else
     echo "Invalid SLURM_ARRAY_TASK_ID"
