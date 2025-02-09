@@ -10,7 +10,6 @@ from thesis_code.models.gans import LitHAGAN
 from . import dp_loops
 from . import no_dp_loops
 from .utils import checkpoint_dp_model
-from thesis_code.models.gans.hagan.dp_safe_backbone.layers import register_dp_layers
 
 
 def parse_args() -> argparse.Namespace:
