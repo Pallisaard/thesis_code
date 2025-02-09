@@ -1,13 +1,10 @@
 import argparse
-from itertools import combinations
 from pathlib import Path
 
 import nibabel as nib
 import torch
 import tqdm
 from monai.metrics.regression import MultiScaleSSIMMetric
-
-from thesis_code.dataloading.transforms import normalize_to
 
 
 def parse_args():
@@ -16,22 +13,14 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--input-dir", 
-        required=True, 
-        type=str, 
-        help="Directory containing generated MRI samples (sample_*.nii.gz files)"
-    )
-    parser.add_argument(
-        "--device", 
-        required=True, 
-        type=str, 
-        help="Device to use"
-    )
-    parser.add_argument(
-        "--output-file",
+        "--input-dir",
         required=True,
         type=str,
-        help="Path to save the MS-SSIM scores"
+        help="Directory containing generated MRI samples (sample_*.nii.gz files)",
+    )
+    parser.add_argument("--device", required=True, type=str, help="Device to use")
+    parser.add_argument(
+        "--output-file", required=True, type=str, help="Path to save the MS-SSIM scores"
     )
 
     return parser.parse_args()
@@ -43,18 +32,21 @@ def main():
     print(vars(args))
 
     # Setup metric
-    ms_ssim = MultiScaleSSIMMetric(spatial_dims=3).to(args.device)
-    
+    ms_ssim = MultiScaleSSIMMetric(spatial_dims=3)
+
     # Get all sample files
     sample_files = sorted(Path(args.input_dir).glob("sample_*.nii.gz"))
     print(f"Found {len(sample_files)} samples")
 
     # Get all unique pairs
-    pairs = [(sample_files[i], sample_files[i+1]) for i in range(0, len(sample_files)-1, 2)]
+    pairs = [
+        (sample_files[i], sample_files[i + 1])
+        for i in range(0, len(sample_files) - 1, 2)
+    ]
     print(f"Computing MS-SSIM for {len(pairs)} pairs")
 
     ms_ssim_scores = []
-    
+
     # Process pairs with progress bar
     pbar = tqdm.tqdm(pairs, desc="Computing pairwise MS-SSIM")
     for file1, file2 in pbar:
