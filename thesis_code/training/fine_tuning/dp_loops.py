@@ -408,7 +408,7 @@ def training_loop_until_epsilon(
                 batch = next(data_iter)
             except StopIteration:
                 epoch += 1
-                print(f"\nStarting epoch {epoch}")
+                # print(f"\nStarting epoch {epoch}")
                 data_iter = iter(dataloaders.train)
                 batch = next(data_iter)
 
