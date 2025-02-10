@@ -379,7 +379,6 @@ def no_dp_training_loop_for_n_steps(
                 batch = next(data_iter)
             except StopIteration:
                 epoch += 1
-                print(f"\nStarting epoch {epoch}")
                 data_iter = iter(dataloaders.train)
                 batch = next(data_iter)
 
