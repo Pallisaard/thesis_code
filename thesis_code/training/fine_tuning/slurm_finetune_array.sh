@@ -2,11 +2,11 @@
 #SBATCH --job-name=finetune_dp_array
 #SBATCH --output=slurm_finetune_dp_array-%A_%a.out
 #SBATCH --error=slurm_finetune_dp_array-%A_%a.err
-#SBATCH --array=1-8%4
+#SBATCH --array=2-2%1
 #SBATCH --gres=gpu:a100:1
 #SBATCH --time=36:00:00
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=16G
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=64G
 #SBATCH --mail-type=END
 #SBATCH --mail-user=rpa@di.ku.dk
 
@@ -28,10 +28,10 @@ case $SLURM_ARRAY_TASK_ID in
     1) noise=1.0;  clip=1.0;  delta_exp=-3; use_dp=true  ;; # baseline s-3
     2) noise=1.0;  clip=1.0;  delta_exp=-5; use_dp=true  ;; # baseline s-5
     3) noise=1.0;  clip=1.0;  delta_exp=-7; use_dp=true  ;; # baseline s-7
-    4) noise=0.75; clip=1.0;  delta_exp=-3; use_dp=true  ;; # lower noise
-    5) noise=1.5;  clip=1.0;  delta_exp=-3; use_dp=true  ;; # higher noise
-    6) noise=1.0;  clip=0.75; delta_exp=-3; use_dp=true  ;; # lower clip
-    7) noise=1.0;  clip=1.5;  delta_exp=-3; use_dp=true  ;; # higher clip
+    4) noise=0.75; clip=1.0;  delta_exp=-5; use_dp=true  ;; # lower noise
+    5) noise=1.5;  clip=1.0;  delta_exp=-5; use_dp=true  ;; # higher noise
+    6) noise=1.0;  clip=0.75; delta_exp=-5; use_dp=true  ;; # lower clip
+    7) noise=1.0;  clip=1.5;  delta_exp=-5; use_dp=true  ;; # higher clip
     8) noise=1.0;  clip=1.0;  delta_exp=-5; use_dp=false ;; # no dp
     *) echo "Invalid job ID"; exit 1 ;;
 esac
@@ -62,8 +62,8 @@ cmd="python -m thesis_code.training.fine_tuning.finetune \
     --use-all-data-for-training \
     --max-epsilons 2.0 5.0 10.0 \
     --lambdas 5.0 \
-    --batch-size 2 \
-    --num-workers 4 \
+    --batch-size 4 \
+    --num-workers 14 \
     --device auto \
     --load-from-checkpoint ../checkpoints/pretrained/hagan-l5-1.ckpt \
     --val-every-n-steps 1000 \
