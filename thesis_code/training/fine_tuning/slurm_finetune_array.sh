@@ -3,7 +3,7 @@
 #SBATCH --output=slurm_finetune_dp_array-%A_%a.out
 #SBATCH --error=slurm_finetune_dp_array-%A_%a.err
 #SBATCH --array=2-2%1
-#SBATCH --gres=gpu:a100:1
+#SBATCH --gres=gpu:l40s:1
 #SBATCH --time=36:00:00
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
@@ -84,4 +84,4 @@ fi
 # Execute the command
 eval $cmd
 
-echo "End time: $(date)" 
+echo "End time: $(date)"
