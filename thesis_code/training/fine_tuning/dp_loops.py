@@ -436,27 +436,15 @@ def training_loop_until_epsilon(
                         batch=val_batch,
                         save_mris=i == 0,  # Only save MRIs for first batch
                     )
-
-            if (
-                state.training_stats.checkpoint_every_n_steps is not None
-                and step % state.training_stats.checkpoint_every_n_steps == 0
-            ):
-                checkpoint_dp_model(
-                    models,
-                    state,
-                    f"{checkpoint_path}/dp_model_step={state.training_stats.step}.pth",
-                )
-
-            # steps_since_last_check += 1
-            # if steps_since_last_check >= n_accountant_steps:
-            #     state.training_stats.current_epsilon = (
-            #         state.privacy_accountant.get_epsilon(state.delta, alphas=alphas)
-            #     )
-            #     steps_since_last_check = 0
             pbar.set_postfix_str(
                 f"Current epsilon: {state.training_stats.current_epsilon}"
             )
-
             pbar.update(1)
+
+    # Save checkpoint at final epsilon
+    checkpoint_name = f"dp_model_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.step}.pth"
+    checkpoint_path_full = Path(checkpoint_path) / checkpoint_name
+    print(f"Saving final checkpoint: {checkpoint_path_full}")
+    checkpoint_dp_model(models, state, str(checkpoint_path_full))
 
     return state
