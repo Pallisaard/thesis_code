@@ -110,6 +110,12 @@ def parse_args() -> argparse.Namespace:
         default=1,
         help="Number of steps between each privacy accountant check",
     )
+    parser.add_argument(
+        "--max-total-steps",
+        type=int,
+        default=None,
+        help="Maximum total number of steps across all epsilon targets. Training will stop when this is reached.",
+    )
     return parser.parse_args()
 
 
@@ -163,6 +169,8 @@ def check_args(args: argparse.Namespace) -> argparse.Namespace:
         print(
             "Warning: --max-steps will be ignored since --max-epsilons is set. Training will continue until all maximum epsilons are reached."
         )
+    if args.max_total_steps is not None and args.max_total_steps <= 0:
+        raise ValueError("--max-total-steps must be positive if specified")
 
     # Sort epsilons in ascending order to ensure we hit each target
     if args.max_epsilons is not None:
@@ -243,26 +251,30 @@ def main():
                 max_epsilon=target_epsilon,
                 checkpoint_path=args.checkpoint_path,
                 n_accountant_steps=args.n_accountant_steps,
+                max_steps=args.max_total_steps,  # Pass through max_steps
             )
 
             print(f"Reached epsilon: {state.training_stats.current_epsilon}")
 
-            # Save checkpoint with epsilon and steps in name
-            checkpoint_name = f"dp_model_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.global_step}.pth"
-            checkpoint_path_full = Path(checkpoint_path) / checkpoint_name
-            print(f"Saving checkpoint: {checkpoint_path_full}")
-            checkpoint_dp_model(
-                models,
-                state,
-                str(checkpoint_path_full),
-            )
+            # Check if we hit max steps during training
+            if (
+                args.max_total_steps is not None
+                and state.training_stats.step >= args.max_total_steps
+            ):
+                print(
+                    f"Reached maximum total steps ({args.max_total_steps}). Stopping training."
+                )
+                break
 
-        # print("Final checkpoint")
-        # checkpoint_dp_model(
-        #     models,
-        #     state,
-        #     f"{checkpoint_path}/dp_model_final_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.global_step}.pth",
-        # )
+            # # Save checkpoint with epsilon and steps in name
+            # checkpoint_name = f"dp_model_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.step}.pth"
+            # checkpoint_path_full = Path(checkpoint_path) / checkpoint_name
+            # print(f"Saving checkpoint: {checkpoint_path_full}")
+            # checkpoint_dp_model(
+            #     models,
+            #     state,
+            #     str(checkpoint_path_full),
+            # )
 
     else:
         print("Setting up non-DP training")

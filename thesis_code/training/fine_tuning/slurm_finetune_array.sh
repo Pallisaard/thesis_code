@@ -25,14 +25,14 @@ source .venv/bin/activate
 # no-dp                                          (baseline without DP)
 
 case $SLURM_ARRAY_TASK_ID in
-    0) noise=1.0;  clip=1.0;  delta_exp=-3; use_dp=true  ;; # baseline s-3
-    1) noise=1.0;  clip=1.0;  delta_exp=-5; use_dp=true  ;; # baseline s-5
-    2) noise=1.0;  clip=1.0;  delta_exp=-7; use_dp=true  ;; # baseline s-7
-    3) noise=0.75; clip=1.0;  delta_exp=-3; use_dp=true  ;; # lower noise
-    4) noise=1.5;  clip=1.0;  delta_exp=-3; use_dp=true  ;; # higher noise
-    5) noise=1.0;  clip=0.75; delta_exp=-3; use_dp=true  ;; # lower clip
-    6) noise=1.0;  clip=1.5;  delta_exp=-3; use_dp=true  ;; # higher clip
-    7) noise=1.0;  clip=1.0;  delta_exp=-5; use_dp=false ;; # no dp
+    1) noise=1.0;  clip=1.0;  delta_exp=-3; use_dp=true  ;; # baseline s-3
+    2) noise=1.0;  clip=1.0;  delta_exp=-5; use_dp=true  ;; # baseline s-5
+    3) noise=1.0;  clip=1.0;  delta_exp=-7; use_dp=true  ;; # baseline s-7
+    4) noise=0.75; clip=1.0;  delta_exp=-3; use_dp=true  ;; # lower noise
+    5) noise=1.5;  clip=1.0;  delta_exp=-3; use_dp=true  ;; # higher noise
+    6) noise=1.0;  clip=0.75; delta_exp=-3; use_dp=true  ;; # lower clip
+    7) noise=1.0;  clip=1.5;  delta_exp=-3; use_dp=true  ;; # higher clip
+    8) noise=1.0;  clip=1.0;  delta_exp=-5; use_dp=false ;; # no dp
     *) echo "Invalid job ID"; exit 1 ;;
 esac
 

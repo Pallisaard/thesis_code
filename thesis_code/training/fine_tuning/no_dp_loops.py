@@ -1,4 +1,5 @@
 from typing import Optional, Tuple
+from pathlib import Path
 
 import torch
 import torch.nn as nn
@@ -441,6 +442,7 @@ def training_loop_until_epsilon(
     alphas: Optional[list[float]] = None,
     checkpoint_path: str = "dp_training/checkpoints",
     n_accountant_steps: int = 1,
+    max_steps: Optional[int] = None,
 ) -> DPState:
     state.training_stats.current_epsilon = state.privacy_accountant.get_epsilon(
         state.delta, alphas=alphas
@@ -451,6 +453,17 @@ def training_loop_until_epsilon(
 
     with tqdm(desc="non-DP training progress.", dynamic_ncols=True, leave=True) as pbar:
         while state.training_stats.current_epsilon < max_epsilon:
+            # Check if we've hit max steps
+            if max_steps is not None and state.training_stats.step >= max_steps:
+                print(
+                    f"\nReached maximum total steps ({max_steps}). Stopping training."
+                )
+                checkpoint_name = f"no_dp_model_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.step}_max_steps_reached.pth"
+                checkpoint_path_full = Path(checkpoint_path) / checkpoint_name
+                print(f"Saving final checkpoint: {checkpoint_path_full}")
+                checkpoint_dp_model(models, state, str(checkpoint_path_full))
+                break
+
             try:
                 batch = next(data_iter)
             except StopIteration:
