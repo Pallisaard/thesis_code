@@ -237,6 +237,7 @@ def main():
             noise_multiplier=args.noise_multiplier,
             max_grad_norm=args.max_grad_norm,
             delta=args.delta,
+            alphas=args.alphas,
         )
 
         print("Starting DP training")

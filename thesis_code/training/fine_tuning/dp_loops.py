@@ -260,7 +260,7 @@ def dp_training_step(
         noise_multiplier=state.noise_multiplier, sample_rate=state.sample_rate
     )
     state.training_stats.train_metrics.epsilon.append(
-        state.privacy_accountant.get_epsilon(state.delta)
+        state.privacy_accountant.get_epsilon(state.delta, alphas=state.alphas)
     )
     state.training_stats.step += 1
 

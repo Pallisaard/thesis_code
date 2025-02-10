@@ -6,18 +6,14 @@ parameter_info = {"delta": [], "sigma": [], "c": [], "n_steps": [], "epsilon": [
 
 sample_rate = 4 / 428
 deltas = [1e-5]
-sigmas = [0.75, 1.5, 1.0]
-cs = [0.75, 1.5, 1.0]
-alphas = [1.1, 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000]
+sigmas = [1.0, 0.75, 1.5]
+cs = [1.0, 0.75, 1.5]
+alphas = None  #  = [1.1, 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000]
 
 setups = np.concatenate(
     (
-        np.array(
-            [[deltas[0] for i in range(2)], sigmas[0:2], [cs[2] for i in range(2)]]
-        ).T,
-        np.array(
-            [[deltas[0] for i in range(2)], [sigmas[2] for i in range(2)], cs[0:2]]
-        ).T,
+        np.array([[1e-5 for i in range(2)], sigmas[0:2], [1.0 for i in range(2)]]).T,
+        np.array([[1e-5 for i in range(2)], [1 for i in range(2)], cs[0:2]]).T,
     )
 )
 print("parameter setups:\n", setups)
@@ -84,5 +80,5 @@ print(parameter_info)
 
 # Convert dictionary to pandas DataFrame and save as CSV
 df = pd.DataFrame(parameter_info)
-df.to_csv("parameter_testing_results2.csv", index=False)
-print("\nResults saved to parameter_testing_results2.csv")
+# df.to_csv("parameter_testing_results2.csv", index=False)
+# print("\nResults saved to parameter_testing_results2.csv")
