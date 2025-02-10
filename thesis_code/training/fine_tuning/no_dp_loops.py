@@ -449,7 +449,7 @@ def training_loop_until_epsilon(
     )
 
     data_iter = iter(dataloaders.train)
-    steps_since_last_check = 0
+    # steps_since_last_check = 0
 
     with tqdm(desc="non-DP training progress.", dynamic_ncols=True, leave=True) as pbar:
         while state.training_stats.current_epsilon < max_epsilon:
@@ -503,15 +503,15 @@ def training_loop_until_epsilon(
                     f"{checkpoint_path}/no_dp_model_step={state.training_stats.step}.pth",
                 )
 
-            steps_since_last_check += 1
-            if steps_since_last_check >= n_accountant_steps:
-                state.training_stats.current_epsilon = (
-                    state.privacy_accountant.get_epsilon(state.delta, alphas=alphas)
-                )
-                steps_since_last_check = 0
-                pbar.set_postfix_str(
-                    f"Current epsilon: {state.training_stats.current_epsilon}"
-                )
+            # steps_since_last_check += 1
+            # if steps_since_last_check >= n_accountant_steps:
+            #     state.training_stats.current_epsilon = (
+            #         state.privacy_accountant.get_epsilon(state.delta, alphas=alphas)
+            #     )
+            #     steps_since_last_check = 0
+            pbar.set_postfix_str(
+                f"Current epsilon: {state.training_stats.current_epsilon}"
+            )
 
             pbar.update(1)
 

@@ -259,9 +259,9 @@ def dp_training_step(
     state.privacy_accountant.step(
         noise_multiplier=state.noise_multiplier, sample_rate=state.sample_rate
     )
-    state.training_stats.train_metrics.epsilon.append(
-        state.privacy_accountant.get_epsilon(state.delta, alphas=state.alphas)
-    )
+    new_epsilon = state.privacy_accountant.get_epsilon(state.delta, alphas=state.alphas)
+    state.training_stats.train_metrics.epsilon.append(new_epsilon)
+    state.training_stats.current_epsilon = new_epsilon
     state.training_stats.step += 1
 
     return state
@@ -389,7 +389,7 @@ def training_loop_until_epsilon(
 
     data_iter = iter(dataloaders.train)
     epoch = 0
-    steps_since_last_check = 0
+    # steps_since_last_check = 0
 
     with tqdm(desc="DP training progress.", dynamic_ncols=True, leave=True) as pbar:
         while state.training_stats.current_epsilon < max_epsilon:
@@ -447,15 +447,15 @@ def training_loop_until_epsilon(
                     f"{checkpoint_path}/dp_model_step={state.training_stats.step}.pth",
                 )
 
-            steps_since_last_check += 1
-            if steps_since_last_check >= n_accountant_steps:
-                state.training_stats.current_epsilon = (
-                    state.privacy_accountant.get_epsilon(state.delta, alphas=alphas)
-                )
-                steps_since_last_check = 0
-                pbar.set_postfix_str(
-                    f"Current epsilon: {state.training_stats.current_epsilon}"
-                )
+            # steps_since_last_check += 1
+            # if steps_since_last_check >= n_accountant_steps:
+            #     state.training_stats.current_epsilon = (
+            #         state.privacy_accountant.get_epsilon(state.delta, alphas=alphas)
+            #     )
+            #     steps_since_last_check = 0
+            pbar.set_postfix_str(
+                f"Current epsilon: {state.training_stats.current_epsilon}"
+            )
 
             pbar.update(1)
 
