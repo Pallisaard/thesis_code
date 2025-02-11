@@ -240,9 +240,9 @@ def no_dp_training_step(
     state.privacy_accountant.step(
         noise_multiplier=state.noise_multiplier, sample_rate=state.sample_rate
     )
-    state.training_stats.train_metrics.epsilon.append(
-        state.privacy_accountant.get_epsilon(state.delta)
-    )
+    new_epsilon = state.privacy_accountant.get_epsilon(state.delta, alphas=state.alphas)
+    state.training_stats.train_metrics.epsilon.append(new_epsilon)
+    state.training_stats.current_epsilon = new_epsilon
     state.training_stats.step += 1
 
     return state
