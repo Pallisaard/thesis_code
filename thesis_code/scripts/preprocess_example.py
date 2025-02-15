@@ -40,11 +40,11 @@ def parse_args():
 
 
 def get_transforms(
-    size: int, percent_outliers: float, remove_sero_slices: bool
+    size: int, percent_outliers: float, remove_zero_slices: bool
 ) -> Compose:
     return Compose(
         [
-            RemoveZeroZSlices() if remove_sero_slices else Identity(),
+            RemoveZeroZSlices() if remove_zero_slices else Identity(),
             Resize(size),
             RemovePercentOutliers(percent_outliers),
             RangeNormalize(target_min=-1, target_max=1),
