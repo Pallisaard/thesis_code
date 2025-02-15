@@ -86,6 +86,16 @@ if __name__ == "__main__":
             nii = nib.load(nii_path)  # type: ignore
             sample = torch.from_numpy(nii.get_fdata()).unsqueeze(0)  # type: ignore
 
+            zoom_factors = (
+                args.size / sample.shape[1],
+                args.size / sample.shape[2],
+                args.size / sample.shape[3],
+            )
+            scale_matrix = torch.diag(
+                [zoom_factors[0], zoom_factors[1], zoom_factors[2], 1]
+            )
+            new_affine = nii.affine @ scale_matrix
+
             # Apply the transforms
             print("Applying transforms...")
             transformed_sample = transforms(sample)
@@ -94,7 +104,7 @@ if __name__ == "__main__":
             print("Saving transformed NIfTI file...")
             transformed_nii = nib.Nifti1Image(  # type: ignore
                 transformed_sample.numpy().squeeze(0),
-                affine=nii.affine,  # type: ignore
+                affine=new_affine,  # type: ignore
             )
 
             nib.save(transformed_nii, out_file)  # type: ignore
