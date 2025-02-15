@@ -280,6 +280,16 @@ class LitHAGAN(L.LightningModule):
         # Read the paper, generator for subsampled MRIs
         return self.G.G_L(self.G.G_A(noise))
 
+    def safe_sample(self, num_samples: int) -> torch.Tensor:
+        print("Warning: safe_sample is deprecated, use sample instead.")
+        noise = torch.randn((num_samples, self.latent_dim), device=self.device)
+        out_list = []
+        for noise_slice in noise:
+            out = self.generate_from_noise(noise_slice.unsqueeze(0))
+            out_list.append(out)
+        out = torch.cat(out_list, dim=0)
+        return out
+
     def sample_large(self, num_samples: int) -> torch.Tensor:
         noise = torch.randn((num_samples, self.latent_dim), device=self.device)
         return self.G.G_H(self.G.G_A(noise))
