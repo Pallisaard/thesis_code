@@ -11,7 +11,7 @@ from thesis_code.dataloading.transforms import (
     RangeNormalize,
     Resize,
     RemovePercentOutliers,
-    RemoveZeroSlices,
+    RemoveZeroZSlices,
 )
 from tqdm import tqdm
 
@@ -43,7 +43,7 @@ def get_transforms(
 ) -> Compose:
     return Compose(
         [
-            RemoveZeroSlices() if remove_sero_slices else Identity(),
+            RemoveZeroZSlices() if remove_sero_slices else Identity(),
             Resize(size),
             RemovePercentOutliers(percent_outliers),
             RangeNormalize(target_min=-1, target_max=1),
