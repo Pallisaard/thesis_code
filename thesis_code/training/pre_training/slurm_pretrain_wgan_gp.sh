@@ -2,7 +2,7 @@
 #SBATCH --job-name=pretrain_wgan_gp
 #SBATCH --output=slurm_pretrain_wgan_gp-%j.out # Name of output file
 #SBATCH --error=slurm_pretrain_wgan_gp-%j.err # Name of error file
-#SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
+#SBATCH --gres=gpu:l40s:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
 #SBATCH --time=24:00:00    # Limit to 36 hours.
 #SBATCH --mem=32G        # Memory request

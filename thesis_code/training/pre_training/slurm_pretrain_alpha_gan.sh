@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=pretrain_kwon
-#SBATCH --output=slurm_pretrain_kwon-%j.out # Name of output file
-#SBATCH --error=slurm_pretrain_kwon-%j.err # Name of error file
-#SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
+#SBATCH --job-name=pretrain_alpha_gan
+#SBATCH --output=slurm_pretrain_alpha_gan-%j.out # Name of output file
+#SBATCH --error=slurm_pretrain_alpha_gan-%j.err # Name of error file
+#SBATCH --gres=gpu:l40s:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
 #SBATCH --time=24:00:00    # Limit to 36 hours.
 #SBATCH --mem=32G        # Memory request

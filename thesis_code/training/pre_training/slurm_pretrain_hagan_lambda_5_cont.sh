@@ -2,7 +2,7 @@
 #SBATCH --job-name=cont_pretrain_lambda_5_640k
 #SBATCH --output=slurm_cont_pretrain_lambda_5_640k-%j.out # Name of output file
 #SBATCH --error=slurm_cont_pretrain_lambda_5_640k-%j.err # Name of error file
-#SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
+#SBATCH --gres=gpu:l40s:1       # Request 4 GPU per job
 #SBATCH --time=1-12:00:00    # limit to 36 hours
 #SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
 #SBATCH --mem=16G        # Memory request
