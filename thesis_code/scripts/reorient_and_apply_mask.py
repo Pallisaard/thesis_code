@@ -36,7 +36,7 @@ def parse_args() -> argparse.Namespace:
         help="Path to the fastsurfer-output directory containing the masks.",
     )
     parser.add_argument(
-        "--use_splits", action="store_true", help="Use train, test, and val splits."
+        "--use-splits", action="store_true", help="Use train, test, and val splits."
     )
     # parser.add_argument("--size", type=int, default=256)
     # parser.add_argument("--percent-outliers", type=float, default=0.001)
