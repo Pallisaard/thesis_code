@@ -92,7 +92,8 @@ if __name__ == "__main__":
                 args.size / sample.shape[3],
             )
             scale_matrix = torch.diag(
-                [zoom_factors[0], zoom_factors[1], zoom_factors[2], 1]
+                torch.tensor([zoom_factors[0], zoom_factors[1], zoom_factors[2]]),
+                1,
             )
             new_affine = nii.affine @ scale_matrix
 
