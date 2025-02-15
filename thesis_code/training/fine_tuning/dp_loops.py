@@ -66,19 +66,19 @@ def setup_dp_training(
         generator.parameters(), lr=lr_g, betas=(0.0, 0.999), eps=1e-8
     )
     d_dpoptimizer = DPOptimizer(
-        optim.Adam(discriminator.parameters(), lr=lr_d, betas=(0.0, 0.999), eps=1e-8),
+        optim.SGD(discriminator.parameters(), lr=lr_d),
         expected_batch_size=batch_size,
         noise_multiplier=noise_multiplier,
         max_grad_norm=max_grad_norm,
     )
     e_dpoptimizer = DPOptimizer(
-        optim.Adam(encoder.parameters(), lr=lr_e, betas=(0.0, 0.999), eps=1e-8),
+        optim.SGD(encoder.parameters(), lr=lr_e),
         expected_batch_size=batch_size,
         noise_multiplier=noise_multiplier,
         max_grad_norm=max_grad_norm,
     )
     sub_e_dpoptimizer = DPOptimizer(
-        optim.Adam(sub_encoder.parameters(), lr=lr_e, betas=(0.0, 0.999), eps=1e-8),
+        optim.SGD(sub_encoder.parameters(), lr=lr_e),
         expected_batch_size=batch_size,
         noise_multiplier=noise_multiplier,
         max_grad_norm=max_grad_norm,
