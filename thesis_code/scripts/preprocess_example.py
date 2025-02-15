@@ -5,6 +5,7 @@ from argparse import ArgumentParser
 import nibabel as nib
 import numpy as np
 import torch
+from multiprocessing import Pool
 
 from thesis_code.dataloading.transforms import (
     Compose,
@@ -36,6 +37,12 @@ def parse_args():
     parser.add_argument(
         "--test", action="store_true", help="Run the test suite for this script"
     )
+    parser.add_argument(
+        "--n-workers",
+        type=int,
+        default=4,
+        help="Number of parallel workers for preprocessing",
+    )
     return parser.parse_args()
 
 
@@ -50,6 +57,43 @@ def get_transforms(
             RangeNormalize(target_min=-1, target_max=1),
         ]
     )
+
+
+def process_single_file(args_tuple):
+    nii_path, out_path, transforms, test = args_tuple
+    out_file = os.path.join(out_path, nii_path.name)
+
+    if test:
+        return
+
+    # Load the NIfTI file
+    nii = nib.load(nii_path)
+    sample = torch.from_numpy(nii.get_fdata()).unsqueeze(0)
+
+    zoom_factors = (
+        256 / sample.shape[1],
+        256 / sample.shape[2],
+        256 / sample.shape[3],
+    )
+    # Create a 4x4 identity matrix
+    scale_matrix = np.eye(4)
+    # Set the scaling factors in the first 3 diagonal elements
+    scale_matrix[0:3, 0:3] = np.diag(
+        [zoom_factors[0], zoom_factors[1], zoom_factors[2]]
+    )
+    new_affine = nii.affine @ scale_matrix
+
+    # Apply the transforms
+    transformed_sample = transforms(sample)
+
+    # Save the transformed NIfTI file
+    transformed_nii = nib.Nifti1Image(
+        transformed_sample.numpy().squeeze(0),
+        affine=new_affine,
+    )
+
+    nib.save(transformed_nii, out_file)
+    return nii_path.name
 
 
 if __name__ == "__main__":
@@ -73,42 +117,19 @@ if __name__ == "__main__":
         nii_files = list(Path(args.nii_path).glob("*.nii.gz"))
     else:
         nii_files = [Path(args.nii_path)]
-    file_names = [f.name for f in nii_files]
 
-    for nii_path, nii_name in tqdm(zip(nii_files, file_names), total=len(nii_files)):
-        print(f"Processing {nii_name}...")
-        out_file = os.path.join(args.out_path, nii_name)
+    # Prepare arguments for parallel processing
+    process_args = [
+        (nii_path, args.out_path, transforms, args.test) for nii_path in nii_files
+    ]
 
-        if args.test:
-            print(f"Test mode: not saving to {out_file}")
-
-        else:
-            # Load the NIfTI file
-            nii = nib.load(nii_path)  # type: ignore
-            sample = torch.from_numpy(nii.get_fdata()).unsqueeze(0)  # type: ignore
-
-            zoom_factors = (
-                args.size / sample.shape[1],
-                args.size / sample.shape[2],
-                args.size / sample.shape[3],
-            )
-            # Create a 4x4 identity matrix
-            scale_matrix = np.eye(4)
-            # Set the scaling factors in the first 3 diagonal elements
-            scale_matrix[0:3, 0:3] = np.diag(
-                [zoom_factors[0], zoom_factors[1], zoom_factors[2]]
-            )
-            new_affine = nii.affine @ scale_matrix
-
-            # Apply the transforms
-            print("Applying transforms...")
-            transformed_sample = transforms(sample)
-
-            # Save the transformed NIfTI file
-            print("Saving transformed NIfTI file...")
-            transformed_nii = nib.Nifti1Image(  # type: ignore
-                transformed_sample.numpy().squeeze(0),
-                affine=new_affine,  # type: ignore
-            )
-
-            nib.save(transformed_nii, out_file)  # type: ignore
+    # Create a pool of workers and process files in parallel
+    print(f"Processing {len(nii_files)} files using {args.n_workers} workers...")
+    with Pool(processes=args.n_workers) as pool:
+        for filename in tqdm(
+            pool.imap(process_single_file, process_args),
+            total=len(process_args),
+            desc="Processing files",
+        ):
+            if filename:  # Will be None for test mode
+                tqdm.write(f"Completed processing: {filename}")
