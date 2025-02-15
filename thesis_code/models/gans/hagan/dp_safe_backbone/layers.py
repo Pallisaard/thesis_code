@@ -1,77 +1,284 @@
-from typing import Tuple
+from typing import Dict, List
+from torch.nn import functional as F
 import torch
 import torch.nn as nn
-from torch.nn.utils import spectral_norm
 from opacus.grad_sample import register_grad_sampler
+from opacus.utils.tensor_utils import unfold3d
+import math
+import numpy as np
 
 
-# Spectral Normalized Linear Layer (DP Compatible)
-class SpectralNormLinear(nn.Linear):
+class CustomLinear(nn.Module):
     def __init__(self, in_features, out_features, bias=True):
-        super().__init__(in_features, out_features, bias)
-        spectral_norm(self)  # Apply spectral normalization to weights
+        super().__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+
+        # Initialize weight and bias
+        self.weight = nn.Parameter(torch.Tensor(out_features, in_features))
+        if bias:
+            self.bias = nn.Parameter(torch.Tensor(out_features))
+        else:
+            self.register_parameter("bias", None)
+
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        # Standard initialization as used in nn.Linear
+        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        if self.bias is not None:
+            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weight)
+            bound = 1 / math.sqrt(fan_in)
+            nn.init.uniform_(self.bias, -bound, bound)
+
+    def forward(self, x):
+        return F.linear(x, self.weight, self.bias)
 
 
-# Spectral Normalized Conv3D Layer (DP Compatible)
-class SpectralNormConv3d(nn.Conv3d):
+@register_grad_sampler(CustomLinear)
+def compute_linear_grad_sample(
+    layer: CustomLinear, activations: list[torch.Tensor], backprops: torch.Tensor
+) -> Dict[nn.Parameter, torch.Tensor]:
+    """
+    Compute per-sample gradients for the custom linear layer.
+
+    Args:
+        layer: CustomLinear instance
+        activations: Input activations (batch_size, in_features)
+        backprops: Backpropagated gradients (batch_size, out_features)
+    """
+    print(activations)
+    print(backprops)
+    activations = activations[0]
+    ret = {}
+    if layer.weight.requires_grad:
+        gs = torch.einsum("n...i,n...j->nij", backprops, activations)
+        ret[layer.weight] = gs
+    if layer.bias is not None and layer.bias.requires_grad:
+        ret[layer.bias] = torch.einsum("n...k->nk", backprops)
+    return ret
+
+
+class SpectralNormLinear(nn.Module):
+    def __init__(self, in_features, out_features, bias=True, num_power_iters=1):
+        super().__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.num_power_iters = num_power_iters
+
+        # These are trainable parameters
+        self.weight = nn.Parameter(torch.randn(out_features, in_features))
+        self.bias = nn.Parameter(torch.zeros(out_features)) if bias else None
+
+        # Initialize singular vectors for power iteration
+        # These are non-trainable buffers for power iteration
+        # self.register_buffer('u', torch.randn(out_features, 1))
+        # self.register_buffer('v', torch.randn(in_features, 1))
+        self.u = nn.Parameter(torch.randn(out_features, 1), requires_grad=False)
+        self.v = nn.Parameter(torch.randn(in_features, 1), requires_grad=False)
+
+    def _normalize_uv(self):
+        self.u.data = F.normalize(self.u.data, dim=0)
+        self.v.data = F.normalize(self.v.data, dim=0)
+
+    def _power_iteration(self):
+        """Apply power iteration to estimate the spectral norm."""
+        with torch.no_grad():
+            for _ in range(self.num_power_iters):
+                self.v.data = F.normalize(torch.matmul(self.weight.T, self.u), dim=0)
+                self.u.data = F.normalize(torch.matmul(self.weight, self.v), dim=0)
+
+    def forward(self, x):
+        self._power_iteration()
+        sigma_w = torch.matmul(self.u.T, torch.matmul(self.weight, self.v)).squeeze()
+        w_sn = self.weight / sigma_w
+        out = x @ w_sn.T
+        if self.bias is not None:
+            out += self.bias
+        return out
+
+
+@register_grad_sampler(SpectralNormLinear)
+def spectral_norm_linear_grad_sampler(
+    module: SpectralNormLinear, activations: list[torch.Tensor], backprops: torch.Tensor
+) -> Dict[nn.Parameter, torch.Tensor]:
+    """Computes per-sample gradients for SpectralNormLinear.
+
+    The gradient computation follows the chain rule for the spectral normalized weight:
+    W_sn = W/σ(W), where σ(W) is the spectral norm (largest singular value).
+
+    Args:
+        module: SpectralNormLinear instance containing weight W, and singular vectors u, v
+        activations: Input tensor x of shape (batch_size, in_features)
+        backprops: Gradient tensor dy/dout of shape (batch_size, out_features)
+    """
+    activations = activations[0]
+
+    # Compute spectral norm σ(W) = u^T W v
+    sigma_w = torch.matmul(module.u.T, torch.matmul(module.weight, module.v)).squeeze()
+
+    # Initialize return dictionary
+    per_sample_grads = {}
+
+    # Compute per-sample gradients for the weight:
+    # ∂L/∂W = (1/σ(W)) * (backprops ⊗ activations)
+    # where ⊗ is the outer product
+    # Compute per-sample gradients for the weight if it requires grad
+    if module.weight.requires_grad:
+        grad_weight = backprops.unsqueeze(2) * activations.unsqueeze(1)
+        grad_weight /= sigma_w
+        per_sample_grads[module.weight] = grad_weight
+
+    # Compute per-sample gradients for bias if it exists and requires grad
+    if module.bias is not None and module.bias.requires_grad:
+        per_sample_grads[module.bias] = backprops
+
+    return per_sample_grads
+
+
+class SpectralNormConv3d(nn.Module):
     def __init__(
         self,
         in_channels,
         out_channels,
         kernel_size,
-        stride: int | Tuple[int, int, int] = 1,
-        padding: int | Tuple[int, int, int] = 0,
+        stride=1,
+        padding=0,
+        dilation=1,
+        groups=1,
         bias=True,
+        num_power_iters=1,
     ):
-        super().__init__(
-            in_channels, out_channels, kernel_size, stride, padding, bias=bias
+        super().__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.kernel_size = (
+            kernel_size if isinstance(kernel_size, tuple) else (kernel_size,) * 3
         )
-        spectral_norm(self)  # Apply spectral normalization to weights
+        self.stride = stride if isinstance(stride, tuple) else (stride,) * 3
+        self.padding = padding if isinstance(padding, tuple) else (padding,) * 3
+        self.dilation = dilation if isinstance(dilation, tuple) else (dilation,) * 3
+        self.groups = groups
+        self.num_power_iters = num_power_iters
+
+        # Initialize weight and optional bias
+        self.weight = nn.Parameter(
+            torch.randn(out_channels, in_channels // groups, *self.kernel_size)
+        )
+        self.bias = nn.Parameter(torch.zeros(out_channels)) if bias else None
+
+        # Calculate weight matrix shape for power iteration
+        weight_matrix_shape = (
+            out_channels,
+            (in_channels // groups)
+            * self.kernel_size[0]
+            * self.kernel_size[1]
+            * self.kernel_size[2],
+        )
+
+        # Initialize singular vectors
+        # self.register_buffer('u', torch.randn(weight_matrix_shape[0], 1))
+        # self.register_buffer('v', torch.randn(weight_matrix_shape[1], 1))
+        self.u = nn.Parameter(
+            torch.randn(weight_matrix_shape[0], 1), requires_grad=False
+        )
+        self.v = nn.Parameter(
+            torch.randn(weight_matrix_shape[1], 1), requires_grad=False
+        )
+
+    def _reshape_weight_matrix(self):
+        """Reshape 5D weight tensor to 2D matrix for power iteration."""
+        weight_matrix = self.weight.reshape(self.weight.size(0), -1)
+        return weight_matrix
+
+    def _normalize_uv(self):
+        self.u.data = F.normalize(self.u.data, dim=0)
+        self.v.data = F.normalize(self.v.data, dim=0)
+
+    def _power_iteration(self):
+        """Apply power iteration to estimate the spectral norm."""
+        with torch.no_grad():
+            weight_matrix = self._reshape_weight_matrix()
+            for _ in range(self.num_power_iters):
+                # v = W^T u / ||W^T u||
+                self.v.data = F.normalize(torch.matmul(weight_matrix.T, self.u), dim=0)
+                # u = W v / ||W v||
+                self.u.data = F.normalize(torch.matmul(weight_matrix, self.v), dim=0)
+
+    def forward(self, x):
+        self._power_iteration()
+        weight_matrix = self._reshape_weight_matrix()
+
+        # Compute spectral norm
+        sigma_w = torch.matmul(self.u.T, torch.matmul(weight_matrix, self.v)).squeeze()
+
+        # Normalize weight tensor
+        w_sn = self.weight / sigma_w
+
+        # Apply convolution with normalized weights
+        out = F.conv3d(
+            x, w_sn, self.bias, self.stride, self.padding, self.dilation, self.groups
+        )
+        return out
 
 
-def register_dp_layers():
-    """Explicitly register DP-compatible layers with Opacus"""
+@register_grad_sampler(SpectralNormConv3d)
+def compute_conv_grad_sample(
+    layer: SpectralNormConv3d,
+    activations: List[torch.Tensor],
+    backprops: torch.Tensor,
+) -> Dict[nn.Parameter, torch.Tensor]:
+    """
+    Computes per sample gradients for convolutional layers.
 
-    @register_grad_sampler(SpectralNormLinear)
-    def grad_sampler_spectral_norm_linear(layer, activations, backprops):
-        ret = {layer.weight: torch.einsum("ni,nj->nij", backprops, activations)}
-        if layer.bias is not None:
-            ret[layer.bias] = torch.sum(backprops, dim=0)
+    Args:
+        layer: Layer
+        activations: Activations
+        backprops: Backpropagations
+    """
+    activations = activations[0]
+    n = activations.shape[0]
+    if n == 0:
+        # Empty batch
+        ret = {}
+        ret[layer.weight] = torch.zeros_like(layer.weight).unsqueeze(0)
+        if layer.bias is not None and layer.bias.requires_grad:
+            ret[layer.bias] = torch.zeros_like(layer.bias).unsqueeze(0)
         return ret
 
-    @register_grad_sampler(SpectralNormConv3d)
-    def grad_sampler_spectral_norm_conv3d(layer, activations, backprops):
-        # For Conv3d, activations shape: (n, c_in, d, h, w)
-        # backprops shape: (n, c_out, d_out, h_out, w_out)
-        n = activations.shape[0]
+    # Compute spectral norm
+    weight_matrix = layer.weight.reshape(layer.weight.size(0), -1)
+    sigma_w = torch.matmul(layer.u.T, torch.matmul(weight_matrix, layer.v)).squeeze()
 
-        # Unfold activations
-        activations_unf = torch.nn.functional.unfold(
-            activations.reshape(n * activations.shape[1], 1, *activations.shape[2:]),
-            kernel_size=layer.kernel_size,
-            padding=layer.padding,
-            stride=layer.stride,
+    activations = unfold3d(
+        activations,
+        kernel_size=layer.kernel_size,
+        padding=layer.padding,
+        stride=layer.stride,
+        dilation=layer.dilation,
+    )
+    backprops = backprops.reshape(n, -1, activations.shape[-1])
+
+    ret = {}
+    if layer.weight.requires_grad:
+        # n=batch_sz; o=num_out_channels; p=(num_in_channels/groups)*kernel_sz
+        grad_sample = torch.einsum("noq,npq->nop", backprops, activations)
+        # rearrange the above tensor and extract diagonals.
+        grad_sample = grad_sample.view(
+            n,
+            layer.groups,
+            -1,
+            layer.groups,
+            int(layer.in_channels / layer.groups),
+            np.prod(layer.kernel_size),
         )
-        activations_unf = activations_unf.reshape(
-            n, layer.in_channels, activations_unf.shape[-2], activations_unf.shape[-1]
-        )
 
-        # Reshape backprops
-        backprops_reshaped = backprops.reshape(n, layer.out_channels, -1)
+        grad_sample = torch.einsum("ngrg...->ngr...", grad_sample).contiguous()
+        shape = [n] + list(layer.weight.shape)
+        grad_sample = grad_sample / sigma_w
+        ret[layer.weight] = grad_sample.view(shape)
 
-        # Calculate weight gradients
-        ret = {
-            layer.weight: torch.einsum(
-                "nkm,nilm->ikl", backprops_reshaped, activations_unf
-            ).reshape(layer.weight.shape)
-        }
+    if layer.bias is not None and layer.bias.requires_grad:
+        ret[layer.bias] = torch.sum(backprops, dim=2)
 
-        # Add bias gradients if needed
-        if layer.bias is not None:
-            ret[layer.bias] = torch.sum(backprops_reshaped, dim=(0, 2))
-
-        return ret
-
-
-# Call the registration function immediately
-# register_dp_layers()
+    return ret
