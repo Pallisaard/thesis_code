@@ -40,7 +40,7 @@ def parse_args():
     parser.add_argument(
         "--n-workers",
         type=int,
-        default=4,
+        default=1,
         help="Number of parallel workers for preprocessing",
     )
     return parser.parse_args()
