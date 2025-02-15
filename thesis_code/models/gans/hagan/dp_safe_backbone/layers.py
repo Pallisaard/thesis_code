@@ -8,7 +8,7 @@ import math
 import numpy as np
 
 
-class CustomLinear(nn.Module):
+class SnLinear(nn.Module):
     def __init__(self, in_features, out_features, bias=True):
         super().__init__()
         self.in_features = in_features
@@ -35,9 +35,9 @@ class CustomLinear(nn.Module):
         return F.linear(x, self.weight, self.bias)
 
 
-@register_grad_sampler(CustomLinear)
+@register_grad_sampler(SnLinear)
 def compute_linear_grad_sample(
-    layer: CustomLinear, activations: list[torch.Tensor], backprops: torch.Tensor
+    layer: SnLinear, activations: list[torch.Tensor], backprops: torch.Tensor
 ) -> Dict[nn.Parameter, torch.Tensor]:
     """
     Compute per-sample gradients for the custom linear layer.
@@ -136,7 +136,7 @@ def spectral_norm_linear_grad_sampler(
     return per_sample_grads
 
 
-class SpectralNormConv3d(nn.Module):
+class SnConv3d(nn.Module):
     def __init__(
         self,
         in_channels,
@@ -222,9 +222,9 @@ class SpectralNormConv3d(nn.Module):
         return out
 
 
-@register_grad_sampler(SpectralNormConv3d)
+@register_grad_sampler(SnConv3d)
 def compute_conv_grad_sample(
-    layer: SpectralNormConv3d,
+    layer: SnConv3d,
     activations: List[torch.Tensor],
     backprops: torch.Tensor,
 ) -> Dict[nn.Parameter, torch.Tensor]:

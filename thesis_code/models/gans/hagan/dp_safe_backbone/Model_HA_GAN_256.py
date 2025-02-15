@@ -2,6 +2,7 @@ from typing import Tuple
 import torch
 from torch import nn
 from torch.nn import functional as F
+from .layers import SnLinear, SnConv3d
 
 
 class Code_Discriminator(nn.Module):
@@ -9,12 +10,12 @@ class Code_Discriminator(nn.Module):
         super(Code_Discriminator, self).__init__()
 
         self.l1 = nn.Sequential(
-            nn.Linear(code_size, num_units), nn.LeakyReLU(0.2, inplace=True)
+            SnLinear(code_size, num_units), nn.LeakyReLU(0.2, inplace=True)
         )
         self.l2 = nn.Sequential(
-            nn.Linear(num_units, num_units), nn.LeakyReLU(0.2, inplace=True)
+            SnLinear(num_units, num_units), nn.LeakyReLU(0.2, inplace=True)
         )
-        self.l3 = nn.Linear(num_units, 1)
+        self.l3 = SnLinear(num_units, 1)
 
     def forward(self, x):
         x = self.l1(x)
@@ -98,19 +99,19 @@ class Sub_Discriminator(nn.Module):
         super(Sub_Discriminator, self).__init__()
         self.channel = channel
 
-        self.conv1 = nn.Conv3d(
+        self.conv1 = SnConv3d(
             1, channel // 8, kernel_size=4, stride=2, padding=1
         )  # in:[64,64,64], out:[32,32,32]
-        self.conv2 = nn.Conv3d(
+        self.conv2 = SnConv3d(
             channel // 8, channel // 4, kernel_size=4, stride=2, padding=1
         )  # out:[16,16,16]
-        self.conv3 = nn.Conv3d(
+        self.conv3 = SnConv3d(
             channel // 4, channel // 2, kernel_size=4, stride=2, padding=1
         )  # out:[8,8,8]
-        self.conv4 = nn.Conv3d(
+        self.conv4 = SnConv3d(
             channel // 2, channel, kernel_size=4, stride=2, padding=1
         )  # out:[4,4,4]
-        self.conv5 = nn.Conv3d(
+        self.conv5 = SnConv3d(
             channel, 1, kernel_size=4, stride=1, padding=0
         )  # out:[1,1,1,1]
 
@@ -129,41 +130,41 @@ class Discriminator(nn.Module):
         self.channel = channel
 
         # D^H
-        self.conv1 = nn.Conv3d(
+        self.conv1 = SnConv3d(
             1, channel // 32, kernel_size=4, stride=2, padding=1
         )  # in:[32,256,256], out:[16,128,128]
-        self.conv2 = nn.Conv3d(
+        self.conv2 = SnConv3d(
             channel // 32, channel // 16, kernel_size=4, stride=2, padding=1
         )  # out:[8,64,64,64]
-        self.conv3 = nn.Conv3d(
+        self.conv3 = SnConv3d(
             channel // 16, channel // 8, kernel_size=4, stride=2, padding=1
         )  # out:[4,32,32,32]
-        self.conv4 = nn.Conv3d(
+        self.conv4 = SnConv3d(
             channel // 8,
             channel // 4,
             kernel_size=(2, 4, 4),
             stride=(2, 2, 2),
             padding=(0, 1, 1),
         )  # out:[2,16,16,16]
-        self.conv5 = nn.Conv3d(
+        self.conv5 = SnConv3d(
             channel // 4,
             channel // 2,
             kernel_size=(2, 4, 4),
             stride=(2, 2, 2),
             padding=(0, 1, 1),
         )  # out:[1,8,8,8]
-        self.conv6 = nn.Conv3d(
+        self.conv6 = SnConv3d(
             channel // 2,
             channel,
             kernel_size=(1, 4, 4),
             stride=(1, 2, 2),
             padding=(0, 1, 1),
         )  # out:[1,4,4,4]
-        self.conv7 = nn.Conv3d(
+        self.conv7 = SnConv3d(
             channel, channel // 4, kernel_size=(1, 4, 4), stride=1, padding=0
         )  # out:[1,1,1,1]
-        self.fc1 = nn.Linear(channel // 4 + 1, channel // 8)
-        self.fc2 = nn.Linear(channel // 8, 1)
+        self.fc1 = SnLinear(channel // 4 + 1, channel // 8)
+        self.fc2 = SnLinear(channel // 8, 1)
 
         # D^L
         self.sub_D = Sub_Discriminator()
