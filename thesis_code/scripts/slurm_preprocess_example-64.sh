@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=preprocess_example
-#SBATCH --output=slurm_preprocess_example_%A_%a.out
-#SBATCH --error=slurm_preprocess_example_%A_%a.err
+#SBATCH --job-name=preprocess-example-64
+#SBATCH --output=slurm_preprocess-example-64_%A_%a.out
+#SBATCH --error=slurm_preprocess-example-64_%A_%a.err
 #SBATCH --time=05:00:00
 #SBATCH --array=1-3%3   # Array job for 2740 MRI files, limit to 5 jobs running at once
 #SBATCH --cpus-per-task=2  # Number of CPUs for each task
@@ -29,7 +29,7 @@ fi
 
 echo "dir: "$dir
 
-preprocess_dir="../data/pre-training/brain-masked-zerosliced/"$dir
+preprocess_dir="../data/pre-training/brain-masked-zerosliced-64/"$dir
 
 echo "preprocess_dir: " $preprocess_dir
 
@@ -38,4 +38,4 @@ python -m thesis_code.scripts.preprocess_example --nii-path $preprocess_dir \
     --preprocess-folder \
     --percent-outliers 0.999 \
     --remove-zero-slice \
-    --size 256
+    --size 64
