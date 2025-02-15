@@ -92,9 +92,11 @@ if __name__ == "__main__":
                 args.size / sample.shape[2],
                 args.size / sample.shape[3],
             )
-            scale_matrix = np.diag(
-                [zoom_factors[0], zoom_factors[1], zoom_factors[2]],
-                1,
+            # Create a 4x4 identity matrix
+            scale_matrix = np.eye(4)
+            # Set the scaling factors in the first 3 diagonal elements
+            scale_matrix[0:3, 0:3] = np.diag(
+                [zoom_factors[0], zoom_factors[1], zoom_factors[2]]
             )
             new_affine = nii.affine @ scale_matrix
 
