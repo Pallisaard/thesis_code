@@ -3,6 +3,7 @@ from pathlib import Path
 
 from argparse import ArgumentParser
 import nibabel as nib
+import numpy as np
 import torch
 
 from thesis_code.dataloading.transforms import (
@@ -91,8 +92,8 @@ if __name__ == "__main__":
                 args.size / sample.shape[2],
                 args.size / sample.shape[3],
             )
-            scale_matrix = torch.diag(
-                torch.tensor([zoom_factors[0], zoom_factors[1], zoom_factors[2]]),
+            scale_matrix = np.diag(
+                [zoom_factors[0], zoom_factors[1], zoom_factors[2]],
                 1,
             )
             new_affine = nii.affine @ scale_matrix
