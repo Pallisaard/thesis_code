@@ -97,8 +97,8 @@ class RemoveZeroZSlices(MRITransform):
             raise ValueError("Input sample must be a 3D tensor")
 
         # Only remove slices along the depth/Z axis (axis 1)
-        mask_depth = (sample != 0).any(dim=(0, 2, 3))
-        sample = sample[:, mask_depth, :, :]
+        mask_depth = (sample != 0).any(dim=(0, 1, 2))
+        sample = sample[:, :, :, mask_depth]
 
         return sample
 
@@ -183,6 +183,10 @@ def normalize_to_0_1(array: np.ndarray) -> np.ndarray:
 def normalize_to(array: np.ndarray, target_min: float, target_max: float) -> np.ndarray:
     min_val = array.min()
     max_val = array.max()
+
+    if array.shape[0] == 1:
+        # Stack arrays along the first dimension such that array.shape[0] == 2
+        array = np.concatenate([array, array], axis=0)
 
     if min_val == max_val:
         raise ValueError("Input array has no intensity variation")
