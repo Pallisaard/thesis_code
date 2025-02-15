@@ -324,8 +324,8 @@ def compute_d_loss(
 ) -> torch.Tensor:
     y_real_pred = D(real_images_crop, real_images_small, crop_idx)
     d_real_loss = bce_loss(y_real_pred, real_labels)
-    fake_images, fake_images_small = G(noise, crop_idx=crop_idx)
-    y_fake_pred = D(fake_images.detach(), fake_images_small.detach(), crop_idx)
+    fake_images_crop, fake_images_small = G(noise, crop_idx=crop_idx)
+    y_fake_pred = D(fake_images_crop.detach(), fake_images_small.detach(), crop_idx)
     d_fake_loss = bce_loss(y_fake_pred, fake_labels)
     d_loss = d_real_loss + d_fake_loss
     return d_loss
