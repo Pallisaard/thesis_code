@@ -2,6 +2,8 @@ import argparse
 import numpy as np
 import nibabel as nib
 from pathlib import Path
+from nilearn import image
+from nilearn.datasets import load_mni152_template
 
 
 def reorient_nii_to_ras(nii, orientation: str = "RAS"):
@@ -11,7 +13,6 @@ def reorient_nii_to_ras(nii, orientation: str = "RAS"):
     orientation_tuple = tuple(letter for letter in orientation)
 
     # Desired RAS+ orientation
-    # ras_ornt = nib.orientations.axcodes2ornt(("R", "A", "S"))
     new_ornt = nib.orientations.axcodes2ornt(orientation_tuple)
 
     # Get the orientation of the image in matrix form
@@ -32,11 +33,25 @@ def reorient_nii_to_ras(nii, orientation: str = "RAS"):
     return reoriented_nii
 
 
+def resample_to_talairach(nii):
+    """
+    Resample the input NIfTI image to Talairach space using the MNI152 template.
+    """
+    # Load the MNI152 template (a modern alternative to Talairach space)
+    template = load_mni152_template()
+
+    # Resample the input image to the template space
+    resampled_nii = image.resample_to_img(nii, template)
+
+    return resampled_nii
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Reorient a NIfTI file to RAS+ orientation.\n\n"
+        description="Reorient a NIfTI file to RAS+ orientation and resample to Talairach space.\n\n"
         "This script takes a NIfTI file as input, reorients it to RAS+ orientation, "
-        "and saves the reoriented file with a .nii.gz extension.\n\n"
+        "resamples it to Talairach space (using the MNI152 template), and saves the "
+        "reoriented and resampled file with a .nii.gz extension.\n\n"
         "Example usage:\n"
         "  python reorient_nii.py input_file.nii.gz\n"
         "This will produce a file named input_file_reoriented.nii.gz in the same directory."
@@ -52,11 +67,23 @@ if __name__ == "__main__":
     # For a single .nii.gz file
     nii_path = Path(args.input_path)
     nii = nib.load(nii_path)  # type: ignore
-    # Print previous orientation
+
+    # Print original orientation
     print(f"Original orientation: {nib.orientations.aff2axcodes(nii.affine)}")  # type: ignore
+
+    # Reorient to RAS+
     reoriented_nii = reorient_nii_to_ras(nii)
+
+    # Resample to Talairach space (MNI152 template)
+    resampled_nii = resample_to_talairach(reoriented_nii)
+
     # Print new orientation
-    print(f"Original orientation: {nib.orientations.aff2axcodes(nii.affine)}")  # type: ignore
-    # Replace the extension of the input file with .nii.gz
-    output_path = args.input_path.replace(".mgz", ".nii.gz")
-    nib.save(reoriented_nii, output_path)  # type: ignore
+    print(
+        f"New orientation after resampling: {nib.orientations.aff2axcodes(resampled_nii.affine)}"
+    )  # type: ignore
+
+    # Replace the extension of the input file with _reoriented_resampled.nii.gz
+    output_path = args.input_path.replace(".nii.gz", "_reoriented_resampled.nii.gz")
+    nib.save(resampled_nii, output_path)  # type: ignore
+
+    print(f"Reoriented and resampled image saved to: {output_path}")
