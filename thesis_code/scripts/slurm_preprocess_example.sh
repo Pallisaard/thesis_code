@@ -32,7 +32,7 @@ fi
 
 echo "dir: "$dir
 
-preprocess_dir="../data/pre-training/brain-masked-zerosliced-new/"$dir
+preprocess_dir="../data/pre-training/brain-masked-zerosliced-resampled/"$dir
 
 echo "preprocess_dir: " $preprocess_dir
 
