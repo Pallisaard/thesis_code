@@ -69,10 +69,12 @@ def process_single_file(nii_file, category_dest_dir, fastsurfer_output_dir):
         # Load the original T1w mri
         original_mri = nib.load(nii_file)  # type: ignore
 
-        masked_mri = apply_mask_to_mri(mask_img, original_mri)
+        # Reorient the mask and mri to RAS+
+        reoriented_mask = reorient_nii_to_ras(mask_img)
+        reoriented_mri = reorient_nii_to_ras(original_mri)
 
-        # Reorient the masked mri to RAS+
-        reoriented_masked_mri = reorient_nii_to_ras(masked_mri)
+        reoriented_masked_mri = apply_mask_to_mri(reoriented_mask, reoriented_mri)
+
         # Resample the reoriented masked mri to Talairach space
         resampled_masked_mri = resample_to_talairach(reoriented_masked_mri)
 
