@@ -2,6 +2,8 @@ from pathlib import Path
 import nibabel as nib
 import argparse
 from tqdm import tqdm
+import multiprocessing as mp
+from functools import partial
 
 from thesis_code.scripts.reorient_nii import reorient_nii_to_ras, resample_to_talairach
 
@@ -28,6 +30,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--use-splits", action="store_true", help="Use train, test, and val splits."
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=8,
+        help="Number of worker processes for parallel processing.",
+    )
     return parser.parse_args()
 
 
@@ -36,6 +44,44 @@ def apply_mask_to_mri(mask_img, original_mri):
     original_mri_data = original_mri.get_fdata()  # type: ignore
     masked_mri_data = original_mri_data * mask_data
     return nib.Nifti1Image(masked_mri_data, original_mri.affine)  # type: ignore
+
+
+def process_single_file(nii_file, category_dest_dir, fastsurfer_output_dir):
+    try:
+        # Extract the filename without extension
+        nii_file_stem = nii_file.stem.replace(".nii", "")
+
+        # Construct the path to the mask.mgz file
+        mask_path: Path = fastsurfer_output_dir / nii_file_stem / "mri" / "mask.mgz"
+
+        # Construct the destination path
+        dest_path: Path = category_dest_dir / f"{nii_file_stem}_masked.nii.gz"
+
+        if dest_path.exists():
+            return f"Mask already exists: {dest_path}"
+
+        # Check if the mask file exists
+        if not mask_path.exists():
+            raise FileNotFoundError(f"Mask file not found: {mask_path}")
+
+        # Load the mask.mgz file using nibabel
+        mask_img = nib.load(mask_path)  # type: ignore
+        # Load the original T1w mri
+        original_mri = nib.load(nii_file)  # type: ignore
+
+        masked_mri = apply_mask_to_mri(mask_img, original_mri)
+
+        # Reorient the masked mri to RAS+
+        reoriented_masked_mri = reorient_nii_to_ras(masked_mri)
+        # Resample the reoriented masked mri to Talairach space
+        resampled_masked_mri = resample_to_talairach(reoriented_masked_mri)
+
+        # Save the loaded mask to the destination path in .nii.gz format
+        nib.save(resampled_masked_mri, str(dest_path))  # type: ignore
+
+        return f"Successfully processed: {nii_file_stem}"
+    except Exception as e:
+        return f"Error processing {nii_file}: {str(e)}"
 
 
 if __name__ == "__main__":
@@ -62,6 +108,9 @@ if __name__ == "__main__":
             "test": data_dir / "test",
             "val": data_dir / "val",
         }
+        for dir_name in ["train", "test", "val"]:
+            if not (data_dir / dir_name).exists():
+                raise FileNotFoundError(f"{dir_name} directory not found in {data_dir}")
     else:
         source_dirs = {"all": data_dir}
 
@@ -81,39 +130,24 @@ if __name__ == "__main__":
         # Get generator of all .nii files in the source directory
         mask_paths = list(source_dir.glob("*.nii.gz"))
 
-        # Iterate through each file in the source directory
-        for nii_file in tqdm(mask_paths, desc=f"Processing {category}", leave=False):
-            # Extract the filename without extension
-            nii_file_stem = nii_file.stem.replace(".nii", "")
+        # Create a partial function with fixed arguments
+        process_func = partial(
+            process_single_file,
+            category_dest_dir=category_dest_dir,
+            fastsurfer_output_dir=fastsurfer_output_dir,
+        )
 
-            # Construct the path to the mask.mgz file
-            mask_path: Path = fastsurfer_output_dir / nii_file_stem / "mri" / "mask.mgz"
+        # Process files in parallel
+        with mp.Pool(processes=args.workers) as pool:
+            results = list(
+                tqdm(
+                    pool.imap(process_func, mask_paths),
+                    total=len(mask_paths),
+                    desc=f"Processing {category}",
+                )
+            )
 
-            # Check if the mask file exists
-            if not mask_path.exists():
-                print(f"Mask file not found: {mask_path}")
-                raise FileNotFoundError(f"Mask file not found: {mask_path}")
-
-            # Construct the destination path
-            dest_path: Path = category_dest_dir / f"{nii_file_stem}_masked.nii.gz"
-
-            if dest_path.exists():
-                print(f"Mask already exists: {dest_path}")
-                continue
-
-            # Load the mask.mgz file using nibabel
-            mask_img = nib.load(mask_path)  # type: ignore
-            # Load the original T1w mri
-            original_mri = nib.load(nii_file)  # type: ignore
-
-            masked_mri = apply_mask_to_mri(mask_img, original_mri)
-
-            # Reorient the masked mri to RAS+
-            reoriented_masked_mri = reorient_nii_to_ras(masked_mri)
-            # Resample the reoriented masked mri to Talairach space
-            resampled_masked_mri = resample_to_talairach(reoriented_masked_mri)
-
-            # Save the loaded mask to the destination path in .nii.gz format
-            nib.save(resampled_masked_mri, str(dest_path))  # type: ignore
-
-            # print(f"Saved mask to: {dest_path}")
+        # Print any errors that occurred during processing
+        for result in results:
+            if result.startswith("Error"):
+                print(result)
