@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=apply_mask_to_mris
-#SBATCH --output=slurm_apply_mask_to_mris-%j.out # Name of output file
-#SBATCH --error=slurm_apply_mask_to_mris-%j.err # Name of error file
+#SBATCH --job-name=dirty_fix
+#SBATCH --output=dirty_fix-%j.out # Name of output file
+#SBATCH --error=dirty_fix-%j.err # Name of error file
 #SBATCH --time=03:00:00
 #SBATCH --cpus-per-task=2  # Number of CPUs for each gpu
 #SBATCH --mem=8G          # Memory request
