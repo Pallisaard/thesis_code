@@ -63,37 +63,42 @@ def process_single_file(args_tuple):
     nii_path, out_path, transforms, test = args_tuple
     out_file = os.path.join(out_path, nii_path.name)
 
-    if test:
-        return
+    try:
+        if test:
+            return
 
-    # Load the NIfTI file
-    nii = nib.load(nii_path)
-    sample = torch.from_numpy(nii.get_fdata()).unsqueeze(0)
+        # Load the NIfTI file
+        nii = nib.load(nii_path)
+        sample = torch.from_numpy(nii.get_fdata()).unsqueeze(0)
 
-    zoom_factors = (
-        256 / sample.shape[1],
-        256 / sample.shape[2],
-        256 / sample.shape[3],
-    )
-    # Create a 4x4 identity matrix
-    scale_matrix = np.eye(4)
-    # Set the scaling factors in the first 3 diagonal elements
-    scale_matrix[0:3, 0:3] = np.diag(
-        [zoom_factors[0], zoom_factors[1], zoom_factors[2]]
-    )
-    new_affine = nii.affine @ scale_matrix
+        zoom_factors = (
+            256 / sample.shape[1],
+            256 / sample.shape[2],
+            256 / sample.shape[3],
+        )
+        # Create a 4x4 identity matrix
+        scale_matrix = np.eye(4)
+        # Set the scaling factors in the first 3 diagonal elements
+        scale_matrix[0:3, 0:3] = np.diag(
+            [zoom_factors[0], zoom_factors[1], zoom_factors[2]]
+        )
+        new_affine = nii.affine @ scale_matrix
 
-    # Apply the transforms
-    transformed_sample = transforms(sample)
+        # Apply the transforms
+        transformed_sample = transforms(sample)
 
-    # Save the transformed NIfTI file
-    transformed_nii = nib.Nifti1Image(
-        transformed_sample.numpy().squeeze(0),
-        affine=new_affine,
-    )
+        # Save the transformed NIfTI file
+        transformed_nii = nib.Nifti1Image(
+            transformed_sample.numpy().squeeze(0),
+            affine=new_affine,
+        )
 
-    nib.save(transformed_nii, out_file)
-    return nii_path.name
+        nib.save(transformed_nii, out_file)
+        return {"status": "success", "filename": nii_path.name}
+
+    except Exception as e:
+        error_msg = f"Error processing {nii_path.name}: {str(e)}"
+        return {"status": "error", "filename": nii_path.name, "error": error_msg}
 
 
 if __name__ == "__main__":
@@ -125,11 +130,22 @@ if __name__ == "__main__":
 
     # Create a pool of workers and process files in parallel
     print(f"Processing {len(nii_files)} files using {args.n_workers} workers...")
+    errors = []
     with Pool(processes=args.n_workers) as pool:
-        for filename in tqdm(
+        for result in tqdm(
             pool.imap(process_single_file, process_args),
             total=len(process_args),
             desc="Processing files",
         ):
-            if filename:  # Will be None for test mode
-                tqdm.write(f"Completed processing: {filename}")
+            if result:  # Will be None for test mode
+                if result["status"] == "success":
+                    tqdm.write(f"Completed processing: {result['filename']}")
+                else:
+                    tqdm.write(result["error"])
+                    errors.append(result["error"])
+
+    if errors:
+        print("\nErrors occurred during processing:")
+        for error in errors:
+            print(f"- {error}")
+        print(f"\nTotal errors: {len(errors)} out of {len(nii_files)} files")
