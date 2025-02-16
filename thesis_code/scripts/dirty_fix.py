@@ -20,7 +20,7 @@ def process_nifti_file(file_path: Path) -> None:
     data = nii.get_fdata().astype(np.float32)
 
     # Apply the threshold operation
-    data[data < 1e-4] = 0.0
+    data[data < 1e-3] = 0.0
 
     # Create a new NIfTI image with the modified data
     new_nii = nib.Nifti1Image(data, nii.affine, nii.header)
