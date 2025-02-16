@@ -21,10 +21,10 @@ if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
     n_workers=8
 elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
     dir="val"
-    n_workers=8
+    n_workers=2
 elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
     dir="test"
-    n_workers=8
+    n_workers=2
 else
     echo "Invalid SLURM_ARRAY_TASK_ID"
     exit
