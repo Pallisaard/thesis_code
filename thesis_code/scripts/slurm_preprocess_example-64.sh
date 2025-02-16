@@ -2,7 +2,7 @@
 #SBATCH --job-name=preprocess-example-64
 #SBATCH --output=slurm_preprocess-example-64_%A_%a.out
 #SBATCH --error=slurm_preprocess-example-64_%A_%a.err
-#SBATCH --time=0:10:00
+#SBATCH --time=0:15:00
 #SBATCH --array=1-3%3   # Array job for 2740 MRI files, limit to 5 jobs running at once
 #SBATCH --cpus-per-task=10  # Number of CPUs for each task
 #SBATCH --mem=12G
