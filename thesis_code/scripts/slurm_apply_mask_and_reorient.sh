@@ -11,7 +11,7 @@ cd ~/projects/thesis/thesis-code/
 
 source .venv/bin/activate
 
-python -m thesis_code.scripts.reorient_and_apply_mask --data-dir ../data/pre-training/not-brain-masked/ --output-dir ../data/pre-training/brain-masked-process-ready/ --fastsurfer-output-dir ../fastsurfer-output/pre-training/ --use-splits
+python -m thesis_code.scripts.reorient_and_apply_mask --data-dir ../data/pre-training/not-brain-masked/ --output-dir ../data/pre-training/brain-masked-process-ready-resampled/ --fastsurfer-output-dir ../fastsurfer-output/pre-training/ --use-splits
 
 
 # --percent-outliers 0.005
