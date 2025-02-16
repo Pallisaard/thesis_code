@@ -41,7 +41,9 @@ def resample_to_talairach(nii):
     template = load_mni152_template()
 
     # Resample the input image to the template space
-    resampled_nii = image.resample_to_img(nii, template)
+    resampled_nii = image.resample_to_img(
+        nii, template, force_resample=True, copy_header=True
+    )
 
     return resampled_nii
 
