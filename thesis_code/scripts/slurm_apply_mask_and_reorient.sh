@@ -2,7 +2,7 @@
 #SBATCH --job-name=apply_mask_to_mris
 #SBATCH --output=slurm_apply_mask_to_mris-%j.out # Name of output file
 #SBATCH --error=slurm_apply_mask_to_mris-%j.err # Name of error file
-#SBATCH --time=01:00:00
+#SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=10  # Number of CPUs for each gpu
 #SBATCH --mem=32G          # Memory request
 # #SBATCH --mail-type=ALL    # Mail events (NONE, BEGIN, END, FAIL, ALL)
