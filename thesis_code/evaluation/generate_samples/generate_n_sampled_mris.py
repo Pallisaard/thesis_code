@@ -8,7 +8,6 @@ import numpy as np
 import tqdm
 import lightning as L
 
-from thesis_code.dataloading.transforms import normalize_to
 from thesis_code.metrics.utils import get_mri_vectorizer
 from thesis_code.models.gans import LitHAGAN
 from thesis_code.training.utils import numpy_to_nifti
@@ -197,7 +196,7 @@ def main():
                 # Save MRI NIfTI sample
                 sample_i = sample[i, 0]
                 sample[i, 0] = sample_i
-                
+
                 if not args.skip_mri_save:
                     sample_mri = numpy_to_nifti(sample_i)
                     nib.save(sample_mri, f"{args.output_dir}/sample_{sample_id}.nii.gz")  # type: ignore
