@@ -1,19 +1,9 @@
-import os
 from pathlib import Path
-from typing import Optional
 import nibabel as nib
 import argparse
 from tqdm import tqdm
 
-from thesis_code.scripts.reorient_nii import reorient_nii_to_ras
-from thesis_code.dataloading.transforms import (
-    MRITransform,
-    Compose,
-    RangeNormalize,
-    Resize,
-    RemovePercentOutliers,
-    RemoveZeroSlices,
-)
+from thesis_code.scripts.reorient_nii import reorient_nii_to_ras, resample_to_talairach
 
 
 def parse_args() -> argparse.Namespace:
@@ -36,20 +26,15 @@ def parse_args() -> argparse.Namespace:
         help="Path to the fastsurfer-output directory containing the masks.",
     )
     parser.add_argument(
-        "--use_splits", action="store_true", help="Use train, test, and val splits."
+        "--use-splits", action="store_true", help="Use train, test, and val splits."
     )
-    # parser.add_argument("--size", type=int, default=256)
-    # parser.add_argument("--percent-outliers", type=float, default=0.001)
     return parser.parse_args()
 
 
-def apply_mask_to_mri(mask_img, original_mri, transforms: Optional[MRITransform]):
-    reoriented_mask_img = reorient_nii_to_ras(mask_img)
-    reoriented_mask_data = reoriented_mask_img.get_fdata()
+def apply_mask_to_mri(mask_img, original_mri):
+    mask_data = mask_img.get_fdata()
     original_mri_data = original_mri.get_fdata()  # type: ignore
-    masked_mri_data = original_mri_data * reoriented_mask_data
-    if transforms is not None:
-        masked_mri_data = transforms.transform_np(masked_mri_data)
+    masked_mri_data = original_mri_data * mask_data
     return nib.Nifti1Image(masked_mri_data, original_mri.affine)  # type: ignore
 
 
@@ -121,10 +106,14 @@ if __name__ == "__main__":
             # Load the original T1w mri
             original_mri = nib.load(nii_file)  # type: ignore
 
-            masked_mri = apply_mask_to_mri(mask_img, original_mri, transforms=None)
+            masked_mri = apply_mask_to_mri(mask_img, original_mri)
+
+            # Reorient the masked mri to RAS+
             reoriented_masked_mri = reorient_nii_to_ras(masked_mri)
+            # Resample the reoriented masked mri to Talairach space
+            resampled_masked_mri = resample_to_talairach(reoriented_masked_mri)
 
             # Save the loaded mask to the destination path in .nii.gz format
-            nib.save(reoriented_masked_mri, str(dest_path))  # type: ignore
+            nib.save(resampled_masked_mri, str(dest_path))  # type: ignore
 
             # print(f"Saved mask to: {dest_path}")
