@@ -9,7 +9,6 @@
 #SBATCH --mem=32G
 #SBATCH --mail-type=END
 #SBATCH --mail-user=rpa@di.ku.dk
-#SBATCH --dependency=afterany:4104_2
 
 module load cuda/11.8
 module load cudnn/8.6.0
