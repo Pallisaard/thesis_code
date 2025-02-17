@@ -22,7 +22,7 @@ echo
 
 if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
   echo "HAGAN from authors"
-  python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-hagan-from-authors \
+  python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-hagan-from-authors-l40s \
     --n-samples 1000 \
     --checkpoint-path ../checkpoints/pretrained/hagan-from-authors.ckpt \
     --lambdas 5 \
@@ -37,7 +37,7 @@ if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
   echo "HAGAN lambda 5-1"
-  python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-hagan-l5-1 \
+  python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-hagan-l5-1-l40s \
     --n-samples 1000 \
     --use-dp-safe \
     --checkpoint-path ../checkpoints/pretrained/hagan-l5-1.ckpt \
@@ -53,7 +53,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
 elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
   echo "WGAN-GP"
   python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris \
-    --output-dir ../torch-output/pretrain-eval/generated-examples-wgan-gp \
+    --output-dir ../torch-output/pretrain-eval/generated-examples-wgan-gp-l40s \
     --n-samples 1000 \
     --checkpoint-path ../checkpoints/pretrained/wgan-gp.ckpt \
     --device auto \
@@ -67,7 +67,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
 elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
   echo "Alpha-GAN"
   python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris \
-    --output-dir ../torch-output/pretrain-eval/generated-examples-alpha-gan \
+    --output-dir ../torch-output/pretrain-eval/generated-examples-alpha-gan-l40s \
     --n-samples 1000 \
     --checkpoint-path ../checkpoints/pretrained/alpha-gan.ckpt \
     --device auto \
@@ -81,7 +81,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
 elif [ $SLURM_ARRAY_TASK_ID -eq 5 ]; then
   echo "Kwon-GAN"
   python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris \
-    --output-dir ../torch-output/pretrain-eval/generated-examples-kwon-gan \
+    --output-dir ../torch-output/pretrain-eval/generated-examples-kwon-gan-l40s \
     --n-samples 1000 \
     --checkpoint-path ../checkpoints/pretrained/kwon-gan.ckpt \
     --device auto \
@@ -95,7 +95,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 5 ]; then
 elif [ $SLURM_ARRAY_TASK_ID -eq 6 ]; then
   echo "VAE-64"
   python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris \
-    --output-dir ../torch-output/pretrain-eval/generated-examples-vae-64 \
+    --output-dir ../torch-output/pretrain-eval/generated-examples-vae-64-l40s \
     --n-samples 1000 \
     --checkpoint-path ../checkpoints/pretrained/vae-64.ckpt \
     --device auto \
@@ -109,7 +109,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 6 ]; then
 elif [ $SLURM_ARRAY_TASK_ID -eq 7 ]; then
   echo "Vectorizing test dataset"
   python -m thesis_code.evaluation.generate_samples.vectorize_test_dataset --data-dir ../data/pre-training/brain-masked-zerosliced \
-    --output-dir ../torch-output/pretrain-eval/'true-examples-all' \
+    --output-dir ../torch-output/pretrain-eval/'true-examples-all-l40s' \
     --device 'cuda' \
     --test-size 1000 \
     --make-filename-file \
