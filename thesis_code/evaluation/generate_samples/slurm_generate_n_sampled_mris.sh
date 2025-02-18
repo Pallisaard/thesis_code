@@ -2,7 +2,7 @@
 #SBATCH --job-name=generate_n_sampled_mris
 #SBATCH --output=slurm_generate_n_sampled_mris-%j-%a.out # Name of output file
 #SBATCH --error=slurm_generate_n_sampled_mris-%j-%a.err # Name of error file
-#SBATCH --array=1-1%1
+#SBATCH --array=1-7%2
 #SBATCH --gres=gpu:a100:1
 #SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=4
@@ -24,6 +24,7 @@ if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
   echo "HAGAN from authors"
   python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-hagan-from-authors \
     --n-samples 1000 \
+    --use-dp-safe \
     --checkpoint-path ../checkpoints/pretrained/hagan-from-authors.ckpt \
     --lambdas 5 \
     --device auto \
