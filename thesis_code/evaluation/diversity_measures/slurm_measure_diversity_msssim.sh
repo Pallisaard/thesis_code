@@ -26,10 +26,10 @@ BASE_DIR="../torch-output/pretrain-eval"
 if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
     echo "HAGAN from authors"
     python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
-        --input-dir "$BASE_DIR/generated-examples-hagan-l5-orig" \
+        --input-dir "$BASE_DIR/generated-examples-hagan-from-authors" \
         --device cuda \
         --resolution 256 \
-        --output-file "$BASE_DIR/generated-examples-hagan-l5-orig/msssim_scores.pt" || { echo "Task 1 failed"; exit 1; }
+        --output-file "$BASE_DIR/generated-examples-hagan-from-authors/msssim_scores.pt" || { echo "Task 1 failed"; exit 1; }
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
     echo "HAGAN lambda 5-1"
