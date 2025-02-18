@@ -1,13 +1,14 @@
 #!/bin/bash
-#SBATCH --job-name=pretrain_hagan_lambda_5
-#SBATCH --output=slurm_pretrain_hagan_l5-%j.out # Name of output file
-#SBATCH --error=slurm_pretrain_hagan_l5-%j.err # Name of error file
+#SBATCH --job-name=pretrain_hagan_lambda_5_l40s
+#SBATCH --output=slurm_pretrain_hagan_l5_l40s-%j.out # Name of output file
+#SBATCH --error=slurm_pretrain_hagan_l5_l40s-%j.err # Name of error file
 #SBATCH --time=24:00:00    # Limit to 36 hours.
-#SBATCH --gres=gpu:l40s:1       # Request 4 GPU per job
+#SBATCH --gres=gpu:a100:1       # Request 4 GPU per job
 #SBATCH --cpus-per-task=16  # Number of CPUs for each gpu
 #SBATCH --mem=64G        # Memory request
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
+#SBATCH --dependency=afterany:4482_1
 
 module load cuda/11.8
 module load cudnn/8.6.0
@@ -25,7 +26,7 @@ echo "start time: $(date)"
 
 python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
-                --data-path ../data/pre-training/brain-masked-zerosliced \
+                --data-path ../data/pre-training/brain-masked-no-zerosliced \
                 --use-all-data-for-training \
                 --batch-size 4 \
                 --num-workers 14 \

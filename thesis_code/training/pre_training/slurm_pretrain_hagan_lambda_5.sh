@@ -8,6 +8,7 @@
 #SBATCH --mem=64G        # Memory request
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
+#SBATCH --dependency=afterany:4482_1
 
 module load cuda/11.8
 module load cudnn/8.6.0
@@ -25,7 +26,7 @@ echo "start time: $(date)"
 
 python -m thesis_code.training.pre_training.pretrain --model-name "hagan" \
                 --latent-dim 1024 \
-                --data-path ../data/pre-training/brain-masked-zerosliced \
+                --data-path ../data/pre-training/brain-masked-no-zerosliced \
                 --use-all-data-for-training \
                 --batch-size 4 \
                 --num-workers 14 \
