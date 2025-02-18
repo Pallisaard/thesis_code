@@ -2,13 +2,14 @@
 #SBATCH --job-name=measure_msssim
 #SBATCH --output=slurm_measure_msssim-%j-%a.out
 #SBATCH --error=slurm_measure_msssim-%j-%a.err
-#SBATCH --array=2-6%1
-#SBATCH --gres=gpu:l40s:1
+#SBATCH --array=1-6%2
+#SBATCH --gres=gpu:a100:1
 #SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --mail-type=END
 #SBATCH --mail-user=rpa@di.ku.dk
+#SBATCH --dependency=afterany:4145_1
 
 module load cuda/11.8
 module load cudnn/8.6.0
@@ -22,13 +23,13 @@ echo
 
 BASE_DIR="../torch-output/pretrain-eval"
 
-# if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
-#     echo "HAGAN from authors"
-#     python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
-#         --input-dir "$BASE_DIR/generated-examples-hagan-l5-orig" \
-#         --device cuda \
-#         --resolution 256 \
-#         --output-file "$BASE_DIR/generated-examples-hagan-l5-orig/msssim_scores.pt" || { echo "Task 1 failed"; exit 1; }
+if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
+    echo "HAGAN from authors"
+    python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
+        --input-dir "$BASE_DIR/generated-examples-hagan-l5-orig" \
+        --device cuda \
+        --resolution 256 \
+        --output-file "$BASE_DIR/generated-examples-hagan-l5-orig/msssim_scores.pt" || { echo "Task 1 failed"; exit 1; }
 
 elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
     echo "HAGAN lambda 5-1"
