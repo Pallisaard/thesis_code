@@ -8,7 +8,7 @@ import math
 import numpy as np
 
 
-class SNLinear(nn.Module):
+class SnLinear(nn.Module):
     def __init__(self, in_features, out_features, bias=True, num_power_iters=1):
         super().__init__()
         self.in_features = in_features
@@ -45,9 +45,9 @@ class SNLinear(nn.Module):
         return out
 
 
-@register_grad_sampler(SNLinear)
+@register_grad_sampler(SnLinear)
 def spectral_norm_linear_grad_sampler(
-    module: SNLinear, activations: list[torch.Tensor], backprops: torch.Tensor
+    module: SnLinear, activations: list[torch.Tensor], backprops: torch.Tensor
 ) -> Dict[nn.Parameter, torch.Tensor]:
     """Computes per-sample gradients for SpectralNormLinear.
 
