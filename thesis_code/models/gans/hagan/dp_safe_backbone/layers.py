@@ -8,58 +8,7 @@ import math
 import numpy as np
 
 
-class SnLinear(nn.Module):
-    def __init__(self, in_features, out_features, bias=True):
-        super().__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-
-        # Initialize weight and bias
-        self.weight = nn.Parameter(torch.Tensor(out_features, in_features))
-        if bias:
-            self.bias = nn.Parameter(torch.Tensor(out_features))
-        else:
-            self.register_parameter("bias", None)
-
-        self.reset_parameters()
-
-    def reset_parameters(self):
-        # Standard initialization as used in nn.Linear
-        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
-        if self.bias is not None:
-            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weight)
-            bound = 1 / math.sqrt(fan_in)
-            nn.init.uniform_(self.bias, -bound, bound)
-
-    def forward(self, x):
-        return F.linear(x, self.weight, self.bias)
-
-
-@register_grad_sampler(SnLinear)
-def compute_linear_grad_sample(
-    layer: SnLinear, activations: list[torch.Tensor], backprops: torch.Tensor
-) -> Dict[nn.Parameter, torch.Tensor]:
-    """
-    Compute per-sample gradients for the custom linear layer.
-
-    Args:
-        layer: CustomLinear instance
-        activations: Input activations (batch_size, in_features)
-        backprops: Backpropagated gradients (batch_size, out_features)
-    """
-    print(activations)
-    print(backprops)
-    activations = activations[0]
-    ret = {}
-    if layer.weight.requires_grad:
-        gs = torch.einsum("n...i,n...j->nij", backprops, activations)
-        ret[layer.weight] = gs
-    if layer.bias is not None and layer.bias.requires_grad:
-        ret[layer.bias] = torch.einsum("n...k->nk", backprops)
-    return ret
-
-
-class SpectralNormLinear(nn.Module):
+class SNLinear(nn.Module):
     def __init__(self, in_features, out_features, bias=True, num_power_iters=1):
         super().__init__()
         self.in_features = in_features
@@ -72,8 +21,6 @@ class SpectralNormLinear(nn.Module):
 
         # Initialize singular vectors for power iteration
         # These are non-trainable buffers for power iteration
-        # self.register_buffer('u', torch.randn(out_features, 1))
-        # self.register_buffer('v', torch.randn(in_features, 1))
         self.u = nn.Parameter(torch.randn(out_features, 1), requires_grad=False)
         self.v = nn.Parameter(torch.randn(in_features, 1), requires_grad=False)
 
@@ -98,9 +45,9 @@ class SpectralNormLinear(nn.Module):
         return out
 
 
-@register_grad_sampler(SpectralNormLinear)
+@register_grad_sampler(SNLinear)
 def spectral_norm_linear_grad_sampler(
-    module: SpectralNormLinear, activations: list[torch.Tensor], backprops: torch.Tensor
+    module: SNLinear, activations: list[torch.Tensor], backprops: torch.Tensor
 ) -> Dict[nn.Parameter, torch.Tensor]:
     """Computes per-sample gradients for SpectralNormLinear.
 
@@ -177,8 +124,6 @@ class SnConv3d(nn.Module):
         )
 
         # Initialize singular vectors
-        # self.register_buffer('u', torch.randn(weight_matrix_shape[0], 1))
-        # self.register_buffer('v', torch.randn(weight_matrix_shape[1], 1))
         self.u = nn.Parameter(
             torch.randn(weight_matrix_shape[0], 1), requires_grad=False
         )
