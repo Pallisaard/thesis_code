@@ -191,6 +191,7 @@ def main():
                 samples = [sample.get_fdata() for sample in samples]  # type: ignore
                 samples = np.stack(samples)
                 samples = np.expand_dims(samples, axis=1)
+                samples = samples.astype(np.float32)
                 sample = samples
             else:
                 if args.use_small_model:
