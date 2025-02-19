@@ -32,7 +32,7 @@ fi
 
 echo "dir: "$dir
 
-preprocess_dir="../data/pre-training/brain-masked-resampled-zerosliced-64/"$dir
+preprocess_dir="../data/pre-training/brain-masked-zerosliced-64/"$dir
 
 echo "preprocess_dir: " $preprocess_dir
 
@@ -40,6 +40,5 @@ python -m thesis_code.scripts.preprocess_example --nii-path $preprocess_dir \
     --out-path $preprocess_dir \
     --preprocess-folder \
     --percent-outliers 0.999 \
-    --remove-zero-slices \
     --size 64 \
     --n-workers $n_workers
