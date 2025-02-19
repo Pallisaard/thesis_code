@@ -8,6 +8,7 @@
 #SBATCH --mem=32G        # Memory request
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk # Email
+#SBATCH --dependency=afterany:5109_1
 
 module load cuda/11.8
 module load cudnn/8.6.0
