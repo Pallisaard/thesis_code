@@ -7,9 +7,21 @@ from monai.networks.nets.resnet import resnet10, resnet50
 def get_mri_vectorizer(model_type: Literal[10, 50]) -> nn.Module:
     """Get MRI vectorizer model."""
     if model_type == 10:
-        return resnet10(n_input_channels=1, feed_forward=False)
+        return resnet10(
+            n_input_channels=1,
+            feed_forward=False,
+            shortcut_type="B",
+            bias_downsample=False,
+            pretrained=True,
+        )
     elif model_type == 50:
-        return resnet50(n_input_channels=1, feed_forward=False)
+        return resnet50(
+            n_input_channels=1,
+            feed_forward=False,
+            shortcut_type="B",
+            bias_downsample=False,
+            pretrained=True,
+        )
     else:
         raise ValueError("Invalid model type.")
 
