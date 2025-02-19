@@ -189,8 +189,9 @@ def main():
                     for sample_id in batch_ids
                 ]
                 samples = [sample.get_fdata() for sample in samples]  # type: ignore
-                sample = np.stack(samples)
-
+                samples = np.stack(samples)
+                samples = np.expand_dims(samples, axis=1)
+                sample = samples
             else:
                 if args.use_small_model:
                     sample = model.sample_small(len(batch_ids))
