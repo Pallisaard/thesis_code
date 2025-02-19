@@ -178,6 +178,7 @@ def main():
 
     with torch.no_grad():
         for batch_ids in outer_bar:
+            found = False
             # if path below exists for all sample ids in batch ids, skip generation
             if all(
                 Path(f"{args.output_dir}/sample_{sample_id}.nii.gz").exists()
@@ -193,12 +194,14 @@ def main():
                 samples = np.expand_dims(samples, axis=1)
                 samples = samples.astype(np.float32)
                 sample = samples
+                found = True
             else:
                 if args.use_small_model:
                     sample = model.sample_small(len(batch_ids))
                 else:
                     sample = model.sample(len(batch_ids))
                 sample = sample.detach().cpu().numpy()
+                found = False
 
             inner_bar = tqdm.tqdm(
                 enumerate(batch_ids),
@@ -213,7 +216,7 @@ def main():
                 sample_i = sample[i, 0]
                 sample[i, 0] = sample_i
 
-                if not args.skip_mri_save:
+                if not args.skip_mri_save and not found:
                     sample_mri = numpy_to_nifti(sample_i)
                     nib.save(sample_mri, f"{args.output_dir}/sample_{sample_id}.nii.gz")  # type: ignore
 
