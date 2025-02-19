@@ -178,11 +178,25 @@ def main():
 
     with torch.no_grad():
         for batch_ids in outer_bar:
-            if args.use_small_model:
-                sample = model.sample_small(len(batch_ids))
+            # if path below exists for all sample ids in batch ids, skip generation
+            if all(
+                Path(f"{args.output_dir}/sample_{sample_id}.nii.gz").exists()
+                for sample_id in batch_ids
+            ):
+                # load mri from file:
+                samples = [
+                    nib.load(f"{args.output_dir}/sample_{sample_id}.nii.gz")  # type: ignore
+                    for sample_id in batch_ids
+                ]
+                samples = [sample.get_fdata() for sample in samples]  # type: ignore
+                sample = np.stack(samples)
+
             else:
-                sample = model.sample(len(batch_ids))
-            sample = sample.detach().cpu().numpy()
+                if args.use_small_model:
+                    sample = model.sample_small(len(batch_ids))
+                else:
+                    sample = model.sample(len(batch_ids))
+                sample = sample.detach().cpu().numpy()
 
             inner_bar = tqdm.tqdm(
                 enumerate(batch_ids),
