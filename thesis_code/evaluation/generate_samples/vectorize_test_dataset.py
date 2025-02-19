@@ -112,7 +112,8 @@ def main():
                 mri_vectorizer(inputs).detach().cpu().squeeze(0).squeeze(0)
             )
 
-    out_vectorizer_name = "true-from-all-dataset.npy"
+    use_64_label = "-64" if args.use_small_model else ""
+    out_vectorizer_name = f"true-from-all-dataset{use_64_label}.npy"
     out_vectorizer_name: str = (
         out_vectorizer_name + ".npy" if not out_vectorizer_name.endswith(".npy") else ""
     )
