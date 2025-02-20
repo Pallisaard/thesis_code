@@ -2,14 +2,14 @@
 #SBATCH --job-name=finetune_dp_array
 #SBATCH --output=slurm_finetune_dp_array-%A_%a.out
 #SBATCH --error=slurm_finetune_dp_array-%A_%a.err
-#SBATCH --array=1-8%2
-#SBATCH --gres=gpu:l40s:1
+#SBATCH --array=1-8%1
+#SBATCH --gres=gpu:a100:1
 #SBATCH --time=36:00:00
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --mail-type=END
 #SBATCH --mail-user=rpa@di.ku.dk
-#SBATCH --dependency=afterany:5117:5116:5118:5119
+#SBATCH --dependency=afterany:5430_7
 
 
 module load cuda/11.8
