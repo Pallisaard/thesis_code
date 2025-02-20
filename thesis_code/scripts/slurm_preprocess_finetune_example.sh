@@ -15,7 +15,7 @@ dir="all"
 echo "dir: "$dir
 
 data_dir="../data/fine-tuning/brain-masked/"$dir
-preprocess_dir="../data/fine-tuning/brain-masked-zerosliced/"$dir
+preprocess_dir="../data/fine-tuning/brain-masked-no-zerosliced/"$dir
 
 mkdir -p $preprocess_dir
 
@@ -25,5 +25,4 @@ python -m thesis_code.scripts.preprocess_example --nii-path $data_dir \
     --out-path $preprocess_dir \
     --preprocess-folder \
     --percent-outliers 0.999 \
-    --remove-zero-slice \
     --size 256
