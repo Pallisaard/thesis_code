@@ -3,8 +3,9 @@
 #SBATCH --output=slurm_preprocess_example_%j.out
 #SBATCH --error=slurm_preprocess_example_%j.err
 #SBATCH --time=05:00:00
-#SBATCH --cpus-per-task=2  # Number of CPUs for each task
-#SBATCH --mem=4G
+
+#SBATCH --cpus-per-task=10  # Number of CPUs for each task
+#SBATCH --mem=8G
 
 cd ~/projects/thesis/thesis-code
 
@@ -25,4 +26,5 @@ python -m thesis_code.scripts.preprocess_example --nii-path $data_dir \
     --out-path $preprocess_dir \
     --preprocess-folder \
     --percent-outliers 0.999 \
+    --n-workers 8 \
     --size 256
