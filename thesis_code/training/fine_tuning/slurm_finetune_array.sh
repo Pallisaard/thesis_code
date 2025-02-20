@@ -4,7 +4,7 @@
 #SBATCH --error=slurm_finetune_dp_array-%A_%a.err
 #SBATCH --array=1-8%1
 #SBATCH --gres=gpu:a100:1
-#SBATCH --time=36:00:00
+#SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
 #SBATCH --mail-type=END
@@ -22,8 +22,8 @@ source .venv/bin/activate
 # Calculate parameters based on array task ID
 # We have 8 combinations total:
 # n1.0-c1.0-s-3, n1.0-c1.0-s-5, n1.0-c1.0-s-7  (baseline with different deltas)
-# n0.75-c1.0-s-3, n1.5-c1.0-s-3                 (noise variations)
-# n1.0-c0.75-s-3, n1.0-c1.5-s-3                 (clip variations)
+# n0.75-c1.0-s-5, n1.5-c1.0-s-5                 (noise variations)
+# n1.0-c0.75-s-5, n1.0-c1.5-s-5                 (clip variations)
 # no-dp                                          (baseline without DP)
 
 case $SLURM_ARRAY_TASK_ID in
@@ -71,8 +71,7 @@ cmd="python -m thesis_code.training.fine_tuning.finetune \
     --val-every-n-steps 1000 \
     --checkpoint-every-n-steps 2500 \
     --checkpoint-path \"$checkpoint_dir\" \
-    --alphas 1.1 2 3 5 10 20 50 100 200 500 1000 \
-    --n-accountant-steps 10"
+    --alphas 1.1 2 3 5 10 20 50 100 200 500 1000"
 
 if [ "$use_dp" = true ]; then
     # Add DP-specific parameters
