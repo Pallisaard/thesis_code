@@ -12,4 +12,4 @@ cd ~/projects/thesis/thesis-code/
 
 source .venv/bin/activate
 
-python -m thesis_code.scripts.apply_mask_and_reorient --data-dir ../data/fine-tuning/fs_scans/ --output-dir ../data/fine-tuning/brain-masked-process-ready-resampled --fastsurfer-output-dir ../fastsurfer-output/fine-tuning/ --workers 8
+python -m thesis_code.scripts.apply_mask_and_reorient --data-dir ../data/fine-tuning/not-brain-masked/ --output-dir ../data/fine-tuning/brain-masked-process-ready-resampled --fastsurfer-output-dir ../fastsurfer-output/fine-tuning/ --workers 8
