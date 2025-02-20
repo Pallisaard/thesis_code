@@ -3,9 +3,9 @@
 #SBATCH --output=slurm_preprocess_example_%j.out
 #SBATCH --error=slurm_preprocess_example_%j.err
 #SBATCH --time=05:00:00
-
 #SBATCH --cpus-per-task=10  # Number of CPUs for each task
-#SBATCH --mem=8G
+#SBATCH --mem=16G
+#SBATCH --dependency=afterany:5471
 
 cd ~/projects/thesis/thesis-code
 
@@ -15,7 +15,7 @@ dir="all"
 
 echo "dir: "$dir
 
-data_dir="../data/fine-tuning/brain-masked/"$dir
+data_dir="../data/fine-tuning/brain-masked-process-ready-resampled/"$dir
 preprocess_dir="../data/fine-tuning/brain-masked-no-zerosliced/"$dir
 
 mkdir -p $preprocess_dir
