@@ -9,7 +9,6 @@
 #SBATCH --mem=32G
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-user=rpa@di.ku.dk
-#SBATCH --dependency=afterany:5117:5116:5118:5119
 
 module load cuda/11.8
 module load cudnn/8.6.0
