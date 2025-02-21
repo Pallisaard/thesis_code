@@ -10,8 +10,6 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import torch.optim as optim
 
-from thesis_code.models.gans.hagan.dp_safe_backbone.Model_HA_GAN_256 import Generator
-
 
 ### COMMON DATATYPES
 @dataclass
@@ -103,7 +101,7 @@ class DPState:
 
 @dataclass
 class DPModels:
-    G: Generator
+    G: nn.Module
     D: GradSampleModule
     E: GradSampleModule
     Sub_E: GradSampleModule
