@@ -238,7 +238,8 @@ def no_dp_training_step(
     state.training_stats.train_metrics.total_loss.append(total_loss_metric)
 
     state.privacy_accountant.step(
-        noise_multiplier=state.noise_multiplier, sample_rate=state.sample_rate
+        noise_multiplier=state.noise_multiplier * state.max_grad_norm,
+        sample_rate=state.sample_rate,
     )
     new_epsilon = state.privacy_accountant.get_epsilon(state.delta, alphas=state.alphas)
     state.training_stats.train_metrics.epsilon.append(new_epsilon)

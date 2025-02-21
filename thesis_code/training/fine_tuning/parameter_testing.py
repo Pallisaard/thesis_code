@@ -12,8 +12,8 @@ def process_parameters(setup):
     accountant = RDPAccountant()
     noise_multiplier = sigma * c
     sample_rate = 4 / 428  # Moved inside function since it's needed here
-    # alphas = [1.1, 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000]  # Moved inside function
-    alphas = [1.1, 2, 3, 5, 10, 20, 50, 100]
+    alphas = [1.1, 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000]  # Moved inside function
+    # alphas = [1.1, 2, 3, 5, 10, 20, 50, 100]
     STEP_SIZE = 1
 
     epsilon = accountant.get_epsilon(sample_rate, delta)
