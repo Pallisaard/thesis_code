@@ -65,6 +65,7 @@ def setup_dp_training(
     g_optimizer = optim.Adam(
         generator.parameters(), lr=lr_g, betas=(0.0, 0.999), eps=1e-8
     )
+    # USES SGD FOR DP-SGD - CHECK PAPER ON ADAM NOT BEING PRIVATE
     d_dpoptimizer = DPOptimizer(
         optim.SGD(discriminator.parameters(), lr=lr_d),
         expected_batch_size=batch_size,
