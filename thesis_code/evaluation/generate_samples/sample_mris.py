@@ -143,12 +143,11 @@ def main():
             samples = samples.detach().cpu()
 
             # Save each sample in the batch
-            for i in range(current_batch_size):
-                sample_idx = batch_start + i
-                sample = samples[i, 0]  # Get the first channel
 
-                output_path = output_dir / f"sample_{sample_idx:04d}.nii.gz"
-                save_mri(sample, output_path)
+            sample_idx = batch_start
+
+            output_path = output_dir / f"sample_{sample_idx:04d}.nii.gz"
+            save_mri(samples, output_path)
 
     print(f"Successfully generated {args.n_samples} samples in {args.output_dir}")
 
