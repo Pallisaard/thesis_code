@@ -140,7 +140,7 @@ def main():
             # Generate samples
             samples = model.sample(current_batch_size)
             # Move to CPU before converting to numpy
-            samples = samples.detach().cpu().numpy()
+            samples = samples.detach().cpu()
 
             # Save each sample in the batch
             for i in range(current_batch_size):
