@@ -267,16 +267,6 @@ def main():
                 )
                 break
 
-            # # Save checkpoint with epsilon and steps in name
-            # checkpoint_name = f"dp_model_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.step}.pth"
-            # checkpoint_path_full = Path(checkpoint_path) / checkpoint_name
-            # print(f"Saving checkpoint: {checkpoint_path_full}")
-            # checkpoint_dp_model(
-            #     models,
-            #     state,
-            #     str(checkpoint_path_full),
-            # )
-
     else:
         print("Setting up non-DP training")
         models, optimizers, dataloaders, state, loss_fns = (
@@ -293,38 +283,32 @@ def main():
             )
         )
 
-        if args.max_epsilons is not None:
-            print("Starting DP training")
+        print("Starting non-DP training")
+        for target_epsilon in args.max_epsilons:
+            print(f"Training until epsilon = {target_epsilon}")
             state = no_dp_loops.training_loop_until_epsilon(
                 models=models,
                 optimizers=optimizers,
                 dataloaders=dataloaders,
                 state=state,
                 loss_fns=loss_fns,
-                max_epsilon=args.max_epsilons[-1],
+                max_epsilon=target_epsilon,
                 checkpoint_path=args.checkpoint_path,
                 n_accountant_steps=args.n_accountant_steps,
+                max_steps=args.max_total_steps,  # Pass through max_steps
             )
 
-            print(f"Final epsilon: {state.training_stats.current_epsilon}")
-        else:
-            print("Starting non-DP training")
-            no_dp_loops.no_dp_training_loop_for_n_steps(
-                models=models,
-                optimizers=optimizers,
-                dataloaders=dataloaders,
-                state=state,
-                loss_fns=loss_fns,
-                n_steps=args.max_steps,
-                checkpoint_path=args.checkpoint_path,
-            )
+            print(f"Reached epsilon: {state.training_stats.current_epsilon}")
 
-        print("Final checkpoint")
-        checkpoint_dp_model(
-            models,
-            state,
-            f"{checkpoint_path}/no_dp_final_epsilon={state.training_stats.current_epsilon}.pth",
-        )
+            # Check if we hit max steps during training
+            if (
+                args.max_total_steps is not None
+                and state.training_stats.step >= args.max_total_steps
+            ):
+                print(
+                    f"Reached maximum total steps ({args.max_total_steps}). Stopping training."
+                )
+                break
 
 
 if __name__ == "__main__":
