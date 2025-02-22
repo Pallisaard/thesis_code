@@ -144,7 +144,7 @@ class LitHAGAN(L.LightningModule):
         e_opt.step()
 
         # Sub_E (E^G)
-        self.Sub_E.zero_grad()
+        sub_e_opt.zero_grad()
         sub_e_loss = compute_sub_e_loss(
             E=self.E,
             Sub_E=self.Sub_E,
