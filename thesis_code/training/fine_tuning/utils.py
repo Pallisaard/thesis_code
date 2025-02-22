@@ -7,6 +7,18 @@ import torch
 from lightning import LightningModule
 
 from thesis_code.models.gans import LitHAGAN
+from thesis_code.models.gans.hagan.backbone.Model_HA_GAN_256 import (
+    Generator,
+    Discriminator,
+    Encoder,
+    Sub_Encoder,
+)
+from thesis_code.models.gans.hagan.dp_safe_backbone.Model_HA_GAN_256 import (
+    Generator as safe_Generator,
+    Discriminator as safe_Discriminator,
+    Encoder as safe_Encoder,
+    Sub_Encoder as safe_Sub_Encoder,
+)
 
 from .types import (
     DPModels,
@@ -64,6 +76,32 @@ def load_checkpoint(
     state.training_stats.epoch = checkpoint["epoch"]
     state.training_stats.step = checkpoint["step"]
     return models, state, checkpoint["epsilon"]
+
+
+def load_checkpoint_components(
+    checkpoint_path: str,
+    map_location: str = "auto",
+) -> tuple[
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+    dict[str, Any],
+]:
+    checkpoint = torch.load(checkpoint_path, map_location=map_location)
+
+    generator_dict = checkpoint["g_state_dict"]
+    discriminator_dict = checkpoint["d_state_dict"]
+    discriminator_dict = tree_key_map(
+        lambda x: x.replace("_module.", ""), discriminator_dict
+    )
+    encoder_dict = checkpoint["e_state_dict"]
+    encoder_dict = tree_key_map(lambda x: x.replace("_module.", ""), encoder_dict)
+    sub_encoder_dict = checkpoint["sub_e_state_dict"]
+    sub_encoder_dict = tree_key_map(
+        lambda x: x.replace("_module.", ""), sub_encoder_dict
+    )
+
+    return generator_dict, discriminator_dict, encoder_dict, sub_encoder_dict
 
 
 def save_dict_as_csv(data_dict: dict[str, Any], csv_file_path: str):
