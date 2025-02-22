@@ -2,7 +2,7 @@
 #SBATCH --job-name=measure_msssim
 #SBATCH --output=slurm_measure_msssim-%j-%a.out
 #SBATCH --error=slurm_measure_msssim-%j-%a.err
-#SBATCH --array=1-6%2
+#SBATCH --array=3-6%2
 #SBATCH --gres=gpu:a100:1
 #SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=4
