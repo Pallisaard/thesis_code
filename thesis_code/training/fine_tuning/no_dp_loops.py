@@ -143,7 +143,6 @@ def no_dp_training_step(
     real_labels = data_dict["real_labels"]
     fake_labels = data_dict["fake_labels"]
 
-    discriminator.train()
     d_optimizer.zero_grad()
     d_loss = compute_d_loss(
         D=discriminator,
@@ -160,7 +159,6 @@ def no_dp_training_step(
     d_optimizer.step()
     d_loss_metric = d_loss.detach().cpu().item()
 
-    generator.train()
     g_optimizer.zero_grad()
     g_loss = compute_g_loss(
         G=generator,
@@ -174,7 +172,6 @@ def no_dp_training_step(
     g_optimizer.step()
     g_loss_metric = g_loss.detach().cpu().item()
 
-    encoder.train()
     e_optimizer.zero_grad()
     e_loss = compute_e_loss(
         E=encoder,
@@ -187,7 +184,6 @@ def no_dp_training_step(
     e_optimizer.step()
     e_loss_metric = e_loss.detach().cpu().item()
 
-    sub_encoder.train()
     sub_e_optimizer.zero_grad()
     sub_e_loss = compute_sub_e_loss(
         E=encoder,
