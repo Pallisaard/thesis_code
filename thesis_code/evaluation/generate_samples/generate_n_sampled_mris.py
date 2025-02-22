@@ -9,9 +9,22 @@ import tqdm
 import lightning as L
 
 from thesis_code.metrics.utils import get_mri_vectorizer
-from thesis_code.models.gans import LitHAGAN
 from thesis_code.training.utils import numpy_to_nifti
-from thesis_code.models import LitKwonGan, LitWGANGP, LitAlphaGAN, LitVAE3D
+from thesis_code.models import LitKwonGan, LitWGANGP, LitAlphaGAN, LitVAE3D, LitHAGAN
+from thesis_code.models.gans.hagan.backbone.Model_HA_GAN_256 import (
+    Generator,
+    Discriminator,
+    Encoder,
+    Sub_Encoder,
+)
+from thesis_code.models.gans.hagan.dp_safe_backbone.Model_HA_GAN_256 import (
+    Generator as safe_Generator,
+    Discriminator as safe_Discriminator,
+    Encoder as safe_Encoder,
+    Sub_Encoder as safe_Sub_Encoder,
+)
+from thesis_code.training.fine_tuning.utils import load_checkpoint_components
+from thesis_code.training.fine_tuning.utils import tree_key_map
 
 
 def pars_args():
@@ -70,6 +83,11 @@ def pars_args():
         action="store_true",
         help="Skip saving MRI files and only save vectorized outputs",
     )
+    parser.add_argument(
+        "--use-custom-checkpoint",
+        action="store_true",
+        help="Load custom checkpoint with individual HAGAN components",
+    )
 
     return parser.parse_args()
 
@@ -80,6 +98,8 @@ def get_model_from_checkpoint(
     latent_dim: int = 1024,
     lambdas: float = 1.0,
     use_dp_safe: bool = False,
+    use_custom_checkpoint: bool = False,
+    map_location: str = "auto",
 ) -> L.LightningModule:
     """Load a model from a checkpoint file."""
     if model_name == "cicek_3d_vae_256":
@@ -116,6 +136,19 @@ def get_model_from_checkpoint(
             lambda_gp=lambdas,
         )
     elif model_name == "hagan":
+        if use_custom_checkpoint:
+            components = load_custom_hagan_components(
+                checkpoint_path,
+                map_location=map_location,
+                use_dp_safe=use_dp_safe,
+            )
+            return load_hagan_from_components(
+                *components,
+                latent_dim=latent_dim,
+                lambda_1=lambdas,
+                lambda_2=lambdas,
+                use_dp_safe=use_dp_safe,
+            )
         return LitHAGAN.load_from_checkpoint(
             checkpoint_path=checkpoint_path,
             latent_dim=latent_dim,
@@ -125,6 +158,94 @@ def get_model_from_checkpoint(
         )
     else:
         raise ValueError(f"Model name {model_name} not recognized")
+
+
+def load_custom_hagan_components(
+    checkpoint_path: str,
+    latent_dim: int = 1024,
+    use_dp_safe: bool = False,
+    map_location: str = "auto",
+) -> tuple[
+    Generator | safe_Generator,
+    Discriminator | safe_Discriminator,
+    Encoder | safe_Encoder,
+    Sub_Encoder | safe_Sub_Encoder,
+]:
+    """Load individual components of HAGAN from a custom checkpoint.
+
+    Args:
+        checkpoint_path: Path to checkpoint containing individual components
+
+    Returns:
+        Tuple containing:
+        - generator: Generator network
+        - encoder: Encoder network
+        - discriminator: Discriminator network
+        - code_discriminator: Code discriminator network
+    """
+    g_state_dict, d_state_dict, e_state_dict, sub_e_state_dict = (
+        load_checkpoint_components(checkpoint_path, map_location=map_location)
+    )
+
+    if use_dp_safe:
+        print("Using DP safe model")
+        G = safe_Generator(latent_dim=latent_dim)
+        D = safe_Discriminator()
+        E = safe_Encoder()
+        Sub_E = safe_Sub_Encoder(latent_dim=latent_dim)
+    else:
+        print("Using non-DP safe model")
+        G = Generator(latent_dim=latent_dim)
+        D = Discriminator()
+        E = Encoder()
+        Sub_E = Sub_Encoder(latent_dim=latent_dim)
+
+    G.load_state_dict(g_state_dict)
+    D.load_state_dict(d_state_dict)
+    E.load_state_dict(e_state_dict)
+    Sub_E.load_state_dict(sub_e_state_dict)
+
+    return G, D, E, Sub_E
+
+
+def load_hagan_from_components(
+    generator: Generator | safe_Generator,
+    discriminator: Discriminator | safe_Discriminator,
+    encoder: Encoder | safe_Encoder,
+    code_discriminator: Sub_Encoder | safe_Sub_Encoder,
+    latent_dim: int = 1024,
+    lambda_1: float = 1.0,
+    lambda_2: float = 1.0,
+    use_dp_safe: bool = False,
+) -> LitHAGAN:
+    """Create HAGAN model from individual components.
+
+    Args:
+        generator: Generator network
+        encoder: Encoder network
+        discriminator: Discriminator network
+        code_discriminator: Code discriminator network
+        latent_dim: Dimension of latent space
+        lambda_1: Weight for first loss term
+        lambda_2: Weight for second loss term
+        use_dp_safe: Whether to use DP safe version
+
+    Returns:
+        Initialized HAGAN model with provided components
+    """
+    model = LitHAGAN(
+        latent_dim=latent_dim,
+        lambda_1=lambda_1,
+        lambda_2=lambda_2,
+        use_dp_safe=use_dp_safe,
+    )
+
+    model.G = generator
+    model.E = encoder
+    model.D = discriminator
+    model.Sub_E = code_discriminator
+
+    return model
 
 
 def main():
@@ -159,6 +280,7 @@ def main():
             latent_dim=1024,
             lambdas=args.lambdas,
             use_dp_safe=args.use_dp_safe,
+            use_custom_checkpoint=args.use_custom_checkpoint,
         )
         .eval()
         .to(device)

@@ -1,13 +1,14 @@
 import argparse
 from pathlib import Path
 
-import nibabel as nib
 import torch
 import tqdm
-import lightning as L
 
-from thesis_code.models.gans import LitHAGAN
 from thesis_code.training.utils import numpy_to_nifti
+from thesis_code.dataloading.utils import save_mri
+from thesis_code.evaluation.generate_samples.generate_n_sampled_mris import (
+    get_model_from_checkpoint,
+)
 
 
 def get_device(device_arg: str) -> str:
@@ -68,6 +69,29 @@ def parse_args():
         choices=["cpu", "cuda", "mps", "auto"],
         help="Device to use for computation (default: auto)",
     )
+    parser.add_argument(
+        "--model-name",
+        required=True,
+        choices=[
+            "cicek_3d_vae_64",
+            "cicek_3d_vae_256",
+            "kwon_gan",
+            "wgan_gp",
+            "alpha_gan",
+            "hagan",
+        ],
+        help="Name of the model to load",
+    )
+    parser.add_argument(
+        "--use-custom-checkpoint",
+        action="store_true",
+        help="Load custom checkpoint with individual HAGAN components",
+    )
+    parser.add_argument(
+        "--use-dp-safe",
+        action="store_true",
+        help="Use DP safe version of the model",
+    )
 
     return parser.parse_args()
 
@@ -93,13 +117,14 @@ def main():
     # Load model
     print("Loading model from checkpoint:", args.checkpoint_path)
     model = (
-        LitHAGAN.load_from_checkpoint(
+        get_model_from_checkpoint(
+            model_name=args.model_name,
             checkpoint_path=args.checkpoint_path,
-            map_location=device,
             latent_dim=1024,
-            lambda_1=args.lambdas,
-            lambda_2=args.lambdas,
-            use_dp_safe=True,
+            lambdas=args.lambdas,
+            use_dp_safe=args.use_dp_safe,
+            use_custom_checkpoint=args.use_custom_checkpoint,
+            map_location=device,
         )
         .eval()
         .to(device)
@@ -122,10 +147,8 @@ def main():
                 sample_idx = batch_start + i
                 sample = samples[i, 0]  # Get the first channel
 
-                # Convert to NIfTI and save
-                sample_mri = numpy_to_nifti(sample)
                 output_path = output_dir / f"sample_{sample_idx:04d}.nii.gz"
-                nib.save(sample_mri, str(output_path))
+                save_mri(sample, output_path)
 
     print(f"Successfully generated {args.n_samples} samples in {args.output_dir}")
 
