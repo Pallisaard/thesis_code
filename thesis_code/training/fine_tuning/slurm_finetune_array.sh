@@ -59,7 +59,7 @@ echo "Start time: $(date)"
 # Base command with common parameters
 cmd="python -m thesis_code.training.fine_tuning.finetune \
     --latent-dim 1024 \
-    --data-path ../data/fine-tuning/brain-masked-zerosliced \
+    --data-path ../data/fine-tuning/brain-masked-no-zerosliced \
     --use-all-data-for-training \
     --max-epsilons 2.0 5.0 10.0 \
     --lambdas 5.0 \
