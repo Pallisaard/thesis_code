@@ -91,14 +91,14 @@ class RemoveZeroZSlices(MRITransform):
         super().__init__()
 
     def __call__(self, sample: torch.Tensor) -> torch.Tensor:
-        # Input has shape (C, D, H, W)
+        # Input has shape (C, D, W, H)
         # Check if the sample is 3D
         if sample.dim() != 4:
             raise ValueError("Input sample must be a 3D tensor")
 
-        # Only remove slices along the depth/Z axis (axis 1)
-        mask_depth = (sample != 0).any(dim=(0, 1, 2))
-        sample = sample[:, :, :, mask_depth]
+        # Only remove slices along the height/Z axis (axis 3)
+        mask_height = (sample != 0).any(dim=(0, 1, 2))
+        sample = sample[:, :, :, mask_height]
 
         return sample
 
