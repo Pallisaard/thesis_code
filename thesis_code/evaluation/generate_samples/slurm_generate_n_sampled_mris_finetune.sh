@@ -22,10 +22,10 @@ echo
 
 if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
   echo "HAGAN from authors"
-  python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/pretrain-eval/generated-examples-hagan-from-authors \
+  python -m thesis_code.evaluation.generate_samples.generate_n_sampled_mris --output-dir ../torch-output/finetune-eval/generated-examples-dp-n0.75-c1.0-s-5/epsilon-2 \
     --n-samples 1000 \
     --use-dp-safe \
-    --checkpoint-path ../checkpoints/pretrained/hagan-from-authors.ckpt \
+    --checkpoint-path ../checkpoints/finetuned/generated-examples-dp-n0.75-c1.0-s-5 \
     --lambdas 5 \
     --device auto \
     --batch-size 2 \
