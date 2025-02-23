@@ -48,6 +48,13 @@ def resample_to_talairach(nii):
     return resampled_nii
 
 
+def zero_values_below_threshold(nii, threshold=1e-3):
+    data = nii.get_fdata()
+    data[data < threshold] = 0.0
+    nii = nib.Nifti1Image(data, nii.affine)  # type: ignore
+    return nii
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Reorient a NIfTI file to RAS+ orientation and resample to Talairach space.\n\n"
