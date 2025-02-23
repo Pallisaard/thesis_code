@@ -85,7 +85,7 @@ def process_single_file(nii_file, category_dest_dir, fastsurfer_output_dir):
 
     # We bound any value below 1e-3 to 0.0
     # resampling makes some values slightly below 1e-3, which we round to 0.0
-    resampled_masked_mri = zero_values_below_threshold(resampled_masked_mri)
+    resampled_masked_mri = zero_values_below_threshold(resampled_masked_mri, 1e-3)
 
     # Save the loaded mask to the destination path in .nii.gz format
     nib.save(resampled_masked_mri, str(dest_path))  # type: ignore
