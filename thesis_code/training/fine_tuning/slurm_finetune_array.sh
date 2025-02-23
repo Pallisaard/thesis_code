@@ -66,7 +66,7 @@ cmd="python -m thesis_code.training.fine_tuning.finetune \
     --batch-size 4 \
     --num-workers 14 \
     --device auto \
-    --load-from-checkpoint ../checkpoints/pretrained/hagan-l5-1.ckpt \
+    --load-from-checkpoint ../checkpoints/pretrained/hagan-l5.ckpt \
     --val-every-n-steps 1000 \
     --checkpoint-every-n-steps 2500 \
     --checkpoint-path \"$checkpoint_dir\" \
