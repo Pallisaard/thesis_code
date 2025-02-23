@@ -5,7 +5,7 @@
 #SBATCH --time=05:00:00
 #SBATCH --cpus-per-task=10  # Number of CPUs for each task
 #SBATCH --mem=16G
-#SBATCH --dependency=afterany:5471
+#SBATCH --dependency=afterany:6003
 
 cd ~/projects/thesis/thesis-code
 
