@@ -7,7 +7,11 @@ from functools import partial
 import nibabel as nib
 import numpy as np
 
-from thesis_code.scripts.reorient_nii import reorient_nii_to_ras, resample_to_talairach
+from thesis_code.scripts.reorient_nii import (
+    reorient_nii_to_ras,
+    resample_to_talairach,
+    zero_values_below_threshold,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -79,9 +83,9 @@ def process_single_file(nii_file, category_dest_dir, fastsurfer_output_dir):
     # Resample the reoriented masked mri to Talairach space
     resampled_masked_mri = resample_to_talairach(reoriented_masked_mri)
 
-    # We bound any value below 0.2 to 0.0
-    # resampling makes some values slightly below 0.2, which we round to 0.0
-    resampled_masked_mri[resampled_masked_mri < 1e-3] = 0.0
+    # We bound any value below 1e-3 to 0.0
+    # resampling makes some values slightly below 1e-3, which we round to 0.0
+    resampled_masked_mri = zero_values_below_threshold(resampled_masked_mri)
 
     # Save the loaded mask to the destination path in .nii.gz format
     nib.save(resampled_masked_mri, str(dest_path))  # type: ignore
