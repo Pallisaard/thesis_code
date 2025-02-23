@@ -49,48 +49,45 @@ def apply_mask_to_mri(mask_img, original_mri):
 
 
 def process_single_file(nii_file, category_dest_dir, fastsurfer_output_dir):
-    try:
-        # Extract the filename without extension
-        nii_file_stem = nii_file.stem.replace(".nii", "")
+    # Extract the filename without extension
+    nii_file_stem = nii_file.stem.replace(".nii", "")
 
-        # Construct the path to the mask.mgz file
-        mask_path: Path = fastsurfer_output_dir / nii_file_stem / "mri" / "mask.mgz"
+    # Construct the path to the mask.mgz file
+    mask_path: Path = fastsurfer_output_dir / nii_file_stem / "mri" / "mask.mgz"
 
-        # Construct the destination path
-        dest_path: Path = category_dest_dir / f"{nii_file_stem}_masked.nii.gz"
+    # Construct the destination path
+    dest_path: Path = category_dest_dir / f"{nii_file_stem}_masked.nii.gz"
 
-        if dest_path.exists():
-            return f"Mask already exists: {dest_path}"
+    if dest_path.exists():
+        raise FileExistsError(f"Mask already exists: {dest_path}")
 
-        # Check if the mask file exists
-        if not mask_path.exists():
-            raise FileNotFoundError(f"Mask file not found: {mask_path}")
+    # Check if the mask file exists
+    if not mask_path.exists():
+        raise FileNotFoundError(f"Mask file not found: {mask_path}")
 
-        # Load the mask.mgz file using nibabel
-        mask_img = nib.load(mask_path)  # type: ignore
-        # Load the original T1w mri
-        original_mri = nib.load(nii_file)  # type: ignore
+    # Load the mask.mgz file using nibabel
+    mask_img = nib.load(mask_path)  # type: ignore
+    # Load the original T1w mri
+    original_mri = nib.load(nii_file)  # type: ignore
 
-        # Reorient the mask and mri to RAS+
-        reoriented_mask = reorient_nii_to_ras(mask_img)
-        reoriented_mri = reorient_nii_to_ras(original_mri)
+    # Reorient the mask and mri to RAS+
+    reoriented_mask = reorient_nii_to_ras(mask_img)
+    reoriented_mri = reorient_nii_to_ras(original_mri)
 
-        reoriented_masked_mri = apply_mask_to_mri(reoriented_mask, reoriented_mri)
+    reoriented_masked_mri = apply_mask_to_mri(reoriented_mask, reoriented_mri)
 
-        # Resample the reoriented masked mri to Talairach space
-        resampled_masked_mri = resample_to_talairach(reoriented_masked_mri)
+    # Resample the reoriented masked mri to Talairach space
+    resampled_masked_mri = resample_to_talairach(reoriented_masked_mri)
 
-        # We bound any value below 0.2 to 0.0
-        # resampling makes some values slightly below 0.2, which we round to 0.0
-        resampled_masked_mri[resampled_masked_mri < 1e-3] = 0.0
+    # We bound any value below 0.2 to 0.0
+    # resampling makes some values slightly below 0.2, which we round to 0.0
+    resampled_masked_mri[resampled_masked_mri < 1e-3] = 0.0
 
-        # Save the loaded mask to the destination path in .nii.gz format
-        nib.save(resampled_masked_mri, str(dest_path))  # type: ignore
+    # Save the loaded mask to the destination path in .nii.gz format
+    nib.save(resampled_masked_mri, str(dest_path))  # type: ignore
 
-        print(f"Successfully processed: {nii_file_stem}")
-        return f"Successfully processed: {nii_file_stem}"
-    except Exception as e:
-        return f"Error processing {nii_file}: {str(e)}"
+    print(f"Successfully processed: {nii_file_stem}")
+    return f"Successfully processed: {nii_file_stem}"
 
 
 if __name__ == "__main__":
@@ -136,6 +133,7 @@ if __name__ == "__main__":
         print("Processing category:", category)
         # Create category subdirectory in destination
         category_dest_dir = dest_dir / category
+        print(f"Category destination directory: {category_dest_dir}")
         category_dest_dir.mkdir(parents=True, exist_ok=True)
 
         # Get generator of all .nii files in the source directory
