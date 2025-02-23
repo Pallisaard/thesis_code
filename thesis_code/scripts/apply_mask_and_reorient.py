@@ -1,9 +1,11 @@
 from pathlib import Path
-import nibabel as nib
 import argparse
 from tqdm import tqdm
 import multiprocessing as mp
 from functools import partial
+
+import nibabel as nib
+import numpy as np
 
 from thesis_code.scripts.reorient_nii import reorient_nii_to_ras, resample_to_talairach
 
@@ -76,7 +78,11 @@ def process_single_file(nii_file, category_dest_dir, fastsurfer_output_dir):
         reoriented_masked_mri = apply_mask_to_mri(reoriented_mask, reoriented_mri)
 
         # Resample the reoriented masked mri to Talairach space
-        resampled_masked_mri = resample_to_talairach(reoriented_masked_mri)
+        resampled_masked_mri: np.ndarray = resample_to_talairach(reoriented_masked_mri)
+
+        # We bound any value below 0.2 to 0.0
+        # resampling makes some values slightly below 0.2, which we round to 0.0
+        resampled_masked_mri[resampled_masked_mri < 0.2] = 0.0
 
         # Save the loaded mask to the destination path in .nii.gz format
         nib.save(resampled_masked_mri, str(dest_path))  # type: ignore
