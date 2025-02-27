@@ -58,7 +58,7 @@ run_generation() {
         --output-dir "../torch-output/finetune-eval/${output_dir}/epsilon-${epsilon}" \
         --n-samples 250 \
         --use-dp-safe \
-        --checkpoint-path "../checkpoints/finetuned/${checkpoint_dir}/epsilon-${epsilon}.ckpt" \
+        --checkpoint-path "../checkpoints/finetuned/${checkpoint_dir}/epsilon-${epsilon}.pth" \
         --lambdas 5 \
         --device auto \
         --batch-size 2 \
