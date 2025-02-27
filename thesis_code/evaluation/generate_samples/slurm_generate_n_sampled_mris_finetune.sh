@@ -48,7 +48,7 @@ run_generation() {
         checkpoint_dir="no-dp"
         output_dir="generated-examples-no-dp"
     else
-        checkpoint_dir="n${noise_str}-c${clip_str}-s${delta_exp}"
+        checkpoint_dir="dp-n${noise_str}-c${clip_str}-s${delta_exp}"
         output_dir="generated-examples-dp-${checkpoint_dir}"
     fi
     
