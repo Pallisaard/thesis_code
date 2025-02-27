@@ -94,7 +94,7 @@ def pars_args():
         type=str,
         help="Map location for custom checkpoint",
         choices=["auto", "cpu", "cuda"],
-        default="auto",
+        default="cuda",
     )
 
     return parser.parse_args()
@@ -289,6 +289,7 @@ def main():
             lambdas=args.lambdas,
             use_dp_safe=args.use_dp_safe,
             use_custom_checkpoint=args.use_custom_checkpoint,
+            map_location=args.custom_checkpoint_map_location,
         )
         .eval()
         .to(device)
