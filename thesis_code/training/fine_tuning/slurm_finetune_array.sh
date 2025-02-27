@@ -39,8 +39,8 @@ esac
 
 if [ "$use_dp" = true ]; then
     # Convert parameters to checkpoint path format for DP runs
-    noise_str=$(echo $noise | tr '.' ',')
-    clip_str=$(echo $clip | tr '.' ',')
+    noise_str=$noise
+    clip_str=$clip
     delta=$(echo "10^$delta_exp" | bc -l)
     checkpoint_dir="checkpoints/finetuned/dp-n${noise_str}-c${clip_str}-s${delta_exp}"
     
