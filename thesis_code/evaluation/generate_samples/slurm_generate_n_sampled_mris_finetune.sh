@@ -74,9 +74,9 @@ run_generation() {
 
 # Run generation for each epsilon value if not task 9
 if [ "$SLURM_ARRAY_TASK_ID" -le 8 ]; then
-    run_generation 2
-    run_generation 5
-    run_generation 10
+    run_generation 2.00
+    run_generation 5.00
+    run_generation 10.00
 fi
 
 # Handle test set vectorization if it's task 9
