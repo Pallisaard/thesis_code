@@ -59,8 +59,8 @@ def main():
     pbar = tqdm.tqdm(pairs, desc="Computing pairwise MS-SSIM")
     for file1, file2 in pbar:
         # Load and normalize MRIs
-        mri1 = nib.load(file1).get_fdata()
-        mri2 = nib.load(file2).get_fdata()
+        mri1 = nib.load(file1).get_fdata()  # type: ignore
+        mri2 = nib.load(file2).get_fdata()  # type: ignore
 
         # Convert to tensors
         mri1 = torch.from_numpy(mri1).unsqueeze(0).unsqueeze(0).to(args.device)
@@ -68,7 +68,7 @@ def main():
 
         # Compute MS-SSIM
         score = ms_ssim(mri1, mri2)
-        ms_ssim_scores.append(score.item())
+        ms_ssim_scores.append(score.item())  # type: ignore
 
     # Calculate and print average
     average_ms_ssim = sum(ms_ssim_scores) / len(ms_ssim_scores)
