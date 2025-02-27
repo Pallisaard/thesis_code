@@ -88,6 +88,14 @@ def pars_args():
         action="store_true",
         help="Load custom checkpoint with individual HAGAN components",
     )
+    # One of "auto", "cpu", "cuda"
+    parser.add_argument(
+        "--custom-checkpoint-map-location",
+        type=str,
+        help="Map location for custom checkpoint",
+        choices=["auto", "cpu", "cuda"],
+        default="auto",
+    )
 
     return parser.parse_args()
 
