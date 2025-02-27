@@ -4,7 +4,7 @@
 #SBATCH --error=slurm_generate_n_sampled_mris-%j-%a.err # Name of error file
 #SBATCH --array=1-9%1
 #SBATCH --gres=gpu:l40s:1
-#SBATCH --time=02:00:00
+#SBATCH --time=06:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --mail-type=END    # Mail events (NONE, BEGIN, END, FAIL, ALL)
