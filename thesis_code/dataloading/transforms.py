@@ -139,9 +139,7 @@ class RemovePercentOutliers(MRITransform):
     def __call__(self, sample: torch.Tensor) -> torch.Tensor:
         sample_copy = sample.clone()  # Create a copy of the sample tensor
         bound = torch.quantile(sample_copy, self.percent, keepdim=True)
-        sample_copy[sample_copy > bound] = (
-            bound  # Modify the copy instead of the original
-        )
+        sample_copy[sample_copy > bound] = bound  # Modify the copy instead of the original
         return sample_copy
 
 
@@ -163,9 +161,9 @@ class RangeNormalize(MRITransform):
             # raise ValueError("Input sample has no intensity variation")
 
         # Direct scaling to target range
-        normalized_sample = (self.target_max - self.target_min) * (
-            sample - source_min
-        ) / (source_max - source_min) + self.target_min
+        normalized_sample = (self.target_max - self.target_min) * (sample - source_min) / (
+            source_max - source_min
+        ) + self.target_min
         return normalized_sample
 
 
@@ -180,7 +178,9 @@ def normalize_to_0_1(array: np.ndarray) -> np.ndarray:
     return array
 
 
-def normalize_to(array: np.ndarray, target_min: float, target_max: float) -> np.ndarray:
+def normalize_to(
+    array: np.ndarray, target_min: float, target_max: float, ignore_intensity_variation: bool = False
+) -> np.ndarray:
     min_val = array.min()
     max_val = array.max()
 
@@ -188,10 +188,8 @@ def normalize_to(array: np.ndarray, target_min: float, target_max: float) -> np.
         # Stack arrays along the first dimension such that array.shape[0] == 2
         array = np.concatenate([array, array], axis=0)
 
-    if min_val == max_val:
+    if not ignore_intensity_variation and min_val == max_val:
         raise ValueError("Input array has no intensity variation")
 
-    array = (target_max - target_min) * (array - min_val) / (
-        max_val - min_val
-    ) + target_min
+    array = (target_max - target_min) * (array - min_val) / (max_val - min_val) + target_min
     return array

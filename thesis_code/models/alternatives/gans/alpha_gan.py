@@ -21,17 +21,11 @@ class Discriminator(nn.Module):
         n_class = out_class
 
         self.conv1 = nn.Conv3d(1, channel // 8, kernel_size=4, stride=2, padding=1)
-        self.conv2 = nn.Conv3d(
-            channel // 8, channel // 4, kernel_size=4, stride=2, padding=1
-        )
+        self.conv2 = nn.Conv3d(channel // 8, channel // 4, kernel_size=4, stride=2, padding=1)
         self.bn2 = nn.BatchNorm3d(channel // 4)
-        self.conv3 = nn.Conv3d(
-            channel // 4, channel // 2, kernel_size=4, stride=2, padding=1
-        )
+        self.conv3 = nn.Conv3d(channel // 4, channel // 2, kernel_size=4, stride=2, padding=1)
         self.bn3 = nn.BatchNorm3d(channel // 2)
-        self.conv4 = nn.Conv3d(
-            channel // 2, channel, kernel_size=4, stride=2, padding=1
-        )
+        self.conv4 = nn.Conv3d(channel // 2, channel, kernel_size=4, stride=2, padding=1)
         self.bn4 = nn.BatchNorm3d(channel)
 
         self.conv5 = nn.Conv3d(channel, n_class, kernel_size=4, stride=1, padding=0)
@@ -105,24 +99,16 @@ class Generator(nn.Module):
 
         self.relu = nn.ReLU()
         self.noise = noise
-        self.tp_conv1 = nn.ConvTranspose3d(
-            noise, 512, kernel_size=4, stride=1, padding=0, bias=False
-        )
+        self.tp_conv1 = nn.ConvTranspose3d(noise, 512, kernel_size=4, stride=1, padding=0, bias=False)
         self.bn1 = nn.BatchNorm3d(512)
 
-        self.tp_conv2 = nn.Conv3d(
-            512, 256, kernel_size=3, stride=1, padding=1, bias=False
-        )
+        self.tp_conv2 = nn.Conv3d(512, 256, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2 = nn.BatchNorm3d(256)
 
-        self.tp_conv3 = nn.Conv3d(
-            256, 128, kernel_size=3, stride=1, padding=1, bias=False
-        )
+        self.tp_conv3 = nn.Conv3d(256, 128, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn3 = nn.BatchNorm3d(128)
 
-        self.tp_conv4 = nn.Conv3d(
-            128, 64, kernel_size=3, stride=1, padding=1, bias=False
-        )
+        self.tp_conv4 = nn.Conv3d(128, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn4 = nn.BatchNorm3d(64)
 
         self.tp_conv5 = nn.Conv3d(64, 1, kernel_size=3, stride=1, padding=1, bias=False)
@@ -192,7 +178,7 @@ class LitAlphaGAN(L.LightningModule):
 
         disc_real = self.discriminator(real_data)
         real_labels = torch.ones_like(disc_real)
-        real_loss = F.binary_cross_entropy(disc_real, real_labels)
+        real_loss = self.bce_loss(disc_real, real_labels)
 
         disc_fake = self.discriminator(fake_data)
         fake_labels = torch.zeros_like(disc_fake)
@@ -227,9 +213,8 @@ class LitAlphaGAN(L.LightningModule):
 
         recon_loss = self.l1_loss(real_data, fake_data)
         # Signs are flipped, check docs for BCELoss
-        code_loss = self.bce_loss(code_disc_latent, latent_labels) - self.bce_loss(
-            1 - code_disc_latent, 1 - latent_labels
-        )
+        code_loss = self.bce_loss(code_disc_latent, latent_labels)
+        # - self.bce_loss(1 - code_disc_latent, 1 - latent_labels)
         return recon_loss + code_loss
 
     def generator_loss(self, real_data: Tensor) -> Tensor:
@@ -244,16 +229,14 @@ class LitAlphaGAN(L.LightningModule):
         disc_latent = self.discriminator(latent_data)
         latent_labels = torch.ones_like(disc_latent)
         # Signs are flipped, check docs for BCELoss
-        adv_loss_latent = self.bce_loss(disc_latent, latent_labels) - self.bce_loss(
-            1 - disc_latent, 1 - latent_labels
-        )
+        adv_loss_latent = self.bce_loss(disc_latent, latent_labels)
+        #  - self.bce_loss(1 - disc_latent, 1 - latent_labels)
 
         disc_fake = self.discriminator(fake_data)
         fake_labels = torch.ones_like(disc_fake)
         # Signs are flipped, check docs for BCELoss
-        adv_loss_fake = self.bce_loss(disc_fake, fake_labels) - self.bce_loss(
-            1 - disc_fake, 1 - fake_labels
-        )
+        adv_loss_fake = self.bce_loss(disc_fake, fake_labels)
+        #  - self.bce_loss(1 - disc_fake, 1 - fake_labels)
 
         return self.lambda_recon * recon_loss + adv_loss_latent + adv_loss_fake
 
@@ -325,23 +308,16 @@ class LitAlphaGAN(L.LightningModule):
             log_dir = Path(self.logger.log_dir)  # type: ignore
 
             fake_images = self.sample_n(batch_size)
-            synthetic_example_save_path = (
-                log_dir / f"synthetic_example_{self.current_epoch}.nii.gz"
-            )
+            synthetic_example_save_path = log_dir / f"synthetic_example_{self.current_epoch}.nii.gz"
             save_mri(fake_images, synthetic_example_save_path)
 
             # Save true data
-            true_example_save_path = (
-                log_dir / f"true_example_{self.current_epoch}.nii.gz"
-            )
+            true_example_save_path = log_dir / f"true_example_{self.current_epoch}.nii.gz"
             save_mri(real_data, true_example_save_path)
 
         fake_data = self.generator(self.sample_z(batch_size))
         # Logging accuracy of discriminator with respect to cropped and small images simultaneously
-        d_accuracy = (
-            torch.mean(self.discriminator(real_data))
-            + torch.mean(self.discriminator(fake_data))
-        ) / 2
+        d_accuracy = (torch.mean(self.discriminator(real_data)) + torch.mean(self.discriminator(fake_data))) / 2
 
         # elapsed_time = time.time() - self.start_time
 
@@ -362,16 +338,8 @@ class LitAlphaGAN(L.LightningModule):
 
     def configure_optimizers(self):
         # Separate optimizers for generator, discriminator, and code discriminator
-        opt_g = torch.optim.Adam(
-            self.generator.parameters(), lr=0.0002, betas=(0.5, 0.999)
-        )
-        opt_d = torch.optim.Adam(
-            self.discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999)
-        )
-        opt_c = torch.optim.Adam(
-            self.code_discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999)
-        )
-        opt_e = torch.optim.Adam(
-            self.encoder.parameters(), lr=0.0002, betas=(0.5, 0.999)
-        )
+        opt_g = torch.optim.Adam(self.generator.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        opt_c = torch.optim.Adam(self.code_discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999))
+        opt_e = torch.optim.Adam(self.encoder.parameters(), lr=0.0002, betas=(0.5, 0.999))
         return [opt_g, opt_d, opt_c, opt_e]

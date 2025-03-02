@@ -18,7 +18,7 @@ def numpy_to_nifti(array: np.ndarray) -> nib.Nifti1Image:  # type: ignore
     """
     # Ensure the array is 3D
     if array.ndim != 3:
-        raise ValueError("Input array must be 3D")
+        raise ValueError(f"Input array must be 3D; array has shape {array.shape}")
 
     # Create an identity affine matrix
     affine = np.eye(4)
@@ -38,7 +38,13 @@ def load_nifti(file_path: str | Path) -> torch.Tensor:
     return torch.from_numpy(mri_data)
 
 
-def save_mri(images: torch.Tensor, file_path: Path) -> None:
-    true_array = normalize_to(images[0, 0].cpu().numpy(), -1, 1)
+def save_mri(images: torch.Tensor, file_path: Path, ignore_intensity_variation: bool = False) -> None:
+    true_array = normalize_to(images[0, 0].cpu().numpy(), -1, 1, ignore_intensity_variation)
     true_nii = numpy_to_nifti(true_array)
     nib.save(true_nii, file_path)  # type: ignore
+
+
+def save_mri_batch(images: torch.Tensor, file_path: Path, ignore_intensity_variation: bool = False) -> None:
+    for i in range(images.shape[0]):
+        mri = images[i].unsqueeze(0)
+        save_mri(mri, file_path / f"sample_{i}.nii.gz", ignore_intensity_variation)

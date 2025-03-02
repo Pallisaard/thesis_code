@@ -1,5 +1,5 @@
 import argparse
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 import torch
 from lightning.pytorch.trainer import Trainer
@@ -39,12 +39,8 @@ def parse_args() -> argparse.Namespace:
         ],
         help="Name of the model to train",
     )
-    parser.add_argument(
-        "--latent-dim", type=int, default=1024, help="Dimension of the latent space"
-    )
-    parser.add_argument(
-        "--data-path", type=str, required=True, help="Path to the data directory"
-    )
+    parser.add_argument("--latent-dim", type=int, default=1024, help="Dimension of the latent space")
+    parser.add_argument("--data-path", type=str, required=True, help="Path to the data directory")
     parser.add_argument(
         "--use-all-data-for-training",
         action="store_true",
@@ -54,12 +50,8 @@ def parse_args() -> argparse.Namespace:
     # HAGAN arguments.
     parser.add_argument("--lambdas", type=float, default=1.0, help="Lambdas for HAGAN")
     # Data module arguments.
-    parser.add_argument(
-        "--batch-size", type=int, default=8, help="Batch size for training"
-    )
-    parser.add_argument(
-        "--num-workers", type=int, default=0, help="Number of workers for data loader"
-    )
+    parser.add_argument("--batch-size", type=int, default=8, help="Batch size for training")
+    parser.add_argument("--num-workers", type=int, default=0, help="Number of workers for data loader")
     # Transforms
     parser.add_argument(
         "--transforms",
@@ -195,17 +187,17 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-MODEL_NAME = Literal[
-    "cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan", "wgan_gp", "alpha_gan", "hagan"
-]
+MODEL_NAME = Literal["cicek_3d_vae_64", "cicek_3d_vae_256", "kwon_gan", "wgan_gp", "alpha_gan", "hagan"]
 
 
 def get_model(
     model_name: MODEL_NAME,
     latent_dim: int,
-    checkpoint_path: str | None,
-    args: argparse.Namespace,
+    args: argparse.Namespace | dict[str, Any],
 ) -> L.LightningModule:
+    max_steps = args.get("max_steps", -1) if isinstance(args, dict) else args.max_steps
+    lambdas = args.get("lambdas", 5.0) if isinstance(args, dict) else args.lambdas
+
     if model_name == "cicek_3d_vae_256":
         return LitVAE3D(
             in_shape=(1, 256, 256, 256),
@@ -225,7 +217,7 @@ def get_model(
             latent_dim=latent_dim,
             constant_beta=1.0,
             max_beta=4.0,
-            warmup_epochs=32 * int(args.max_steps * 1 / 2) // 2740,
+            warmup_epochs=32 * int(max_steps * 1 / 2) // 2740,
         )
     elif model_name == "alpha_gan":
         return LitAlphaGAN(latent_dim=latent_dim)
@@ -234,20 +226,20 @@ def get_model(
             latent_dim=latent_dim,
             n_critic_steps=10,
             n_generator_steps=1,
-            gp_weight=50.0,
+            gp_weight=10.0,
         )
     elif model_name == "kwon_gan":
         return LitKwonGan(
             latent_dim=latent_dim,
             n_critic_steps=5,
-            lambda_recon=args.lambdas,
-            lambda_gp=args.lambdas,
+            lambda_recon=lambdas,
+            lambda_gp=lambdas,
         )
     elif model_name == "hagan":
         return LitHAGAN(
             latent_dim=latent_dim,
-            lambda_1=args.lambdas,
-            lambda_2=args.lambdas,
+            lambda_1=lambdas,
+            lambda_2=lambdas,
             use_dp_safe=True,
         )
     else:
@@ -283,9 +275,7 @@ def check_args(args: argparse.Namespace):
     if "resize" in args.transforms and args.resize_size is None:
         raise ValueError("Must provide resize size if using resize transform")
     if "z-normalize" in args.transforms and args.normalize_dir is None:
-        raise ValueError(
-            "Must provide normalization directory if using z-normalize transform"
-        )
+        raise ValueError("Must provide normalization directory if using z-normalize transform")
 
 
 def get_transforms(args: argparse.Namespace) -> Optional[MRITransform]:
@@ -335,7 +325,7 @@ def main():
     )
 
     print("Creating model")
-    model = get_model(args.model_name, args.latent_dim, None, args)
+    model = get_model(args.model_name, args.latent_dim, args)
 
     print("Creating datamodule")
     transform = get_transforms(args)
@@ -367,9 +357,7 @@ def main():
         max_time=args.max_time,
         callbacks=callbacks,
         default_root_dir=args.default_root_dir,
-        check_val_every_n_epoch=10
-        if args.model_name in ("wgan_gp", "cicek_3d_vae_64")
-        else 1,
+        check_val_every_n_epoch=10 if args.model_name in ("wgan_gp", "cicek_3d_vae_64") else 1,
     )
 
     print("Fitting model")

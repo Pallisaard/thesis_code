@@ -66,9 +66,7 @@ class LitKwonGan(L.LightningModule):
     def forward(self, z):
         return self.generator(z)
 
-    def reconstruction_loss(
-        self, real_data: torch.Tensor, recon_data: torch.Tensor
-    ) -> torch.Tensor:
+    def reconstruction_loss(self, real_data: torch.Tensor, recon_data: torch.Tensor) -> torch.Tensor:
         return F.l1_loss(real_data, recon_data)
 
     def generator_loss(
@@ -97,9 +95,9 @@ class LitKwonGan(L.LightningModule):
         recon_code_critic_score = self.code_critic(latent_codes)
         recon_data = self.generator(latent_codes)
 
-        return -torch.mean(
-            recon_code_critic_score
-        ) + self.lambda_recon * self.reconstruction_loss(real_data, recon_data)
+        return -torch.mean(recon_code_critic_score) + self.lambda_recon * self.reconstruction_loss(
+            real_data, recon_data
+        )
 
     def generator_encoder_loss(self, real_data: torch.Tensor):
         batch_size = real_data.size(0)
@@ -156,11 +154,7 @@ class LitKwonGan(L.LightningModule):
 
         gp_loss = calc_gradient_penalty(self.code_critic, random_codes, latent_codes)
 
-        return (
-            torch.mean(fake_code_critic_score)
-            - torch.mean(real_code_critic_score)
-            + self.lambda_gp * gp_loss
-        )
+        return torch.mean(fake_code_critic_score) - torch.mean(real_code_critic_score) + self.lambda_gp * gp_loss
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         # with torch.autograd.set_detect_anomaly(True):
@@ -241,22 +235,16 @@ class LitKwonGan(L.LightningModule):
             log_dir = Path(self.logger.log_dir)  # type: ignore
 
             fake_images = self.sample_n(batch_size)
-            synthetic_example_save_path = (
-                log_dir / f"synthetic_example_{self.current_epoch}.nii.gz"
-            )
+            synthetic_example_save_path = log_dir / f"synthetic_example_{self.current_epoch}.nii.gz"
             save_mri(fake_images, synthetic_example_save_path)
 
             # Save true data
-            true_example_save_path = (
-                log_dir / f"true_example_{self.current_epoch}.nii.gz"
-            )
+            true_example_save_path = log_dir / f"true_example_{self.current_epoch}.nii.gz"
             save_mri(real_data, true_example_save_path)
 
         fake_data = self.generator(self.sample_z(batch_size))
         # Logging accuracy of discriminator with respect to cropped and small images simultaneously
-        d_accuracy = (
-            torch.mean(self.critic(real_data)) + torch.mean(self.critic(fake_data))
-        ) / 2
+        d_accuracy = (torch.mean(self.critic(real_data)) + torch.mean(self.critic(fake_data))) / 2
 
         elapsed_time = time.time() - self.start_time
 
