@@ -34,8 +34,8 @@ case $SLURM_ARRAY_TASK_ID in
 esac
 
 # Convert parameters to checkpoint path format
-noise_str=$(echo $noise | tr '.' ',')
-clip_str=$(echo $clip | tr '.' ',')
+noise_str=$(echo $noise)
+clip_str=$(echo $clip)
 
 # Function to measure diversity for a specific epsilon
 measure_diversity() {
