@@ -10,7 +10,7 @@ def process_parameters(setup):
     results = []
     n_steps = 0
     accountant = RDPAccountant()
-    noise_multiplier = sigma * c
+    noise_multiplier = sigma / c
     sample_rate = 4 / 428  # Moved inside function since it's needed here
     alphas = [1.1, 2, 3, 5, 10, 20, 50, 100, 200, 500, 1000]  # Moved inside function
     STEP_SIZE = 1
@@ -25,9 +25,7 @@ def process_parameters(setup):
         n_steps += STEP_SIZE
 
     results.append((delta, sigma, c, n_steps, epsilon))
-    print(
-        f"Process {os.getpid()}: Delta: {delta}, Sigma: {sigma}, C: {c}, Epsilon: {epsilon}, Steps: {n_steps}"
-    )
+    print(f"Process {os.getpid()}: Delta: {delta}, Sigma: {sigma}, C: {c}, Epsilon: {epsilon}, Steps: {n_steps}")
 
     # Track progress to epsilon = 5
     while epsilon < 5:
@@ -37,9 +35,7 @@ def process_parameters(setup):
         n_steps += STEP_SIZE
 
     results.append((delta, sigma, c, n_steps, epsilon))
-    print(
-        f"Process {os.getpid()}: Delta: {delta}, Sigma: {sigma}, C: {c}, Epsilon: {epsilon}, Steps: {n_steps}"
-    )
+    print(f"Process {os.getpid()}: Delta: {delta}, Sigma: {sigma}, C: {c}, Epsilon: {epsilon}, Steps: {n_steps}")
 
     # Track progress to epsilon = 10
     while epsilon < 10:
@@ -49,9 +45,7 @@ def process_parameters(setup):
         n_steps += STEP_SIZE
 
     results.append((delta, sigma, c, n_steps, epsilon))
-    print(
-        f"Process {os.getpid()}: Delta: {delta}, Sigma: {sigma}, C: {c}, Epsilon: {epsilon}, Steps: {n_steps}"
-    )
+    print(f"Process {os.getpid()}: Delta: {delta}, Sigma: {sigma}, C: {c}, Epsilon: {epsilon}, Steps: {n_steps}")
 
     return results
 
