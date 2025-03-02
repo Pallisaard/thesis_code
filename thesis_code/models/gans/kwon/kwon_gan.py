@@ -9,7 +9,7 @@ from torchmetrics.image import (
     StructuralSimilarityIndexMeasure,
 )
 
-from thesis_code.models.gans.hagan.hagan import save_mri
+from thesis_code.dataloading.utils import save_mri
 from .backbone import CodeDiscriminator, Encoder, Generator, Discriminator
 
 
@@ -236,11 +236,11 @@ class LitKwonGan(L.LightningModule):
 
             fake_images = self.sample_n(batch_size)
             synthetic_example_save_path = log_dir / f"synthetic_example_{self.current_epoch}.nii.gz"
-            save_mri(fake_images, synthetic_example_save_path)
+            save_mri(fake_images, synthetic_example_save_path, ignore_intensity_variation=True)
 
             # Save true data
             true_example_save_path = log_dir / f"true_example_{self.current_epoch}.nii.gz"
-            save_mri(real_data, true_example_save_path)
+            save_mri(real_data, true_example_save_path, ignore_intensity_variation=True)
 
         fake_data = self.generator(self.sample_z(batch_size))
         # Logging accuracy of discriminator with respect to cropped and small images simultaneously
