@@ -48,16 +48,6 @@ class SnLinear(nn.Module):
 def spectral_norm_linear_grad_sampler(
     module: SnLinear, activations_list: list[torch.Tensor], backprops: torch.Tensor
 ) -> Dict[nn.Parameter, torch.Tensor]:
-    """Computes per-sample gradients for SpectralNormLinear with full correction.
-
-    The gradient follows:
-    ∂L/∂W = (1/σ(W)) * [ (backprops ⊗ activations) - (⟨backprops, output⟩ * u v^T) ]
-
-    Args:
-        module: SpectralNormLinear instance containing weight W, and singular vectors u, v
-        activations: Input tensor x of shape (batch_size, in_features)
-        backprops: Gradient tensor dy/dout of shape (batch_size, out_features)
-    """
     activations = activations_list[0]
 
     # Compute spectral norm σ(W) = u^T W v
@@ -164,7 +154,6 @@ class SnConv3d(nn.Module):
 
 
 @register_grad_sampler(SnConv3d)
-@register_grad_sampler(SnConv3d)
 def compute_conv_grad_sample(
     layer: SnConv3d,
     activations_list: List[torch.Tensor],
@@ -212,7 +201,6 @@ def compute_conv_grad_sample(
     grad_sample = torch.einsum("ngrg...->ngr...", grad_sample).contiguous()
     grad_sample = grad_sample.view(n, *layer.weight.shape)
 
-    # --- Correction term ---
     uv_outer = layer.u @ layer.v.T  # (out_channels, in_channels * kernel_size_product)
     uv_outer = uv_outer.view(*layer.weight.shape)  # Reshape to weight shape
     # Inner product ⟨backprops, outputs⟩ per sample
