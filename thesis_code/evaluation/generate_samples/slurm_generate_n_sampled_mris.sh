@@ -2,8 +2,8 @@
 #SBATCH --job-name=generate_n_sampled_mris
 #SBATCH --output=slurm_generate_n_sampled_mris-%j-%a.out # Name of output file
 #SBATCH --error=slurm_generate_n_sampled_mris-%j-%a.err # Name of error file
-#SBATCH --array=3-7%1
-#SBATCH --gres=gpu:a100:1
+#SBATCH --array=4-5%2
+#SBATCH --gres=gpu:l40s:1
 #SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
@@ -31,6 +31,7 @@ if [ $SLURM_ARRAY_TASK_ID -eq 1 ]; then
     --batch-size 2 \
     --from-authors \
     --vectorizer-dim 2048 \
+    --skip-mri-save \
     --model-name hagan || {
     echo "Task 1 failed"
     exit 1
@@ -46,6 +47,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 2 ]; then
     --device auto \
     --batch-size 2 \
     --vectorizer-dim 2048 \
+    --skip-mri-save \
     --model-name hagan || {
     echo "Task 2 failed"
     exit 1
@@ -60,6 +62,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 3 ]; then
     --device auto \
     --batch-size 2 \
     --vectorizer-dim 2048 \
+    --skip-mri-save \
     --model-name wgan_gp || {
     echo "Task 4 failed"
     exit 1
@@ -74,6 +77,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 4 ]; then
     --device auto \
     --batch-size 2 \
     --vectorizer-dim 2048 \
+    --skip-mri-save \
     --model-name alpha_gan || {
     echo "Task 5 failed"
     exit 1
@@ -88,6 +92,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 5 ]; then
     --device auto \
     --batch-size 2 \
     --vectorizer-dim 2048 \
+    --skip-mri-save \
     --model-name kwon_gan || {
     echo "Task 6 failed"
     exit 1
@@ -102,6 +107,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 6 ]; then
     --device auto \
     --batch-size 2 \
     --vectorizer-dim 2048 \
+    --skip-mri-save \
     --model-name cicek_3d_vae_64 || {
     echo "Task 7 failed"
     exit 1
@@ -114,6 +120,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 7 ]; then
     --device 'cuda' \
     --test-size 1000 \
     --make-filename-file \
+    --skip-mri-save \
     --vectorizer-dim 2048 || {
     echo "Task 8 failed"
     exit 1
@@ -126,6 +133,7 @@ elif [ $SLURM_ARRAY_TASK_ID -eq 8 ]; then
     --device 'cuda' \
     --test-size 1000 \
     --make-filename-file \
+    --skip-mri-save \
     --vectorizer-dim 2048 || {
     echo "Task 8 failed"
     exit 1
