@@ -2,8 +2,8 @@
 #SBATCH --job-name=measure_msssim_finetune
 #SBATCH --output=slurm_measure_msssim_finetune-%j-%a.out
 #SBATCH --error=slurm_measure_msssim_finetune-%j-%a.err
-#SBATCH --array=1-8%1
-#SBATCH --gres=gpu:a100:1
+#SBATCH --array=2-8%1
+#SBATCH --gres=gpu:l40s:1
 #SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
@@ -40,27 +40,36 @@ clip_str=$(echo $clip)
 # Function to measure diversity for a specific epsilon
 measure_diversity() {
     local epsilon=$1
-    local input_dir
+    local checkpoint_dir
+    local output_dir
     
     if [ "$SLURM_ARRAY_TASK_ID" -eq 8 ]; then
-        input_dir="generated-examples-no-dp"
+        checkpoint_dir="no-dp"
+        output_dir="generated-examples-no-dp"
     else
-        input_dir="generated-examples-dp-n${noise_str}-c${clip_str}-s${delta_exp}"
+        checkpoint_dir="dp-n${noise_str}-c${clip_str}-s${delta_exp}"
+        output_dir="generated-examples-${checkpoint_dir}"
     fi
     
     echo "Measuring diversity for noise=${noise}, clip=${clip}, delta_exp=${delta_exp}, epsilon=${epsilon}"
     
     python -m thesis_code.evaluation.diversity_measures.measure_diversity_msssim \
-        --input-dir "../torch-output/finetune-eval/${input_dir}/epsilon-${epsilon}" \
+        --checkpoint-path "../checkpoints/finetuned/${checkpoint_dir}/epsilon-${epsilon}.pth" \
         --device cuda \
         --resolution 256 \
-        --output-file "../torch-output/finetune-eval/${input_dir}/epsilon-${epsilon}/msssim_scores.pt" || {
+        --output-file "../torch-output/finetune-eval/${output_dir}/epsilon-${epsilon}/msssim_scores.pt" \
+        --model-name hagan \
+        --n-samples 250 \
+        --use-dp-safe \
+        --lambdas 5 \
+        --use-custom-checkpoint \
+        --custom-checkpoint-map-location cuda || {
         echo "Task n${noise}, c${clip}, s${delta_exp}, epsilon=${epsilon} failed"
         return 1
     }
 }
 
 # Measure diversity for each epsilon value
-measure_diversity 2
-measure_diversity 5
-measure_diversity 10 
+measure_diversity 2.00
+measure_diversity 5.00
+measure_diversity 10.00 

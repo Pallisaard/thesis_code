@@ -49,7 +49,7 @@ run_generation() {
         output_dir="generated-examples-no-dp"
     else
         checkpoint_dir="dp-n${noise_str}-c${clip_str}-s${delta_exp}"
-        output_dir="generated-examples-dp-${checkpoint_dir}"
+        output_dir="generated-examples-${checkpoint_dir}"
     fi
     
     echo "Running with noise=${noise}, clip=${clip}, delta_exp=${delta_exp}, epsilon=${epsilon}"
@@ -65,7 +65,6 @@ run_generation() {
         --from-authors \
         --vectorizer-dim 2048 \
         --model-name hagan \
-        --skip-mri-save \
         --use-custom-checkpoint \
         --custom-checkpoint-map-location cuda || {
         echo "Task n${noise}, c${clip}, s${delta_exp}, epsilon=${epsilon} failed"
