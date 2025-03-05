@@ -5,7 +5,6 @@ import nibabel as nib
 import torch
 import tqdm
 from monai.metrics.regression import MultiScaleSSIMMetric
-import numpy as np
 
 from thesis_code.models import LitKwonGan, LitWGANGP, LitAlphaGAN, LitVAE3D, LitHAGAN
 from thesis_code.models.gans.hagan.backbone.Model_HA_GAN_256 import (
