@@ -62,9 +62,9 @@ run_generation() {
         --lambdas 5 \
         --device auto \
         --batch-size 2 \
-        --from-authors \
         --vectorizer-dim 2048 \
         --model-name hagan \
+        --skip-mri-save \
         --use-custom-checkpoint \
         --custom-checkpoint-map-location cuda || {
         echo "Task n${noise}, c${clip}, s${delta_exp}, epsilon=${epsilon} failed"
