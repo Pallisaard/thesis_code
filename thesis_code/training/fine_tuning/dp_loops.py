@@ -367,6 +367,7 @@ def training_loop_until_epsilon(
     checkpoint_path: str = "dp_training/checkpoints",
     n_accountant_steps: int = 1,
     max_steps: Optional[int] = None,
+    save_mri_example: bool = False,
 ) -> DPState:
     state.training_stats.current_epsilon = state.privacy_accountant.get_epsilon(state.delta, alphas=alphas)
 
@@ -426,6 +427,6 @@ def training_loop_until_epsilon(
     )
     checkpoint_path_full = Path(checkpoint_path) / checkpoint_name
     print(f"Saving final checkpoint: {checkpoint_path_full}")
-    checkpoint_dp_model(models, state, str(checkpoint_path_full))
+    checkpoint_dp_model(models, state, str(checkpoint_path_full), save_mri_example=save_mri_example)
 
     return state

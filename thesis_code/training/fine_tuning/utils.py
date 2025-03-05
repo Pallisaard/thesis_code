@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any, Tuple, Union
 from collections.abc import Callable
 
@@ -6,6 +7,7 @@ import pandas as pd
 import torch
 from lightning import LightningModule
 
+from thesis_code.dataloading.utils import save_mri
 from thesis_code.models.gans import LitHAGAN
 from thesis_code.models.gans.hagan.backbone.Model_HA_GAN_256 import (
     Generator,
@@ -43,7 +45,15 @@ def checkpoint_dp_model(
     models: Union[DPModels, NoDPModels],
     state: DPState,
     checkpoint_path: str,
+    save_mri_example: bool = False,
 ):
+    if save_mri_example:
+        mri_path = Path(checkpoint_path).parent / "mri_example.nii.gz"
+        save_mri(
+            models.G.sample(2),
+            mri_path,
+        )
+
     torch.save(
         {
             "g_state_dict": models.G.state_dict(),
@@ -91,15 +101,11 @@ def load_checkpoint_components(
 
     generator_dict = checkpoint["g_state_dict"]
     discriminator_dict = checkpoint["d_state_dict"]
-    discriminator_dict = tree_key_map(
-        lambda x: x.replace("_module.", ""), discriminator_dict
-    )
+    discriminator_dict = tree_key_map(lambda x: x.replace("_module.", ""), discriminator_dict)
     encoder_dict = checkpoint["e_state_dict"]
     encoder_dict = tree_key_map(lambda x: x.replace("_module.", ""), encoder_dict)
     sub_encoder_dict = checkpoint["sub_e_state_dict"]
-    sub_encoder_dict = tree_key_map(
-        lambda x: x.replace("_module.", ""), sub_encoder_dict
-    )
+    sub_encoder_dict = tree_key_map(lambda x: x.replace("_module.", ""), sub_encoder_dict)
 
     return generator_dict, discriminator_dict, encoder_dict, sub_encoder_dict
 
@@ -112,15 +118,11 @@ def save_dict_as_csv(data_dict: dict[str, Any], csv_file_path: str):
     df.to_csv(csv_file_path, index=False)
 
 
-def convert_models_to_lit(
-    models: DPModels | NoDPModels, state: DPState
-) -> LightningModule:
+def convert_models_to_lit(models: DPModels | NoDPModels, state: DPState) -> LightningModule:
     def fix_state_dict(state_dict):
         return tree_key_map(lambda k: k.replace("_module.", ""), state_dict)
 
-    model = LitHAGAN(
-        latent_dim=state.latent_dim, lambda_1=state.lambdas, lambda_2=state.lambdas
-    )
+    model = LitHAGAN(latent_dim=state.latent_dim, lambda_1=state.lambdas, lambda_2=state.lambdas)
     model.G.load_state_dict(fix_state_dict(models.G.state_dict()))
     model.D.load_state_dict(fix_state_dict(models.D.state_dict()))
     model.E.load_state_dict(fix_state_dict(models.E.state_dict()))

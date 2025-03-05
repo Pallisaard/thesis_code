@@ -61,16 +61,15 @@ cmd="python -m thesis_code.training.fine_tuning.finetune \
     --latent-dim 1024 \
     --data-path ../data/fine-tuning/brain-masked-no-zerosliced \
     --use-all-data-for-training \
-    --max-epsilons 2.0 5.0 10.0 \
+    --max-epsilons 1.0 2.0 2.5 3.0 4.0 5.0 6.0 7.5 10.0 \
     --lambdas 5.0 \
     --batch-size 4 \
     --num-workers 14 \
     --device auto \
     --load-from-checkpoint ../checkpoints/pretrained/hagan-l5.ckpt \
-    --val-every-n-steps 1000 \
-    --checkpoint-every-n-steps 2500 \
     --checkpoint-path \"$checkpoint_dir\" \
-    --alphas 1.1 2 3 5 10 20 50 100 200 500 1000"
+    --alphas 1.1 2 3 5 10 20 50 100 200 500 1000 \
+    --save-mri-example"
 
 if [ "$use_dp" = true ]; then
     # Add DP-specific parameters
