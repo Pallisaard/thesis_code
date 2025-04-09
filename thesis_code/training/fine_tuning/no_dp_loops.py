@@ -49,18 +49,19 @@ def setup_no_dp_training(
     checkpoint_every_n_steps: Optional[int] = None,
     alphas: list[float] = [1.1, 2, 3, 5, 10, 20, 50, 100],
 ) -> Tuple[NoDPModels, NoDPOptimizers, NoDPDataLoaders, DPState, LossFNs]:
-    g_optimizer = optim.Adam(
-        generator.parameters(), lr=lr_g, betas=(0.0, 0.999), eps=1e-8
-    )
-    d_dpoptimizer = optim.Adam(
-        discriminator.parameters(), lr=lr_d, betas=(0.0, 0.999), eps=1e-8
-    )
-    e_dpoptimizer = optim.Adam(
-        encoder.parameters(), lr=lr_e, betas=(0.0, 0.999), eps=1e-8
-    )
-    sub_e_dpoptimizer = optim.Adam(
-        sub_encoder.parameters(), lr=lr_e, betas=(0.0, 0.999), eps=1e-8
-    )
+    g_optimizer = optim.Adam(generator.parameters(), lr=lr_g, betas=(0.0, 0.999), eps=1e-8)
+    d_dpoptimizer = optim.SGD(discriminator.parameters(), lr=lr_d)
+    e_dpoptimizer = optim.SGD(encoder.parameters(), lr=lr_e)
+    sub_e_dpoptimizer = optim.SGD(sub_encoder.parameters(), lr=lr_e)
+    # d_dpoptimizer = optim.Adam(
+    #     discriminator.parameters(), lr=lr_d, betas=(0.0, 0.999), eps=1e-8
+    # )
+    # e_dpoptimizer = optim.Adam(
+    #     encoder.parameters(), lr=lr_e, betas=(0.0, 0.999), eps=1e-8
+    # )
+    # sub_e_dpoptimizer = optim.Adam(
+    #     sub_encoder.parameters(), lr=lr_e, betas=(0.0, 0.999), eps=1e-8
+    # )
     no_dp_optimizers = NoDPOptimizers(
         g_opt=g_optimizer,
         d_opt=d_dpoptimizer,
@@ -69,18 +70,12 @@ def setup_no_dp_training(
     )
 
     # Create the models
-    no_dp_models = NoDPModels(
-        G=generator, D=discriminator, E=encoder, Sub_E=sub_encoder
-    )
+    no_dp_models = NoDPModels(G=generator, D=discriminator, E=encoder, Sub_E=sub_encoder)
 
     sample_rate = batch_size / len(train_dataset)
 
-    train_dataloader = DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers
-    )
-    val_dataloader = DataLoader(
-        val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers
-    )
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     no_dp_dataloaders = NoDPDataLoaders(train=train_dataloader, val=val_dataloader)
 
     accountant = RDPAccountant()
@@ -204,9 +199,7 @@ def no_dp_training_step(
     state.training_stats.train_metrics.g_loss.append(g_loss_metric)
     state.training_stats.train_metrics.e_loss.append(e_loss_metric)
     state.training_stats.train_metrics.sub_e_loss.append(sub_e_loss_metric)
-    total_loss_metric = (
-        d_loss_metric + g_loss_metric + e_loss_metric + sub_e_loss_metric
-    )
+    total_loss_metric = d_loss_metric + g_loss_metric + e_loss_metric + sub_e_loss_metric
     state.training_stats.train_metrics.total_loss.append(total_loss_metric)
 
     state.privacy_accountant.step(
@@ -297,28 +290,17 @@ def no_dp_validation_step(
     state.training_stats.val_metrics.e_loss.append(val_e_loss_metric)
     state.training_stats.val_metrics.d_loss.append(val_d_loss_metric)
     state.training_stats.val_metrics.sub_e_loss.append(val_sub_e_loss_metric)
-    val_total_loss_metric = (
-        val_d_loss_metric
-        + val_g_loss_metric
-        + val_e_loss_metric
-        + val_sub_e_loss_metric
-    )
+    val_total_loss_metric = val_d_loss_metric + val_g_loss_metric + val_e_loss_metric + val_sub_e_loss_metric
     state.training_stats.val_metrics.total_loss.append(val_total_loss_metric)
 
     if save_mris:
         # Save a sample of the generated images
-        true_example_save_path = (
-            state.training_stats.log_dir
-            / f"true_example_{state.training_stats.step}.nii.gz"
-        )
+        true_example_save_path = state.training_stats.log_dir / f"true_example_{state.training_stats.step}.nii.gz"
         save_mri(real_images, true_example_save_path)
 
         # Save a sample of the generated images
         fake_images = generator.sample(2).to(state.device)
-        fake_example_save_path = (
-            state.training_stats.log_dir
-            / f"fake_example_{state.training_stats.step}.nii.gz"
-        )
+        fake_example_save_path = state.training_stats.log_dir / f"fake_example_{state.training_stats.step}.nii.gz"
         save_mri(fake_images, fake_example_save_path)
 
     return state
@@ -381,10 +363,7 @@ def no_dp_training_loop_for_n_steps(
                         save_mris=i == 0,
                     )
 
-            if (
-                checkpoint_every_n_steps is not None
-                and step % checkpoint_every_n_steps == 0
-            ):
+            if checkpoint_every_n_steps is not None and step % checkpoint_every_n_steps == 0:
                 checkpoint_dp_model(
                     models,
                     state,
@@ -416,9 +395,7 @@ def training_loop_until_epsilon(
     n_accountant_steps: int = 1,
     max_steps: Optional[int] = None,
 ) -> DPState:
-    state.training_stats.current_epsilon = state.privacy_accountant.get_epsilon(
-        state.delta, alphas=alphas
-    )
+    state.training_stats.current_epsilon = state.privacy_accountant.get_epsilon(state.delta, alphas=alphas)
 
     data_iter = iter(dataloaders.train)
     # steps_since_last_check = 0
@@ -427,9 +404,7 @@ def training_loop_until_epsilon(
         while state.training_stats.current_epsilon < max_epsilon:
             # Check if we've hit max steps
             if max_steps is not None and state.training_stats.step >= max_steps:
-                print(
-                    f"\nReached maximum total steps ({max_steps}). Stopping training."
-                )
+                print(f"\nReached maximum total steps ({max_steps}). Stopping training.")
                 checkpoint_name = f"no_dp_model_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.step}_max_steps_reached.pth"
                 checkpoint_path_full = Path(checkpoint_path) / checkpoint_name
                 print(f"Saving final checkpoint: {checkpoint_path_full}")
@@ -463,13 +438,13 @@ def training_loop_until_epsilon(
                         save_mris=i == 0,  # Only save MRIs for first batch
                     )
 
-            pbar.set_postfix_str(
-                f"Current epsilon: {state.training_stats.current_epsilon}"
-            )
+            pbar.set_postfix_str(f"Current epsilon: {state.training_stats.current_epsilon}")
             pbar.update(1)
 
     # Save checkpoint at final epsilon
-    checkpoint_name = f"no_dp_model_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.step}.pth"
+    checkpoint_name = (
+        f"no_dp_model_epsilon={state.training_stats.current_epsilon:.2f}_steps={state.training_stats.step}.pth"
+    )
     checkpoint_path_full = Path(checkpoint_path) / checkpoint_name
     print(f"Saving final checkpoint: {checkpoint_path_full}")
     checkpoint_dp_model(models, state, str(checkpoint_path_full))
