@@ -2,7 +2,7 @@
 #SBATCH --job-name=measure_msssim_finetune
 #SBATCH --output=slurm_measure_msssim_finetune-%j-%a.out
 #SBATCH --error=slurm_measure_msssim_finetune-%j-%a.err
-#SBATCH --array=2-8%1
+#SBATCH --array=9-9%1
 #SBATCH --gres=gpu:l40s:1
 #SBATCH --time=02:00:00
 #SBATCH --cpus-per-task=4
@@ -30,6 +30,7 @@ case $SLURM_ARRAY_TASK_ID in
     6) noise=1.0;  clip=0.75; delta_exp=-5 ;; # lower clip
     7) noise=1.0;  clip=1.5;  delta_exp=-5 ;; # higher clip
     8) noise=1.0;  clip=1.0;  delta_exp=-5 ;; # no dp
+    9) noise=1.0;  clip=1.0;  delta_exp=-5 ;; # no dp sgd
     *) echo "Invalid job ID"; exit 1 ;;
 esac
 
@@ -46,6 +47,9 @@ measure_diversity() {
     if [ "$SLURM_ARRAY_TASK_ID" -eq 8 ]; then
         checkpoint_dir="no-dp"
         output_dir="generated-examples-no-dp"
+    elif [ "$SLURM_ARRAY_TASK_ID" -eq 9 ]; then
+        checkpoint_dir="no-dp-sgd"
+        output_dir="generated-examples-no-dp-sgd"
     else
         checkpoint_dir="dp-n${noise_str}-c${clip_str}-s${delta_exp}"
         output_dir="generated-examples-${checkpoint_dir}"

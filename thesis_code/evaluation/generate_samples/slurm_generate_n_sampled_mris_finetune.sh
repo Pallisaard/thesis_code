@@ -2,7 +2,7 @@
 #SBATCH --job-name=generate_n_sampled_mris
 #SBATCH --output=slurm_generate_n_sampled_mris-%j-%a.out # Name of output file
 #SBATCH --error=slurm_generate_n_sampled_mris-%j-%a.err # Name of error file
-#SBATCH --array=2-9%1
+#SBATCH --array=9-9%1
 #SBATCH --gres=gpu:l40s:1
 #SBATCH --time=06:00:00
 #SBATCH --cpus-per-task=4
@@ -31,6 +31,7 @@ case $SLURM_ARRAY_TASK_ID in
     7) noise=1.0;  clip=1.5;  delta_exp=-5 ;; # higher clip
     8) noise=1.0;  clip=1.0;  delta_exp=-5 ;; # no dp
     9) echo "Vectorizing test dataset"; ;; # test set vectorization
+    10) noise=1.0;  clip=1.0;  delta_exp=-5 ;; # no dp sgd
     *) echo "Invalid job ID"; exit 1 ;;
 esac
 
@@ -47,6 +48,9 @@ run_generation() {
     if [ "$SLURM_ARRAY_TASK_ID" -eq 8 ]; then
         checkpoint_dir="no-dp"
         output_dir="generated-examples-no-dp"
+    elif [ "$SLURM_ARRAY_TASK_ID" -eq 10 ]; then
+        checkpoint_dir="no-dp-sgd"
+        output_dir="generated-examples-no-dp-sgd"
     else
         checkpoint_dir="dp-n${noise_str}-c${clip_str}-s${delta_exp}"
         output_dir="generated-examples-${checkpoint_dir}"
@@ -74,6 +78,10 @@ run_generation() {
 
 # Run generation for each epsilon value if not task 9
 if [ "$SLURM_ARRAY_TASK_ID" -le 8 ]; then
+    run_generation 2.00
+    run_generation 5.00
+    run_generation 10.00
+elif [ "$SLURM_ARRAY_TASK_ID" -eq 10 ]; then
     run_generation 2.00
     run_generation 5.00
     run_generation 10.00
