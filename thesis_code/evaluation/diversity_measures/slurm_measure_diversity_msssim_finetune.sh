@@ -66,12 +66,14 @@ measure_diversity() {
         --n-samples 250 \
         --use-dp-safe \
         --lambdas 5 \
-        --use-custom-checkpoint \
-        --custom-checkpoint-map-location cuda || {
+        --use-custom-checkpoint || {
         echo "Task n${noise}, c${clip}, s${delta_exp}, epsilon=${epsilon} failed"
         return 1
     }
 }
+
+# \
+# --custom-checkpoint-map-location cuda
 
 # Measure diversity for each epsilon value
 measure_diversity 2.00
